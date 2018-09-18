@@ -2,11 +2,13 @@
 
 #include "common.hpp"
 #include <string>
+#include <fstream>
 #include "interpreter.hpp"
 #include "ast.hpp"
 
 #define TOKEN_KINDS \
     TOKEN_KIND(Error, "error") \
+	TOKEN_KIND(None, "none") \
     TOKEN_KIND(Comment, "Comment") \
     TOKEN_KIND(Eof, "EOF") \
     TOKEN_KIND(IntLiteral, "integer literal") \
@@ -25,7 +27,9 @@
     TOKEN_KIND(Comma, ",") \
     TOKEN_KIND(Colon, ":") \
     TOKEN_KIND(Semicolon, ";") \
+    TOKEN_KIND(ColonEqual, ":=") \
     TOKEN_KIND(ColonColon, "::") \
+    TOKEN_KIND(MinusGreater, "->") \
     TOKEN_KIND(Dollar, "$") \
     TOKEN_KIND(At, "@") \
     TOKEN_KIND(Arrow, "->") \
@@ -114,15 +118,18 @@ namespace mist {
 
         ~Token();
 
-        inline const std::string& get_string() { return Token::get_string(kind); }
+        inline const std::string& get_string() { return Token::get_string(tokenKind); }
 
         static const std::string& get_string(TokenKind kind);
+        static TokenKind keyword(const std::string& str);
 		
-		TokenKind kind();
-		const Pos& pos();
+		inline TokenKind kind() { return tokenKind; }
+		inline const Pos& pos() { return position; }
 
         TokenKind tokenKind;
 		Pos position;
+
+		friend std::ostream& operator<< (std::ostream& out, const Token& t);
     
         std::string str;
 //		enum {

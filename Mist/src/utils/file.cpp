@@ -25,7 +25,9 @@ namespace io {
         this->path = path.substr(0, index + 1);
     }
 
-    bool File::load() {
+    bool File::load(bool force) {
+		if (loaded && !force) return true;
+
         std::fstream ff(fullpath());
         if(!ff) return false;
 

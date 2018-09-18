@@ -1,4 +1,6 @@
-#include "interpreter.hpp"
+#include "interpreter.hpp" 
+
+#include "frontend/parser/scanner.hpp"
 #include <iostream>
 
 #include <windows.h>
@@ -77,10 +79,21 @@ namespace mist {
 
     void Interpreter::compile_root() {
         auto root = context.root();
+
+        Scanner* scanner = get_scanner();
+        auto tokens = scanner->tokenize(root);
+        for(auto& t : tokens)
+            std::cout << t << std::endl;
     }
 
 
     String* Interpreter::find_string(const std::string& str) {
         return context.find_or_create_string(str);
+    }
+
+    Scanner* Interpreter::get_scanner() {
+        auto scanner = new Scanner(this);
+        scanners.push_back(scanner);
+        return scanner;
     }
 }

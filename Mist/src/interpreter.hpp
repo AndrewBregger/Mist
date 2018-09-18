@@ -9,6 +9,7 @@
 
 
 namespace mist {
+	class Scanner;
 
     struct String {
         std::string val; 
@@ -56,8 +57,12 @@ namespace mist {
 
             String* find_string(const std::string& str);
 
+            Scanner* get_scanner();
+
 		private:
 			Context context;
+            std::vector<Scanner*> scanners;
+            // std::vector<Parser*> parsers;
 	};
 }
 

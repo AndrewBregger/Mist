@@ -9,7 +9,7 @@ namespace io {
     public:
         File(const std::string& path);
 
-        bool load();
+        bool load(bool force = false);
 
         std::string extention();
         std::string fullpath();
