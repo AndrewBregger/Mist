@@ -1,31 +1,15 @@
-:
-::
-:=
-->
-+
-+=
-*
-**
-^
-this_is_ident
-)
-(
-{
+
+foo := (x: i32, y: f32) -> f32 {
+    y * x as i32
 }
-,
-..
-if
-while
-where
-_this_is_also345_an_ident
-following_is_a_number
-1
-1.0
-0.12345e-5
-0b0010
-0B0101
-0xFF
-0xff
-"this is a string"
-"this is a string with escape characters\thello"
-'\"'
+
+foo :: x: i32, y: f32 -> f32 {
+}
+
+foo(1, 2.0);
+foo(1)(2.0); // this would be valid syntax
+
+// the desugarer will translate it to
+foo(1, 2.0);
+
+// this is how we will be a valid error check for the arity.

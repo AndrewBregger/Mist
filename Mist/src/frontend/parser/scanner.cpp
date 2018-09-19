@@ -6,7 +6,6 @@
 namespace mist {
     Scanner::Scanner(Interpreter* interp) : interp(interp) {}
 
-
     Scanner::~Scanner() = default;
 
     std::vector<Token> Scanner::tokenize(io::File* file) {
@@ -22,7 +21,6 @@ namespace mist {
 
 		while (true) {
 			Token token = next_token();
-            std::cout << token << std::endl;
 			tokens.push_back(token);
 			if(token.kind() == Tkn_Eof || token.kind() == Tkn_Error)
 				break;
@@ -337,6 +335,7 @@ namespace mist {
                 break;
             default:
                 temp = *currentCh;
+                bump();
         }
 		if(check('\''))
 			bump();
@@ -349,16 +348,17 @@ namespace mist {
     }
 
     Token Scanner::scan_string() {
-        std::string temp = "";
 		char ch;
+        std::string temp;
         while(currentCh and !check('"')) {
             if(check('\\'))
                 ch = validate_escape();
-            else
+            else {
                 ch = *currentCh;
+                bump();
+            }
     
             temp.push_back(ch);
-            bump();
 
 			if (!currentCh)
 				std::cout << "String current character is null" << std::endl;
@@ -367,13 +367,13 @@ namespace mist {
 		// this is fine, Visual Studio is not detecting the constructors generated from a Macro.
         return Token(temp, savePos);
     }
-
+    
+    /// @TODO: implement scanning for block comments and embedded block comments.
     Token Scanner::scan_comment() {
-		// the actual start is the previous character;
-        
-        std::string temp;
+        // consume the next forward slash
 		bump();
-		while (check('\n')) {
+        std::string temp;
+		while (!check('\n')) {
 			temp.push_back(*currentCh);
 			bump();
 		}
@@ -386,8 +386,9 @@ namespace mist {
     }
 
     char Scanner::validate_escape() {
-        bump();
-        auto ch = *currentCh;
+        bump();               // consumes the the the forward slash
+        auto ch = *currentCh; // gets the character following the forward slash.
+		bump();               // consumes it.
         switch(ch) {
             case 'a':
                 return 0x07;

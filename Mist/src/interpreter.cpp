@@ -3,7 +3,9 @@
 #include "frontend/parser/scanner.hpp"
 #include <iostream>
 
-#include <windows.h>
+#ifdef _WIN32
+    #include <windows.h>
+#endif
 
 const u32 BUFFER_SIZE = 128; // if it larger then 128 for now then there is problem
 
@@ -23,13 +25,20 @@ namespace mist {
     io::File* Context::load_file(const std::string& filename) {
         char tmpBuffer[BUFFER_SIZE];
 		char** ttBuffer = nullptr;
+        int res = 0;
 
-        auto res = GetFullPathNameA(
+#ifdef _WIN32
+        res = GetFullPathNameA(
                 filename.c_str(),
                 BUFFER_SIZE, // find a way to get the length the path.
                 tmpBuffer, 
                 ttBuffer
             );
+#else
+        char* t = realpath(filename.c_str(), tmpBuffer);
+        if(t)
+            res = 1;
+#endif
         
         if(!res)
             return nullptr;
