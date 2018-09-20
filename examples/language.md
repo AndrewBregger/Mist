@@ -1,69 +1,81 @@
+# Mist Language Motivation and Semantics
+
+## Motivation
 Exploring the idea of developing a system level, data/object oriented language with a
 strict type system (similar to Rust. Rust's type system is inspired by Haskell).
-There will also be an symantic where everything is constant by default. There will only
+There will also be an semantic where everything is constant by default. There will only
 be a mutable state when stated explicitly.
-    This will use the 'mut' keyword.
+This will use the 'mut' keyword.
 
-    This has the implication that I can make structure/classes as
-    constant. This would mean that classes and structures declared as this type
-    would always be constant and cannot be casted to negate it. If I do this,
-    would this be the default semantic or would it need to be specified?
+This has the implication that I can make structure/classes as
+constant. This would mean that classes and structures declared as this type
+would always be constant and cannot be casted to negate it. If I do this,
+would this be the default semantic or would it need to be specified?
 
-    mut struct Foo { <fields> }
+mut struct Foo { <fields> }
 
-    this would be const
-    struct Foo { <fields> }
+this would be const
+struct Foo { <fields> }
 
-                or
+            or
 
-    const struct Foo { <fields> }
+const struct Foo { <fields> }
 
-    this would be mutable
-    struct Foo { <fields> }
+this would be mutable
 
-    To reiterate, if a structure is defined to be constant, every instance of it will be
-    constant.
+```code
+struct Foo { <fields> }
+```
 
-    Foo foo; // this will give an error, because it needs to be initialized with a value.
-    Foo foo = {...}; // this will be fine; however, the values set at initializion will be the only values.
-                     // the methods for this structures will only allow constant operations of the object, however,
-                     // it should define methods for tranforming the object into new version by creating new objects.
-                     // This idea stems from functional langauges where everything is constant and there is no mutable state.
+To reiterate, if a structure is defined to be constant, every instance of it will be
+constant.
 
-    NOTE: syntax above is not actual syntax, is it for demonstration purposes.
+Foo foo; // this will give an error, because it needs to be initialized with a value.
+Foo foo = {...}; // this will be fine; however, the values set at initializion will be the only values.
+                 // the methods for this structures will only allow constant operations of the object, however,
+                 // it should define methods for tranforming the object into new version by creating new objects.
+                 // This idea stems from functional langauges where everything is constant and there is no mutable state.
+
+NOTE: syntax above is not actual syntax, is it for demonstration purposes.
 
 
-    Actual Syntax:
+Actual Syntax:
 
-    Foo :: const struct {
-    }
+```code
+Foo :: const struct {
+}
 
-    Foo :: struct {
-    }
+Foo :: struct {
+}
 
-    Vector :: struct[T, N] {
-        data [N]T
-    } where T = Integral, N = i32 derive Read, Show, Debug, Index
-    // Integral would be defined as a type class
+Vector :: struct[T, N] {
+    data [N]T
+} where T = Integral, N = i32 derive Read, Show, Debug, Index
+// Integral would be defined as a type class
 
-    Array :: struct[T, Alloc] {
-        data *T,
-        size i32,
-        alloc Alloc
-    } where T = Default
-      derive Debug, Show, Iterator, Index
+Array :: struct[T, Alloc] {
+    data *T,
+    size i32,
+    alloc Alloc
+} where T = Default
+  derive Debug, Show, Iterator, Index
+```
+
+## Object Oriented Paradigm
 
 Aside on object oriented paradigm, I am now thinking this language could be an optional object oriented lanague. this
 Means that by a compiler flag or maybe it is always on, structs can 'inherit' from other structs. This will have limited oo features. The primary
 oo features will come from type classes, which will allow for an expected set of data and methods. I am debating letting only
 a single layer of inheritance amongst structs however, allow type classes to depend on other type classes (semi multi inheritance)
 
+```code
 Readable :?= trait | class | ... {
     <local_or_function_declaration>
 }
+```
 
 --or--
-
+```
 Readable :: trait | class | ...[<template-parameters>] (derive <name-list>)? {
     <local_or_function_declaration>
 } (derive <name-list>)?
@@ -84,9 +96,10 @@ function-attribute = pure | inline | <foriegn-function>
 //          foriegn library symbol, function name in library
 foriegn-fuction = foriegn <id> <string>
 
-build it data types:
+## Build in data types:
 [8-64] = 8, 16, 32, 64
 
+```
 i[8-64],
 u[8-64],
 f32,
@@ -94,41 +107,49 @@ f64,
 string,
 byte,
 atom // ? this would map to a unicode code point, it could default to u8 and a compiler flag should set it to u16 or u32
-static array,
-dynamic array,
+static array, // I have not determined the notation appropriate for this.
+dynamic array, // I am wondering if this should be a language defined or library defined that is global.
 hash maps // there will be a collections library that will have the other major data structurs (queue, maps, stack, priority queue)
-tuples,
-null,
-pointers,
-<> // unit
+tuples, // (T0, T1, ...TN)
+null, // this could be of type Null<T> where T is the type being assigned too and Null represents nothing for every type T.
+pointers, // *T, pointer to T
+<> // unit 
+```
 
-User defined data type:
+## User defined data type:
 
 enum and struct, and of course alias
 
+```
 <id> :: enum | struct [<template-params>] {
 
 } <modifiers>
-
+```
 modifier = where <where-item> | derive <derive-item>
 
-operator overloading:
+### Operator Overloading:
 
 Operators can be overloaded; however, they must comply with the expected arity. IE. + is a binary operator so it will expect
 an arity of 2, while - has an arity of 1 or 2 depending on usage. If there are more than expected then it will be an error.
 
+```
 <op|op-pair> :: (...) -> Ret {
 
 }
 
 op-pair == [] | ()
+```
+
+## Function applications
 
 A resent idea that comes from Haskell is the ability to build new function from applying some of
 the parameters to the function. This will be defined as returning a new function that is of less arity 
 then the applied function. I have not thought about how this can be applied to methods. For now it will
 only be applied to pure functions.
 
+```
 foo :: (x: i32, y: f32) -> f32 { ... } // this has type i32 -> f32 -> f32 || (i32, f32) -> f32
+```
 
 if the following funciton:
 
@@ -139,7 +160,9 @@ The resulting type is f32 -> f32 || (f32) -> f32
 
 I am considering allowing:
 
+```
 foo(y = 2.0);
+```
 
 This will construct a different type: i32 -> f32 || (i32) -> f32
 This will know that the f32 parameter is being bound and construct a different
