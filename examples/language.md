@@ -12,20 +12,18 @@ constant. This would mean that classes and structures declared as this type
 would always be constant and cannot be casted to negate it. If I do this,
 would this be the default semantic or would it need to be specified?
 
-mut struct Foo { <fields> }
+     mut struct Foo { <fields> }
 
 this would be const
-struct Foo { <fields> }
-
-            or
-
-const struct Foo { <fields> }
+    struct Foo { <fields> }
+or
+    const struct Foo { <fields> }
 
 this would be mutable
 
-```code
-struct Foo { <fields> }
-```
+
+    struct Foo { <fields> }
+
 
 To reiterate, if a structure is defined to be constant, every instance of it will be
 constant.
@@ -41,25 +39,24 @@ NOTE: syntax above is not actual syntax, is it for demonstration purposes.
 
 Actual Syntax:
 
-```code
-Foo :: const struct {
-}
+    Foo :: const struct {
+    }
 
-Foo :: struct {
-}
+    Foo :: struct {
+    }
 
-Vector :: struct[T, N] {
-    data [N]T
-} where T = Integral, N = i32 derive Read, Show, Debug, Index
-// Integral would be defined as a type class
+    Vector :: struct[T, N] {
+        data: [N]T
+    } where T = Integral, N = i32 derive Read, Show, Debug, Index
+    // Integral would be defined as a type class
 
-Array :: struct[T, Alloc] {
-    data *T,
-    size i32,
-    alloc Alloc
-} where T = Default
-  derive Debug, Show, Iterator, Index
-```
+    Array :: struct[T, Alloc = Context.DefaultAlloc] {
+        data: *T,
+        size: i32,
+        alloc: Alloc
+    } where T = Default
+      derive Debug, Show, Iterator, Index
+
 
 ## Object Oriented Paradigm
 
@@ -68,17 +65,16 @@ Means that by a compiler flag or maybe it is always on, structs can 'inherit' fr
 oo features will come from type classes, which will allow for an expected set of data and methods. I am debating letting only
 a single layer of inheritance amongst structs however, allow type classes to depend on other type classes (semi multi inheritance)
 
-```code
-Readable :?= trait | class | ... {
-    <local_or_function_declaration>
-}
-```
+
+    Readable :?= trait | class | ... {
+        <local_or_function_declaration>
+    }
 
 --or--
-```
-Readable :: trait | class | ...[<template-parameters>] (derive <name-list>)? {
-    <local_or_function_declaration>
-} (derive <name-list>)?
+
+    Readable :: trait | class | ...[<template-parameters>] (derive <name-list>)? {
+        <local_or_function_declaration>
+    } (derive <name-list>)?
 
 Function is this language will be implicitly pure depending on how it is used and the functions that are used in the body.
 This will be done at compile time. A function can be marked as pure if it is intended for it to be, the compiler will then
@@ -86,59 +82,58 @@ check if all of the expression adhere to this constrait.
 
 function syntax:
 
-name :: <function-attribute-list> (a A, b B = default) -> (c C) {
-}
+    name :: <function-attribute-list> (a A, b B = default) -> (c C) {
+    }
 
-function-attribute-list = <function-attribute>, <function-attribute-list> | <function-attribute>
+    function-attribute-list = <function-attribute>, <function-attribute-list> | <function-attribute>
 
-function-attribute = pure | inline | <foriegn-function>
+    function-attribute = pure | inline | <foriegn-function>
 
-//          foriegn library symbol, function name in library
-foriegn-fuction = foriegn <id> <string>
+    //          foriegn library symbol, function name in library
+    foriegn-fuction = foriegn <id> <string>
 
 ## Build in data types:
-[8-64] = 8, 16, 32, 64
+    [8-64] = 8, 16, 32, 64
 
-```
-i[8-64],
-u[8-64],
-f32,
-f64,
-string,
-byte,
-atom // ? this would map to a unicode code point, it could default to u8 and a compiler flag should set it to u16 or u32
-static array, // I have not determined the notation appropriate for this.
-dynamic array, // I am wondering if this should be a language defined or library defined that is global.
-hash maps // there will be a collections library that will have the other major data structurs (queue, maps, stack, priority queue)
-tuples, // (T0, T1, ...TN)
-null, // this could be of type Null<T> where T is the type being assigned too and Null represents nothing for every type T.
-pointers, // *T, pointer to T
-<> // unit 
-```
+
+    i[8-64],
+    u[8-64],
+    f32,
+    f64,
+    string,
+    byte,
+    atom // ? this would map to a unicode code point, it could default to u8 and a compiler flag should set it to u16 or u32
+    static array, // I have not determined the notation appropriate for this.
+    dynamic array, // I am wondering if this should be a language defined or library defined that is global.
+    hash maps // there will be a collections library that will have the other major data structurs (queue, maps, stack, priority queue)
+    tuples, // (T0, T1, ...TN)
+    null, // this could be of type Null<T> where T is the type being assigned too and Null represents nothing for every type T.
+    pointers, // *T, pointer to T
+    <> // unit 
+
 
 ## User defined data type:
 
 enum and struct, and of course alias
 
-```
-<id> :: enum | struct [<template-params>] {
+    <id> :: enum | struct [<template-params>] {
 
-} <modifiers>
-```
-modifier = where <where-item> | derive <derive-item>
+    } <modifiers>
+
+    modifier = where <where-item> | derive <derive-item>
 
 ### Operator Overloading:
 
 Operators can be overloaded; however, they must comply with the expected arity. IE. + is a binary operator so it will expect
 an arity of 2, while - has an arity of 1 or 2 depending on usage. If there are more than expected then it will be an error.
 
-```
-<op|op-pair> :: (...) -> Ret {
 
-}
+    <op|op-pair> :: (...) -> Ret {
 
-op-pair == [] | ()
-```
+    }
+
+    op-pair == [] | ()
+
 
 ## Function applications
 
@@ -147,22 +142,20 @@ the parameters to the function. This will be defined as returning a new function
 then the applied function. I have not thought about how this can be applied to methods. For now it will
 only be applied to pure functions.
 
-```
-foo :: (x: i32, y: f32) -> f32 { ... } // this has type i32 -> f32 -> f32 || (i32, f32) -> f32
-```
+
+    foo :: (x: i32, y: f32) -> f32 { ... } // this has type i32 -> f32 -> f32 || (i32, f32) -> f32
+
 
 if the following funciton:
 
-foo(1);
+    foo(1);
 
 is applied then the result is a new function.
 The resulting type is f32 -> f32 || (f32) -> f32
 
 I am considering allowing:
 
-```
-foo(y = 2.0);
-```
+    foo(y = 2.0);
 
 This will construct a different type: i32 -> f32 || (i32) -> f32
 This will know that the f32 parameter is being bound and construct a different
@@ -170,5 +163,29 @@ function with the appropriate function bound.
 
 I am wondering if this needs to have a different syntax to make it clear.
 
-Keywords:
-if, else, use, while, for, loop, continue, break, return, yeild?, where, derive, enum, struct, foriegn, pure, inline, type
+## Keywords:
+* if
+* else
+* use
+* while
+* for
+* loop
+* continue
+* break
+* return
+* yeild?
+* where
+* derive
+* enum
+* struct
+* foriegn
+* pure
+* inline
+* type
+* pub
+* mut
+
+# Language Semantics
+
+## Variable Declarations
+
