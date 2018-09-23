@@ -16,6 +16,7 @@
     TOKEN_KIND(StringLiteral, "string literal") \
     TOKEN_KIND(CharLiteral, "character literal") \
     TOKEN_KIND(Identifier, "identifier") \
+	TOKEN_KIND(NewLine, "newline") \
     TOKEN_KIND(OpenParen, "(") \
     TOKEN_KIND(CloseParen, ")") \
     TOKEN_KIND(OpenBrace, "[") \
@@ -30,6 +31,7 @@
     TOKEN_KIND(ColonEqual, ":=") \
     TOKEN_KIND(ColonColon, "::") \
     TOKEN_KIND(MinusGreater, "->") \
+    TOKEN_KIND(Unit, "<>") \
     TOKEN_KIND(Dollar, "$") \
     TOKEN_KIND(At, "@") \
     TOKEN_KIND(Arrow, "->") \

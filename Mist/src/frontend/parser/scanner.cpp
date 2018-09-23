@@ -86,7 +86,7 @@ namespace mist {
 
     Token Scanner::next_token() {
         // consumes all of the whitespace
-        while(currentCh and isspace(*currentCh))
+        while(currentCh and isspace(*currentCh) and !check('\n'))
             bump();
        
         // initializes a new token from the currnet point in the text
@@ -264,6 +264,7 @@ namespace mist {
         auto ch = *currentCh;
         bump();
         switch(ch) {
+			case '\n': return Token(Tkn_NewLine, savePos);
             SingleToken('(', Tkn_OpenParen);
             SingleToken(')', Tkn_CloseParen);
             SingleToken('[', Tkn_OpenBrace);
@@ -286,7 +287,6 @@ namespace mist {
             TripleToken(':', Tkn_Colon, Tkn_ColonEqual, Tkn_ColonColon);
 
 			FourToken('*', Tkn_Astrick, Tkn_AstrickEqual, Tkn_AstrickAstrick, Tkn_AstrickAstrickEqual)
-			FourToken('<', Tkn_Less, Tkn_LessEqual, Tkn_LessLess, Tkn_LessLessEqual)
 			FourToken('>', Tkn_Greater, Tkn_GreaterEqual, Tkn_GreaterGreater, Tkn_GreaterGreaterEqual)
 
             case '-': {
@@ -305,23 +305,47 @@ namespace mist {
                     }
                     return Token(Tkn_Period, savePos);
                 }
-           case '/': {
+            case '/': {
                     if(check('/') or check('*'))
                         return scan_comment();
                     else if(check('='))
                         return Token(Tkn_SlashEqual, savePos);
                     else
                         return Token(Tkn_Slash, savePos);
+                    }
+                  case '\'': {
+                            return scan_character();
+                        }
+                  case '"': {
+                            return scan_string();
+                    }
+			// FourToken('<', Tkn_Less, Tkn_LessEqual, Tkn_LessLess, Tkn_LessLessEqual)
+            case '<': {
+                if(check('=')) {
+                    bump();
+                    return Token(Tkn_LessEqual, savePos);
                 }
-          case '\'': {
-                    return scan_character();
+                else if(check('<')) {
+                    bump();
+                    if(check('=')) {
+                        bump();
+                        return Token(Tkn_LessLessEqual, savePos);
+                    }
+                    else {
+                        return Token(Tkn_LessLess, savePos);
+                    }
                 }
-          case '"': {
-                    return scan_string();
+                else if(check('>')) {
+                    bump();
+                    return Token(Tkn_Unit, savePos);
                 }
-          default:
-            std::cout << "Found unknown character: '" << ch << "'" << std::endl;
-            break;  
+                else {
+                  return Token(Tkn_Less, savePos);
+                }
+            } break;
+            default:
+              std::cout << "Found unknown character: '" << ch << "'" << std::endl;
+              break;  
         }
 
         return Token(Tkn_Error, savePos);

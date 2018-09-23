@@ -13,3 +13,5 @@ foo(1)(2.0); // this would be valid syntax
 foo(1, 2.0);
 
 // this is how we will be a valid error check for the arity.
+
+<>
