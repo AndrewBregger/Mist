@@ -189,3 +189,122 @@ I am wondering if this needs to have a different syntax to make it clear.
 
 ## Variable Declarations
 
+     <variable_item> := <ident> : <type_spec> <init_expression>? ; |
+                        "mut" <ident> : <type_spec> <init_expression>?;
+                       
+     <init_expression> := = <expression>
+          
+A variable declaration consists of an identifier, an optional type specification, and an optional
+initialization expression. By default, variables are declared in a constant state. Meaning they
+value of the variable cannot be changed by any external operation. To allow variables to be changed
+an optional keyword mut is able to be added to the front which will declare the variable to be
+mutable.
+     I am considering moving the mutability to the type system. This would be more concise through
+     out the language since the functionality will automatically be applied to function parameters.
+
+Example:
+     // without type annotations
+     x := 1.0
+     mut x := 1.0
+     
+     // with type annotations
+     x : f32 = 1.0
+     x : mut f32 = 1.0
+     
+Notice in the type annotated version the mut keyword has moved from before the identifier to the type
+annotation. This allows for a cleaner semantic understanding since the same notation is used in
+function parameters to show which ones are mutable within the functions scope; otherwise, they
+can just be accessed.
+
+## Primitive/Builtin Types
+
+* u8
+* u16
+* u32
+* u64
+* i8
+* i16
+* i32
+* i64
+* byte
+* char
+* string
+* Pointers
+* References?
+* static arrays
+* dynamic arrays
+* hash map
+
+## Control Flow
+
+There are multiple types of control in Mist. Most/All of them are common knowledge from other
+languages. 
+
+### If
+
+     <if_expression> := 
+     if <boolean_expression> <expression> <else_expression>
+    
+      <else_expression> :=
+     else if <boolean_expression> <expression> <else_clause> |
+     else <expression> |
+     
+This is an if expression (yes, this says expression, I will get to that later...similar to Rust).
+This construct returns the result of the last expression evaluated. However, if the result of the
+if is not used, then the result will be ignored. Otherwise, the resulting type of each path must be "similar".
+
+Example:
+
+       
+     if x % 2 == 0 and x % 8 == 0 {
+          /// some other stuff
+          x ** 2
+     }
+     else if x % 2 == 0 and x % 6 == 0 {
+          x += 5
+          x ** 4
+     }
+     else x
+     /// I think this condition should give a warning since the operations on x are returned to nothing.
+
+Explanation of example or a better example.
+
+## For Loop
+
+     <for_expression> :=
+     for <ident> in <expression>
+          <expression_block>
+          
+For loops are used to iterate through a container. This can be any container that is iterable, this will be
+defined by the Iterable type class. This type class will define the functions and types needed. I am considering
+using the for loop expression result to function as list comprehension and each iteration the result will be added
+to the new list. I think this should have a special syntax or if just assigning it to a value should be enough.
+
+     x := <for_expression>
+     
+     /// or something like
+     
+     x := [] <for_expression>
+     
+## While Loop
+
+     <while_expression> :=
+     while <bool_expression> <expression>
+
+While loops are the same as they are in other languages. The result of this is either the result of the last
+expression of loop body or unit. The prior option would be interesting.
+
+Another possible semantic is the combination of a while loop and do-while loop. The change would be the omission
+of the bool expression as the condition.
+     while <expression>
+Here instead an implicit variable will be placed there and the result of the final expression of the body will be used there.
+Therefor, this result must be a boolean or can be implicitly casted to one. This variable would be set to true for the first iteration.
+making it equivalent to a do-while.
+     
+     while {
+          can_continue()
+     }
+     /// I guess a question comes when it is consider a situation when the state of the loop is dependent on this variable.
+     /// Should the programmer be allowed access to this variable? Or could they be given access through some context of the
+     /// program, Context.conditional.
+
