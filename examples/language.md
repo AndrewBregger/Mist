@@ -12,20 +12,18 @@ constant. This would mean that classes and structures declared as this type
 would always be constant and cannot be casted to negate it. If I do this,
 would this be the default semantic or would it need to be specified?
 
-mut struct Foo { <fields> }
+     mut struct Foo { <fields> }
 
 this would be const
-struct Foo { <fields> }
-
-            or
-
-const struct Foo { <fields> }
+    struct Foo { <fields> }
+or
+    const struct Foo { <fields> }
 
 this would be mutable
 
-```code
-struct Foo { <fields> }
-```
+
+    struct Foo { <fields> }
+
 
 To reiterate, if a structure is defined to be constant, every instance of it will be
 constant.
@@ -41,25 +39,24 @@ NOTE: syntax above is not actual syntax, is it for demonstration purposes.
 
 Actual Syntax:
 
-```code
-Foo :: const struct {
-}
+    Foo :: const struct {
+    }
 
-Foo :: struct {
-}
+    Foo :: struct {
+    }
 
-Vector :: struct[T, N] {
-    data [N]T
-} where T = Integral, N = i32 derive Read, Show, Debug, Index
-// Integral would be defined as a type class
+    Vector :: struct[T, N] {
+        data: [N]T
+    } where T = Integral, N = i32 derive Read, Show, Debug, Index
+    // Integral would be defined as a type class
 
-Array :: struct[T, Alloc] {
-    data *T,
-    size i32,
-    alloc Alloc
-} where T = Default
-  derive Debug, Show, Iterator, Index
-```
+    Array :: struct[T, Alloc = Context.DefaultAlloc] {
+        data: *T,
+        size: i32,
+        alloc: Alloc
+    } where T = Default
+      derive Debug, Show, Iterator, Index
+
 
 ## Object Oriented Paradigm
 
@@ -68,17 +65,16 @@ Means that by a compiler flag or maybe it is always on, structs can 'inherit' fr
 oo features will come from type classes, which will allow for an expected set of data and methods. I am debating letting only
 a single layer of inheritance amongst structs however, allow type classes to depend on other type classes (semi multi inheritance)
 
-```code
-Readable :?= trait | class | ... {
-    <local_or_function_declaration>
-}
-```
+
+    Readable :?= trait | class | ... {
+        <local_or_function_declaration>
+    }
 
 --or--
-```
-Readable :: trait | class | ...[<template-parameters>] (derive <name-list>)? {
-    <local_or_function_declaration>
-} (derive <name-list>)?
+
+    Readable :: trait | class | ...[<template-parameters>] (derive <name-list>)? {
+        <local_or_function_declaration>
+    } (derive <name-list>)?
 
 Function is this language will be implicitly pure depending on how it is used and the functions that are used in the body.
 This will be done at compile time. A function can be marked as pure if it is intended for it to be, the compiler will then
@@ -86,59 +82,58 @@ check if all of the expression adhere to this constrait.
 
 function syntax:
 
-name :: <function-attribute-list> (a A, b B = default) -> (c C) {
-}
+    name :: <function-attribute-list> (a A, b B = default) -> (c C) {
+    }
 
-function-attribute-list = <function-attribute>, <function-attribute-list> | <function-attribute>
+    function-attribute-list = <function-attribute>, <function-attribute-list> | <function-attribute>
 
-function-attribute = pure | inline | <foriegn-function>
+    function-attribute = pure | inline | <foriegn-function>
 
-//          foriegn library symbol, function name in library
-foriegn-fuction = foriegn <id> <string>
+    //          foriegn library symbol, function name in library
+    foriegn-fuction = foriegn <id> <string>
 
 ## Build in data types:
-[8-64] = 8, 16, 32, 64
+    [8-64] = 8, 16, 32, 64
 
-```
-i[8-64],
-u[8-64],
-f32,
-f64,
-string,
-byte,
-atom // ? this would map to a unicode code point, it could default to u8 and a compiler flag should set it to u16 or u32
-static array, // I have not determined the notation appropriate for this.
-dynamic array, // I am wondering if this should be a language defined or library defined that is global.
-hash maps // there will be a collections library that will have the other major data structurs (queue, maps, stack, priority queue)
-tuples, // (T0, T1, ...TN)
-null, // this could be of type Null<T> where T is the type being assigned too and Null represents nothing for every type T.
-pointers, // *T, pointer to T
-<> // unit 
-```
+
+    i[8-64],
+    u[8-64],
+    f32,
+    f64,
+    string,
+    byte,
+    atom // ? this would map to a unicode code point, it could default to u8 and a compiler flag should set it to u16 or u32
+    static array, // I have not determined the notation appropriate for this.
+    dynamic array, // I am wondering if this should be a language defined or library defined that is global.
+    hash maps // there will be a collections library that will have the other major data structurs (queue, maps, stack, priority queue)
+    tuples, // (T0, T1, ...TN)
+    null, // this could be of type Null<T> where T is the type being assigned too and Null represents nothing for every type T.
+    pointers, // *T, pointer to T
+    <> // unit 
+
 
 ## User defined data type:
 
 enum and struct, and of course alias
 
-```
-<id> :: enum | struct [<template-params>] {
+    <id> :: enum | struct [<template-params>] {
 
-} <modifiers>
-```
-modifier = where <where-item> | derive <derive-item>
+    } <modifiers>
+
+    modifier = where <where-item> | derive <derive-item>
 
 ### Operator Overloading:
 
 Operators can be overloaded; however, they must comply with the expected arity. IE. + is a binary operator so it will expect
 an arity of 2, while - has an arity of 1 or 2 depending on usage. If there are more than expected then it will be an error.
 
-```
-<op|op-pair> :: (...) -> Ret {
 
-}
+    <op|op-pair> :: (...) -> Ret {
 
-op-pair == [] | ()
-```
+    }
+
+    op-pair == [] | ()
+
 
 ## Function applications
 
@@ -147,22 +142,20 @@ the parameters to the function. This will be defined as returning a new function
 then the applied function. I have not thought about how this can be applied to methods. For now it will
 only be applied to pure functions.
 
-```
-foo :: (x: i32, y: f32) -> f32 { ... } // this has type i32 -> f32 -> f32 || (i32, f32) -> f32
-```
+
+    foo :: (x: i32, y: f32) -> f32 { ... } // this has type i32 -> f32 -> f32 || (i32, f32) -> f32
+
 
 if the following funciton:
 
-foo(1);
+    foo(1);
 
 is applied then the result is a new function.
 The resulting type is f32 -> f32 || (f32) -> f32
 
 I am considering allowing:
 
-```
-foo(y = 2.0);
-```
+    foo(y = 2.0);
 
 This will construct a different type: i32 -> f32 || (i32) -> f32
 This will know that the f32 parameter is being bound and construct a different
@@ -170,5 +163,148 @@ function with the appropriate function bound.
 
 I am wondering if this needs to have a different syntax to make it clear.
 
-Keywords:
-if, else, use, while, for, loop, continue, break, return, yeild?, where, derive, enum, struct, foriegn, pure, inline, type
+## Keywords:
+* if
+* else
+* use
+* while
+* for
+* loop
+* continue
+* break
+* return
+* yeild?
+* where
+* derive
+* enum
+* struct
+* foriegn
+* pure
+* inline
+* type
+* pub
+* mut
+
+# Language Semantics
+
+## Variable Declarations
+
+     <variable_item> := <ident> : <type_spec> <init_expression>? ; |
+                        "mut" <ident> : <type_spec> <init_expression>?;
+                       
+     <init_expression> := = <expression>
+          
+A variable declaration consists of an identifier, an optional type specification, and an optional
+initialization expression. By default, variables are declared in a constant state. Meaning they
+value of the variable cannot be changed by any external operation. To allow variables to be changed
+an optional keyword mut is able to be added to the front which will declare the variable to be
+mutable.
+     I am considering moving the mutability to the type system. This would be more concise through
+     out the language since the functionality will automatically be applied to function parameters.
+
+Example:
+     // without type annotations
+     x := 1.0
+     mut x := 1.0
+     
+     // with type annotations
+     x : f32 = 1.0
+     x : mut f32 = 1.0
+     
+Notice in the type annotated version the mut keyword has moved from before the identifier to the type
+annotation. This allows for a cleaner semantic understanding since the same notation is used in
+function parameters to show which ones are mutable within the functions scope; otherwise, they
+can just be accessed.
+
+## Primitive/Builtin Types
+
+* u8
+* u16
+* u32
+* u64
+* i8
+* i16
+* i32
+* i64
+* byte
+* char
+* string
+* Pointers
+* References?
+* static arrays
+* dynamic arrays
+* hash map
+
+## Control Flow
+
+There are multiple types of control in Mist. Most/All of them are common knowledge from other
+languages. 
+
+### If
+
+     <if_expression> := 
+     if <boolean_expression> <expression> <else_expression>
+    
+      <else_expression> :=
+     else if <boolean_expression> <expression> <else_clause> |
+     else <expression> |
+     
+This is an if expression (yes, this says expression, I will get to that later...similar to Rust).
+This construct returns the result of the last expression evaluated. However, if the result of the
+if is not used, then the result will be ignored. Otherwise, the resulting type of each path must be "similar".
+
+Example:
+
+       
+     if x % 2 == 0 and x % 8 == 0 {
+          /// some other stuff
+          x ** 2
+     }
+     else if x % 2 == 0 and x % 6 == 0 {
+          x += 5
+          x ** 4
+     }
+     else x
+     /// I think this condition should give a warning since the operations on x are returned to nothing.
+
+Explanation of example or a better example.
+
+## For Loop
+
+     <for_expression> :=
+     for <ident> in <expression>
+          <expression_block>
+          
+For loops are used to iterate through a container. This can be any container that is iterable, this will be
+defined by the Iterable type class. This type class will define the functions and types needed. I am considering
+using the for loop expression result to function as list comprehension and each iteration the result will be added
+to the new list. I think this should have a special syntax or if just assigning it to a value should be enough.
+
+     x := <for_expression>
+     
+     /// or something like
+     
+     x := [] <for_expression>
+     
+## While Loop
+
+     <while_expression> :=
+     while <bool_expression> <expression>
+
+While loops are the same as they are in other languages. The result of this is either the result of the last
+expression of loop body or unit. The prior option would be interesting.
+
+Another possible semantic is the combination of a while loop and do-while loop. The change would be the omission
+of the bool expression as the condition.
+     while <expression>
+Here instead an implicit variable will be placed there and the result of the final expression of the body will be used there.
+Therefor, this result must be a boolean or can be implicitly casted to one. This variable would be set to true for the first iteration.
+making it equivalent to a do-while.
+     
+     while {
+          can_continue()
+     }
+     /// I guess a question comes when it is consider a situation when the state of the loop is dependent on this variable.
+     /// Should the programmer be allowed access to this variable? Or could they be given access through some context of the
+     /// program, Context.conditional.
+
