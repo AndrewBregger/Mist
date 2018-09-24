@@ -1,5 +1,9 @@
 # Mist Language Motivation and Semantics
 
+This document is to allow me to organize my thoughts and ideas about this language. For the most part is will hold an almost
+complete BNF of the language. The first part holds some ideas I had before starting to write the semantics and just some thoughts
+about how things could work. This is a work in progress and no semantic or sytactic element is final.
+
 ## Motivation
 Exploring the idea of developing a system level, data/object oriented language with a
 strict type system (similar to Rust. Rust's type system is inspired by Haskell).
@@ -308,3 +312,62 @@ making it equivalent to a do-while.
      /// Should the programmer be allowed access to this variable? Or could they be given access through some context of the
      /// program, Context.conditional.
 
+## Loop
+
+     <loop_expression> :=
+     loop <expression>
+     
+Loop construct is an infinate loop. It is equivalent to:
+     
+     while true <expression>
+
+The result of the expression will always be the unit value.
+
+## Defer expression
+
+     <defer_expression> :=
+     defer <expression> <if_else_conditional>?
+     
+     <if_else_condition> :=
+     if <boolean_expression>
+     <else_tail>?
+     
+     <else_tail> :=
+     else <expression>
+     
+Defer expression are expression that occure at the end of the scope they were declared. There is an optional if else conditional
+that allows for defers to have a conditional execution as well as a secondary option that can be executed instead. This expression
+always results in unit.
+
+## Match expression
+
+     <match_expression> := match <expression> { <match_clause_list> }
+     
+     <match_clause_list> := <match_clause> | <match_clause>, <match_clause_list> |
+     
+     <match_clause> := <match_pattern> = <expression> // i am considering :, =
+     
+     <match_pattern> := <ident> | <path> | <tuple_pattern> | <path> <match_pattern> | <literal>
+     
+     <path> := <ident> | <ident> . <path>
+     
+     <tuple_pattern> := ( <ident_list> )
+     
+     <ident_list> := <ident> | <ident> , <ident_list>
+     
+Match expressions replace switchs in functionality as well as explands on what it is able to match against. At a basic
+level it can match against literals. An extension to switches, matches are able to match to the types of enums and dispatch their content to another pattern that follows. Some of this functionality will be fleshed out when I figure out how enums, unions, and
+structs should work.
+
+## Built threads?
+I am thinging about how this could work and be useful to a developer. Right now I am thinking it could be a simple detached thread that the a library can give more functionality to. I dont know yet.
+
+# User Defined Types
+
+## Functions
+
+## Struct
+
+## Enum
+
+## Unions?
