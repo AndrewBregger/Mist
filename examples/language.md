@@ -366,8 +366,62 @@ I am thinging about how this could work and be useful to a developer. Right now 
 
 ## Functions
 
+This needs to be looked at. I do not think it is complete.
+
+     <function_declaration> := <function_specification> = <expression>
+     
+     <function_specification> := <ident> :: [<generic_parameters>] <parameter_list> <return_type> <where_clause>
+     
+     <parameter_list> := <parameter_item> | <paramter_item>, <paramter_list>
+     
+     <parameter_item> := <ident> <type_annotation>?
+     
+     <generic_parameters> := <generic_type_and_bounds> | <generic_type_and_bounds> , <generic_parameters>
+     
+     <generic_type_and_bounds> := <ident> <type_bounds>?
+     
+     <type_bounds> := : <type_bounds_list>
+     
+     <bounds_list> := <type_spec>
+     
+     <type_annotation> := : <type_spec>
+     
+     <where_clause> := <where_item> | <where_item> , <where_clause>
+     
+     <where_item> := <ident> : <type_bounds_list>
+
+Mist have a different syntax then those in a similar class (ie. Rust, D, C++, C#). The generics come before the
+parameter list and are enclosed in square brackets followed by the parameter list. The parameter list is following
+many functional languages which have parameter type deduction. Some or all of the parameters are allowed to have the
+their type omitted. This is forcing the compiler to determine the type bounded from usage of the variable. For example, 
+if an un-typed parameter is used in an addition and is then index, then the type will be given the type bounds that define
+addition and indexing.
+
 ## Struct
 
+     <struct_declaration> := <ident> :: struct [<generic_parameters>] { <field_list> } <where_derive_clause>
+     
+     <field_list> := <field> | <field> , <field_list> |
+     
+     <field> := <ident> : <type_spec> <init_expression>?
+     
+     <where_derive_clause> := <where_clause> <derive_clause> | <derive_clause> <where_clause> |
+     
+     <derive_clause> := derive <type_spec_list>
+
+Structures is a collection of types. These types can be declared as generic and the entire structure can derive from
+type classes that expand its functionality and all it to take advantage of other language features. 
+
+## Methods
+
+## Type Classes
+
+     <type_class_declaration> := <ident> :: class { <member_list> }
+     
+     <member_list> := <function_declaration> | <function_specification>
+
+Type classes are similar to Haskell's. They can be thought of as interfaces to language functionality. They provide
+a way of defining similarities between functionality and behavior amongst types. TODO: Learn more about Haskell's type classes.
 ## Enum
 
 ## Unions?
