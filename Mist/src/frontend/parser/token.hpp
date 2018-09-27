@@ -32,6 +32,7 @@
     TOKEN_KIND(ColonColon, "::") \
     TOKEN_KIND(MinusGreater, "->") \
     TOKEN_KIND(Unit, "<>") \
+    TOKEN_KIND(Hash, "#") \
     TOKEN_KIND(Dollar, "$") \
     TOKEN_KIND(At, "@") \
     TOKEN_KIND(Arrow, "->") \
@@ -84,6 +85,7 @@
     TOKEN_KIND(foriegn, "foriegn") \
     TOKEN_KIND(Pure, "pure") \
     TOKEN_KIND(Inline, "inline") \
+	TOKEN_KIND(Defer, "defer") \
     TOKEN_KIND(For, "for") \
     TOKEN_KIND(Match, "match") \
     TOKEN_KIND(Loop, "loop") \
@@ -94,6 +96,7 @@
     TOKEN_KIND(Or, "or") \
     TOKEN_KIND(In, "in") \
     TOKEN_KIND(True, "true") \
+    TOKEN_KIND(Ref, "ref") \
     TOKEN_KIND(False, "false") \
     TOKEN_KIND(Null, "null")
 

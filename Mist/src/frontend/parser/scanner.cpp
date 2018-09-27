@@ -275,6 +275,7 @@ namespace mist {
             SingleToken('~', Tkn_Tilde);
             SingleToken(';', Tkn_Semicolon);
             SingleToken('_', Tkn_Underscore);
+            SingleToken('#', Tkn_Hash);
 
             DoubleToken('^', Tkn_Carrot, Tkn_CarrotEqual)
             DoubleToken('%', Tkn_Percent, Tkn_PercentEqual)

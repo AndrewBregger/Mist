@@ -6,6 +6,99 @@ foo := (x: i32, y: f32) -> f32 {
 foo :: x: i32, y: f32 -> f32 {
 }
 
+
+bar :: [T: Bounded + Add, B: Bounded + Power, D] x: T, y: B -> D = y ** x + x
+
+Cmp :: class {
+    == :: [T] (Self, other: ref T) -> bool
+    != :: [T] (Self, other: ref T) -> bool
+}
+
+Deref :: class {
+    * :: [T] (Self) -> T
+}
+
+Iterator :: struct[T] {
+    here: *T,
+} derive Cmp, Deref
+
+Iterator :: imp[T] {
+    == :: (self, other: ref Self) -> bool = self.here == other.here
+    != :: (self, other: ref Self) -> bool = !(self == other)
+    * :: (Self) -> Self
+}
+
+Iterable :: class[T] {
+    next :: () -> Iterator<T>
+    last :: () -> Iterator<T> 
+    nth :: () -> Iterator<T>
+}
+
+
+// dynamic arrays are built into the language
+// as well as hash maps
+// so I will need to implement them in Mist so I can bind the declarations
+// to the appropriate type.
+Vector :: struct[T] {
+    data: *T,
+    len: u32
+} where T: Copy derive Iterable, Copy
+
+// This is also valid
+//Vector :: struct[T: Copy] {
+//    data: *T
+//    len: u32
+//}
+
+use memory{alloc, free}
+
+// the constraints are defined in the struct decl.
+Vector :: impl[T] {
+    // unlike in Rust this can be auto generated.
+    // required here
+    #init :: (n: u32 = 10) -> Self = {
+        data := alloc<T>(n)
+        Vector {
+            data: data,
+            len: n
+        }
+    }
+
+    #init :: (l: Iterator<T>) -> Self {
+        [] for x in *l x
+    }
+
+    #init :: (l: std.array_literal<T>) -> Self {
+        [] for x in l x 
+    }
+    
+    // I could imitate rust and use a triat to define this.
+    #destroy :: (self) = {
+        free(self.data) 
+    }
+    
+    // maybe i could allow the parenthesis to be optional around the parameter list
+    len :: self -> u32 = self.len
+
+    [] :: [I: Index] (mut self, index: I) -> ref T = ref data[index]
+    
+    // this is an idea of list comprehension.
+    map :: (fn: T -> Unit) -> Self = {
+        [] for x in self fn(x)
+    }
+
+    next :: () -> Iterator<T> = Iterator.new(data)
+
+    last :: () -> Iterator<T> = Iterator.new(data + len * sizeof(T))
+}
+
+bar(1.0, 3.0)
+
+foo :: (x: T, y: B) -> f32 where B = Integer, Arithmatic = x * y
+
+foo(100, 1.0)
+
+
 foo(1, 2.0);
 foo(1)(2.0); // this would be valid syntax
 
@@ -13,5 +106,4 @@ foo(1)(2.0); // this would be valid syntax
 foo(1, 2.0);
 
 // this is how we will be a valid error check for the arity.
-
 <>
