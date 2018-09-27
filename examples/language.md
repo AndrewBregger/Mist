@@ -113,7 +113,8 @@ function syntax:
     tuples, // (T0, T1, ...TN)
     null, // this could be of type Null<T> where T is the type being assigned too and Null represents nothing for every type T.
     pointers, // *T, pointer to T
-    <> // unit 
+    <> // unit
+    ref //
 
 
 ## User defined data type:
@@ -238,6 +239,9 @@ can just be accessed.
 * static arrays
 * dynamic arrays
 * hash map
+* Unit
+* ref
+* tuples
 
 ## Control Flow
 
@@ -370,7 +374,7 @@ This needs to be looked at. I do not think it is complete.
 
      <function_declaration> := <function_specification> = <expression>
      
-     <function_specification> := <ident> :: [<generic_parameters>] <parameter_list> <return_type> <where_clause>
+     <function_specification> := <ident> :: [<generic_parameters>] (<parameter_list>) <return_type> <where_clause>
      
      <parameter_list> := <parameter_item> | <paramter_item>, <paramter_list>
      
