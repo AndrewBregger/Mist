@@ -10,7 +10,7 @@ namespace mist {
         u32 span{0};
         ::u64 fileId{0};
 
-		Pos();
+        Pos();
         Pos(u32 line, u32 column, u32 span, ::u64 fileId = 0);
     };
 }

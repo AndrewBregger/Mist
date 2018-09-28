@@ -4,7 +4,7 @@
 #include <string>
 #include <fstream>
 #include "interpreter.hpp"
-#include "ast.hpp"
+#include "ast/ast_common.hpp"
 
 #define TOKEN_KINDS \
     TOKEN_KIND(Error, "error") \
