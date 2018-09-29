@@ -90,9 +90,15 @@ namespace mist {
         auto root = context.root();
 
         Scanner* scanner = get_scanner();
-        auto tokens = scanner->tokenize(root);
-        for(auto& t : tokens)
-            std::cout << t << std::endl;
+		scanner->init(root);
+        scanner->advance();
+		while (true) {
+			auto& token = scanner->token();
+			std::cout << token << std::endl;
+			if (token.kind() == Tkn_Eof)
+				break;
+			scanner->advance();
+		}
     }
 
 

@@ -8,25 +8,19 @@ namespace mist {
 
     Scanner::~Scanner() = default;
 
-    std::vector<Token> Scanner::tokenize(io::File* file) {
+    void Scanner::init(io::File* file) {
         this->file = file;
-    
-
-		if (!init()) {
+        if (!init()) {
 			// report error
-			return {};
 		}
-	
-		std::vector<Token> tokens;
+    }
 
-		while (true) {
-			Token token = next_token();
-			tokens.push_back(token);
-			if(token.kind() == Tkn_Eof || token.kind() == Tkn_Error)
-				break;
-		}
+    void Scanner::advance() {
+        current = next_token();
+    }
 
-		return tokens;
+    Token& Scanner::token() {
+		return current;
     }
 
 
@@ -42,11 +36,11 @@ namespace mist {
 		if (!file->load()) return false;
 	
             
-        std::cout << "Waiting for the file to load" << std::endl;
+        // std::cout << "Waiting for the file to load" << std::endl;
 		// this will join the calling thread to wait until loadThread is complete.
 		//loadThread.join();
 
-        std::cout << "The file has been loaded" << std::endl;
+        // std::cout << "The file has been loaded" << std::endl;
 
         source = &file->value();
         currentCh = &source->at(index);

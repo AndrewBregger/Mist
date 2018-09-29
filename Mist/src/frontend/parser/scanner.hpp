@@ -11,7 +11,16 @@ namespace mist {
             ~Scanner();
     
             /// tokenizes the give file.
-            std::vector<Token> tokenize(io::File* file);
+            // std::vector<Token> tokenize(io::File* file);
+            
+            // initializes the scanner with the new file
+            void init(io::File* file);
+    
+            // advances to the next token
+            void advance();
+    
+            // returns the most resent token
+            Token& token();
 
         private:
     
@@ -44,6 +53,7 @@ namespace mist {
 
             mist::Interpreter* interp{nullptr}; /// the active interpreter
             io::File* file{nullptr}; /// the current file being scanned
+            Token current;
 
             // state data
             u64 index;               /// the index within the source
