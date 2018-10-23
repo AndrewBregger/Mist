@@ -444,6 +444,3 @@ a way of defining similarities between functionality and behavior amongst types.
 
 Enum are a combination of C++ enums and a tagged union. The elements can be either a name associated to a value or it can be
 a union of where the name is a tag.
-
-
-## Unions?
