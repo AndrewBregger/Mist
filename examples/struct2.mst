@@ -1,0 +1,64 @@
+// Extending the struct.mst example to methods
+Vector :: struct [
+    data: [3]f32
+} derive Copy, Arithmetic
+
+
+// Gives methods to struct and enum types.
+Vector :: impl {
+    // type construction
+    #new :: () -> Self {
+        Vector {
+            data: [0.0, 0.0 0.0]
+        }
+    }
+    
+    #new :: (x: f32, y: f32, x: f32) -> Self {
+        Vector {
+            data: [x, y, z]
+        }
+    }
+    
+    mag1 :: (self) -> f32 {
+        sum_square := 0.0
+        for x in self.data sum_square += x ** 2
+        math.sqrt(sum_square)
+    }
+    
+    // functional implementation of vector length
+    mag2 :: (self) -> f32 = math.sqrt $ sum $ []for x in self.data x ** 2
+    
+    + :: (self, other: Vector) -> Self {
+        Self.new(self.data(0) + other.data(0),
+                 self.data(1) + other.data(1),
+                 self.data(2) + other.data(2))
+    }
+    
+     - :: (self, other: Vector) -> Self {
+        Self.new(self.data(0) - other.data(0),
+                 self.data(1) - other.data(1),
+                 self.data(2) - other.data(2))
+    }
+    
+     * :: (self, other: f32) -> Self {
+        Self.new(self.data(0) + other,
+                 self.data(1) + other,
+                 self.data(2) + other)
+    }
+    
+     * :: (self, other: Vector) -> f32 {
+           self.data(0) * other.data(0) +
+                 self.data(1) * other.data(1) +
+                 self.data(2) * other.data(2)
+    }
+    
+    //...
+}
+
+main :: () {
+    v := Vector.new(1, 2, 3)
+    v2 := Vector.new(3, 4, 2)
+    v3 := v + v2
+    v4 := v3 * 10.0
+    d := v4 * v
+}
