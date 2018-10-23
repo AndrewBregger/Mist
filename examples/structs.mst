@@ -1,0 +1,30 @@
+// Implementation of a simple structure.
+// This is an implementation of a simple 3d Vector.
+// Later examples will add more to this with more language features.
+
+// brings math module into local file scope.
+import math
+
+Vector :: struct {
+    data: [3]f32
+}
+
+main :: () {
+    vec := Vector{[0.0, 0.0, 0.0]} // or Vector{data: [0.0, 0.0, 0.0] }
+    
+    // local function
+    // traditional implementation of vector length
+    mag1 :: (vec: Vector) -> f32 {
+        sum_square := 0.0
+        for x in vec.data sum_square += x ** 2
+        math.sqrt(sum_square)
+    }
+    
+    // functional implementation of vector length
+    // $ := (f: (b) -> c, g: b) = f(g)
+    // Right associative
+    mag2 :: (vec: Vector) -> f32 = math.sqrt $ sum $ []for x in vec.data x ** 2
+    
+    length1 := mag1(vec) // = 0.0
+    length2 := mag2(vec) // = 0.0
+}
