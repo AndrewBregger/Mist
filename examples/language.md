@@ -403,7 +403,7 @@ addition and indexing.
 
 ## Struct
 
-     <struct_declaration> := <ident> :: struct [<generic_parameters>] { <field_list> } <where_derive_clause>
+     <struct_declaration> := <ident> :: [<generic_parameters>] struct { <field_list> } <where_derive_clause>
      
      <field_list> := <field> | <field> , <field_list> |
      
@@ -418,9 +418,16 @@ type classes that expand its functionality and all it to take advantage of other
 
 ## Methods
 
+Methods are defined in an impl block for the receiving struct or enum.
+
+     <impl_declaration> :: [<generics>] impl { <function_list> }
+
+The only syntatic difference between a function and method is the first paramter must be 'self' or 'mut self'. Otherwise,
+it is a static function of that type.
+
 ## Type Classes
 
-     <type_class_declaration> := <ident> :: class { <member_list> }
+     <type_class_declaration> := <ident> :: <generics> class { <member_list> }
      
      <member_list> := <function_declaration> | <function_specification>
 
@@ -428,4 +435,12 @@ Type classes are similar to Haskell's. They can be thought of as interfaces to l
 a way of defining similarities between functionality and behavior amongst types. TODO: Learn more about Haskell's type classes.
 ## Enum
 
-## Unions?
+     <enum_declaration> := <ident> :: <generics> enum { <enum_member_list> }
+     
+     <enum_member_list> := <enum_member> | <enum_memeber, <enum_member_list> | 
+     
+     <enum_member> := <ident> = <const_expr>
+                    | <ident> ( <type_list> )
+
+Enum are a combination of C++ enums and a tagged union. The elements can be either a name associated to a value or it can be
+a union of where the name is a tag.

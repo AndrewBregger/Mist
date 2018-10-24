@@ -1,3 +1,4 @@
+// This file is for testing syntax and potential symantic rules.
 
 foo := (x: i32, y: f32) -> f32 {
     y * x as i32

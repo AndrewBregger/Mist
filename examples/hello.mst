@@ -1,0 +1,10 @@
+// This bring the fmt module into the local file scope, it also only gives access to println function.
+use fmt.println
+
+// Defines the main function. This function only prints 'Hello, World' to standard out.
+main :: () {
+    println("Hello, World")
+}
+
+// This is a valid syntax as well.
+// main :: () = println("Hello, World")
