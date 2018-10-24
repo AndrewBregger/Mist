@@ -30,7 +30,22 @@
     <ClCompile Include="src\frontend\parser\token.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\frontend\parser\ast.cpp">
+    <ClCompile Include="src\frontend\parser\ast\ast.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frontend\parser\ast\ast_common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frontend\parser\ast\ast_decl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frontend\parser\ast\ast_expr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frontend\parser\ast\ast_stmt.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\frontend\parser\ast\ast_typespec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +65,22 @@
     <ClInclude Include="src\frontend\parser\token.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\frontend\parser\ast.hpp">
+    <ClInclude Include="src\frontend\parser\ast\ast.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frontend\parser\ast\ast_common.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frontend\parser\ast\ast_decl.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frontend\parser\ast\ast_expr.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frontend\parser\ast\ast_stmt.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frontend\parser\ast\ast_typespec.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

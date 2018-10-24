@@ -122,7 +122,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\frontend\parser\ast.cpp" />
+    <ClCompile Include="src\frontend\parser\ast\ast.cpp" />
+    <ClCompile Include="src\frontend\parser\ast\ast_common.cpp" />
+    <ClCompile Include="src\frontend\parser\ast\ast_decl.cpp" />
+    <ClCompile Include="src\frontend\parser\ast\ast_expr.cpp" />
+    <ClCompile Include="src\frontend\parser\ast\ast_stmt.cpp" />
+    <ClCompile Include="src\frontend\parser\ast\ast_typespec.cpp" />
     <ClCompile Include="src\frontend\parser\token.cpp" />
     <ClCompile Include="src\interpreter.cpp" />
     <ClCompile Include="src\frontend\parser\scanner.cpp" />
@@ -130,7 +135,12 @@
     <ClCompile Include="src\utils\file.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\frontend\parser\ast.hpp" />
+    <ClInclude Include="src\frontend\parser\ast\ast.hpp" />
+    <ClInclude Include="src\frontend\parser\ast\ast_common.hpp" />
+    <ClInclude Include="src\frontend\parser\ast\ast_decl.hpp" />
+    <ClInclude Include="src\frontend\parser\ast\ast_expr.hpp" />
+    <ClInclude Include="src\frontend\parser\ast\ast_stmt.hpp" />
+    <ClInclude Include="src\frontend\parser\ast\ast_typespec.hpp" />
     <ClInclude Include="src\frontend\parser\scanner.hpp" />
     <ClInclude Include="src\frontend\parser\token.hpp" />
     <ClInclude Include="src\interpreter.hpp" />

@@ -22,7 +22,7 @@ Iterator :: struct[T] {
     here: *T,
 } derive Cmp, Deref
 
-Iterator :: imp[T] {
+Iterator :: impl[T] {
     == :: (self, other: ref Self) -> bool = self.here == other.here
     != :: (self, other: ref Self) -> bool = !(self == other)
     * :: (Self) -> Self
@@ -105,5 +105,30 @@ foo(1)(2.0); // this would be valid syntax
 // the desugarer will translate it to
 foo(1, 2.0);
 
+
+
 // this is how we will be a valid error check for the arity.
 <>
+
+
+/// test syntax
+
+// using the following function declaration syntax and calling mechanism
+
+// the first parameter is a function from type A to type B and the second parameter is a list of A
+// this function returns a list of B
+// this is a standard map function in functional languages
+map :: [A, B](fn: (A) -> B, l: []A) -> []B {
+    // using an iterative implementation
+    mut newList := []B.new
+    for x in l {
+        newList.append(fn(x))
+    }
+    newList
+
+    // using list comprehension
+    // the parenthesis are required because there would be ambiguity
+    // the parser wouldn't know if l was meant to be a function application
+    // or lvalue result.
+    [] for x in l { fn x }
+}

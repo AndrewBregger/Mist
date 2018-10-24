@@ -4,6 +4,11 @@
 #include <chrono>
 
 #include "interpreter.hpp"
+#include "frontend/parser/ast/ast.hpp"
+#include "frontend/parser/ast/ast_common.hpp"
+#include "frontend/parser/ast/ast_decl.hpp"
+#include "frontend/parser/ast/ast_expr.hpp"
+#include "frontend/parser/ast/ast_typespec.hpp"
 
 int main(int argc, const char** argv) {
     if(argc < 2)
