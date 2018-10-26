@@ -32,7 +32,7 @@ namespace ast {
 		Match,
 
 		// other
-		Decl,
+		DeclDecl,
 		Parenthesis,
 		Selector,
 
@@ -51,11 +51,12 @@ namespace ast {
 
 	enum BinaryOp {
 		Plus,
-		Minus,
+		BMinus,
 		Slash, 
 		Percent,
-		Astrick,
+		BAstrick,
 		AstrickAstrick,
+		BAmpersand,
 		LessLess,
 		GreaterGreater,
 		Pipe,
@@ -69,11 +70,11 @@ namespace ast {
 	};
 
 	enum UnaryOp {
-		Minus,
+		UMinus,
 		Bang,
 		Tilde,
-		Ampersand,
-		Astrick
+		UAmpersand,
+		UAstrick
 	};
 
 	enum ConstantType {
@@ -88,6 +89,20 @@ namespace ast {
 		F32,
 		F64,
 		Char
+	};
+	
+	enum AssignmentOp {
+		PlusEqual,
+		MinusEqual,
+		AstrickEqual,
+		SlashEqual,
+		PercentEqual,
+		AstrickAstrickEqual,
+		LessLessEqual,
+		GreaterGreaterEqual,
+		CarrotEqual,
+		AmpersandEqual,
+		PipeEqual,
 	};
 
 	struct Expr {
@@ -105,45 +120,45 @@ namespace ast {
 	struct ValueExpr : public Expr {
 		Ident* name;
 
-		Value(Ident* name);
+		ValueExpr(Ident* name);
 	};
 
 	struct TupleExpr : public Expr {
 		std::vector<Expr*> values;
 
-		Tuple(const std::vector<Expr*>& values, mist::Pos pos);
+		TupleExpr(const std::vector<Expr*>& values, mist::Pos pos);
 	};
 
 	struct IntegerConstExpr : public Expr {
 		i64 value{0};
 		ConstantType cty;
 
-		IntegerConst(i64 val, ConstantType cty, mist::Pos pos);
+		IntegerConstExpr(i64 val, ConstantType cty, mist::Pos pos);
 	};
 
 	struct FloatConstExpr : public Expr {
 		f64 value{0};
 		ConstantType cty;
 
-		FloatConst(f64 val, ConstantType cty, mist::Pos pos);
+		FloatConstExpr(f64 val, ConstantType cty, mist::Pos pos);
 	};
 
 	struct StringConstExpr : public Expr {
 		std::string value;
 
-		StringConst(const std::string& val, mist::Pos pos);
+		StringConstExpr(const std::string& val, mist::Pos pos);
 	};
 
 	struct BooleanConstExpr : public Expr {
 		bool value;
 
-		BooleanConst(bool val, mist::Pos pos);
+		BooleanConstExpr(bool val, mist::Pos pos);
 	};
 
 	struct CharConstExpr : public Expr {
 		char value;
 
-		CharConst(char val, mist::Pos pos);
+		CharConstExpr(char val, mist::Pos pos);
 	};
 
 	struct BinaryExpr : public Expr {
@@ -205,9 +220,9 @@ namespace ast {
 	};
 
 	struct DeclExpr : public Expr {
-		Decl* decl;
+		ast::Decl* decl;
 
-		DeclExpr(Decl* decl);
+		DeclExpr(ast::Decl* decl);
 	};
 
 	struct ParenthesisExpr : public Expr {
@@ -267,10 +282,11 @@ namespace ast {
 	};
 
 	struct AssignmentExpr : public Expr {
+		AssignmentOp op;
 		std::vector<Expr*> lvalues;
 		Expr* expr;
 
-		AssignmentExpr(const std::vector<Expr*> lvalues, Expr* expr, mist::Pos pos);
+		AssignmentExpr(AssignmentOp op, const std::vector<Expr*> lvalues, Expr* expr, mist::Pos pos);
 	};
 
 	struct BlockExpr : public Expr {

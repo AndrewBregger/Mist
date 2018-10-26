@@ -1,119 +1,93 @@
 #include "ast_expr.hpp"
+#include "ast_decl.hpp"
 
 namespace ast {
-	ExprKind Expr::kind();
-	Type* Expr::type();
-	mist::Pos Expr::pos();
-	Expr::Expr(ExprKind k, mist::Pos p) {
+	ExprKind Expr::kind() { return k; }
+	
+	Type* Expr::type() { return t; }
+	
+	mist::Pos Expr::pos() { return p; }
 
-	}
+	Expr::Expr(ExprKind k, mist::Pos p) : k(k), p(p) {}
 
-	Value::Value(Ident* name) : Decl(, pos) {
+	ValueExpr::ValueExpr(Ident* name) : Expr(Value, name->pos), name(name) {}
+	
+	TupleExpr::TupleExpr(const std::vector<Expr*>& values, mist::Pos pos) : Expr(Tuple, pos), values(values) {
 
 	}
 	
-	Tuple::Tuple(const std::vector<Expr*>& values, mist::Pos pos) : Decl(, pos) {
-
+	IntegerConstExpr::IntegerConstExpr(i64 val, ConstantType cty, mist::Pos pos) : Expr(IntegerConst, pos),
+		value(val), cty(cty) {}
+	
+	FloatConstExpr::FloatConstExpr(f64 val, ConstantType cty, mist::Pos pos) : Expr(FloatConst, pos),
+		value(val), cty(cty) {	}
+	
+	StringConstExpr::StringConstExpr(const std::string& val, mist::Pos pos) : Expr(StringConst, pos), value(value) {
 	}
 	
-	IntegerConstExpr::IntegerConstExpr(i64 val, ConstantType cty, mist::Pos pos) : Decl(, pos) {
-
+	BooleanConstExpr::BooleanConstExpr(bool val, mist::Pos pos) : Expr(BooleanConst, pos), value(val) {
 	}
 	
-	FloatConstExpr::FloatConstExpr(f64 val, ConstantType cty, mist::Pos pos) : Decl(, pos) {
-
+	CharConstExpr::CharConstExpr(char val, mist::Pos pos) : Expr(CharConst, pos), value(val) {
 	}
 	
-	StringConstExpr::StringConstExpr(const std::string& val, mist::Pos pos) : Decl(, pos) {
-
+	BinaryExpr::BinaryExpr(BinaryOp op, Expr* lhs, Expr* rhs, mist::Pos pos) : Expr(Binary, pos),
+		op(op), lhs(lhs), rhs(rhs) {}
+	
+	UnaryExpr::UnaryExpr(UnaryOp op, Expr* expr, mist::Pos pos) : Expr(Unary, pos), op(op), expr(expr) {
 	}
 	
-	BooleanConstExpr::BooleanConstExpr(bool val, mist::Pos pos) : Decl(, pos) {
-
+	IfExpr::IfExpr(Expr* cond, Expr* body, mist::Pos pos) : Expr(If, pos), cond(cond), body(body) {
 	}
 	
-	CharConst::CharConst(char val, mist::Pos pos) : Decl(, pos) {
-
+	WhileExpr::WhileExpr(Expr* cond, Expr* body, mist::Pos pos) : Expr(While, pos), cond(cond), body(body) {
 	}
 	
-	BinaryExpr::BinaryExpr(BinaryOp op, Expr* lhs, Expr* rhs, mist::Pos pos) : Decl(, pos) {
-
+	LoopExpr::LoopExpr(Expr* body, mist::Pos pos) : Expr(Loop, pos), body(body) {
 	}
 	
-	UnaryExpr::UnaryExpr(UnaryOp op, Expr* expr, mist::Pos pos) : Decl(, pos) {
-
+	ForExpr::ForExpr(Expr* index, Expr* expr, Expr* body, mist::Pos pos) : Expr(For, pos), index(index), expr(expr), body(body) {
 	}
 	
-	IfExpr::IfExpr(Expr* cond, Expr* body, mist::Pos pos) : Decl(, pos) {
-
+	MatchArm::MatchArm(Expr* name, Ident* value, Expr* body) : name(name), value(value), body(body) {
 	}
 	
-	WhileExpr::WhilExpr(Expr* cond, Expr* body, mist::Pos pos) : Decl(, pos) {
-
+	MatchExpr::MatchExpr(Expr* cond, const std::vector<MatchArm*>& arms, mist::Pos pos) : Expr(Match, pos), cond(cond), arms(arms) {
 	}
 	
-	LoopExpr::LoopExpr(Expr* body, mist::Pos pos) : Decl(, pos) {
-
+	DeclExpr::DeclExpr(Decl* decl) : Expr(ExprKind::DeclDecl, decl->pos), decl(decl) {
 	}
 	
-	ForExpr::ForExpr(Expr* index, Expr* expr, Expr* body, mist::Pos pos) : Decl(, pos) {
-
+	ParenthesisExpr::ParenthesisExpr(Expr* operand) : Expr(Parenthesis, operand->pos()), operand(operand) {
 	}
 	
-	MatchArm::MatchArm(Expr* name, Ident* value, Expr* body) : Decl(, pos) {
-
+	SelectorExpr::SelectorExpr(Expr* operand, TypeSpec* element, mist::Pos pos) : Expr(Selector, pos), operand(operand), element(element) {
 	}
 	
-	MatchExpr::MatchExpr(Expr* cond, const std::vector<MatchArm*>& arms, mist::Pos pos) : Decl(, pos) {
-
+	BreakExpr::BreakExpr(mist::Pos pos) : Expr(Break, pos) {
 	}
 	
-	DeclExpr::DeclExpr(Decl* decl) : Decl(, pos) {
-
+	ContinueExpr::ContinueExpr(mist::Pos pos) : Expr(Continue, pos) {
 	}
 	
-	ParenthesisExpr::ParenthesisExpr(Expr* operand) : Decl(, pos) {
-
+	ReturnExpr::ReturnExpr(const std::vector<Expr*> returns, mist::Pos pos) : Expr(Return, pos), returns(returns) {
 	}
 	
-	SelectorExpr::SelectorExpr(Expr* operand, TypeSpec* element, mist::Pos pos) : Decl(, pos) {
-
+	CastExpr::CastExpr(Expr* expr, TypeSpec* ty, mist::Pos pos) : Expr(Cast, pos), expr(expr), ty(ty) {
 	}
 	
-	BreakExpr::BreakExpr(mist::Pos pos) : Decl(, pos) {
-
+	RangeExpr::RangeExpr(Expr* low, Expr* high, Expr* count, mist::Pos pos) : Expr(Range, pos), low(low), high(high), count(count) {
 	}
 	
-	ContinueExpr::ContinueExpr(mist::Pos pos) : Decl(, pos) {
-
+	SliceExpr::SliceExpr(Expr* low, Expr* high, mist::Pos pos) : Expr(Slice, pos), low(low), high(high) {
 	}
 	
-	ReturnExpr::ReturnExpr(const std::vector<Expr*> returns, mist::Pos pos) : Decl(, pos) {
-
+	TupleIndexExpr::TupleIndexExpr(Expr* operand, i32 index, mist::Pos pos) : Expr(TupleIndex, pos), operand(operand), index(index) {
 	}
 	
-	CastExpr::CastExpr(Expr* expr, TypeSpec* ty, mist::Pos pos) : Decl(, pos) {
-
+	AssignmentExpr::AssignmentExpr(AssignmentOp op, const std::vector<Expr*> lvalues, Expr* expr, mist::Pos pos) : Expr(Assignment, pos), op(op), lvalues(lvalues), expr(expr) {
 	}
 	
-	RangeExpr::RangeExpr(Expr* low, Expr* high, Expr* count, mist::Pos pos) : Decl(, pos) {
-
+	BlockExpr::BlockExpr(const std::vector<Expr*> elements, mist::Pos pos) : Expr(Block, pos), elements(elements) {
 	}
-	
-	SliceExpr::SliceExpr(Expr* low, Expr* high, mist::Pos pos) : Decl(, pos) {
-
-	}
-	
-	TupleIndexExpr::TupleIndexExpr(Expr* operand, i32 index, mist::Pos pos) : Decl(, pos) {
-
-	}
-	
-	AssignmentExpr::AssignmentExpr(const std::vector<Expr*> lvalues, Expr* expr, mist::Pos pos) : Decl(, pos) {
-
-	}
-	
-	BlockExpr::BlockExpr(const std::vector<Expr*> elements, mist::Pos pos) : Decl(, pos) {
-
-	}
-	
 }
