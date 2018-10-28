@@ -129,9 +129,9 @@
     <ClCompile Include="src\frontend\parser\ast\ast_printer.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_stmt.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_typespec.cpp" />
-    <ClCompile Include="src\frontend\parser\token.cpp" />
+    <ClCompile Include="src\frontend\parser\tokenizer\token.cpp" />
     <ClCompile Include="src\interpreter.cpp" />
-    <ClCompile Include="src\frontend\parser\scanner.cpp" />
+    <ClCompile Include="src\frontend\parser\tokenizer\scanner.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\utils\file.cpp" />
   </ItemGroup>
@@ -143,8 +143,8 @@
     <ClInclude Include="src\frontend\parser\ast\ast_printer.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_stmt.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_typespec.hpp" />
-    <ClInclude Include="src\frontend\parser\scanner.hpp" />
-    <ClInclude Include="src\frontend\parser\token.hpp" />
+    <ClInclude Include="src\frontend\parser\tokenizer\scanner.hpp" />
+    <ClInclude Include="src\frontend\parser\tokenizer\token.hpp" />
     <ClInclude Include="src\interpreter.hpp" />
     <ClInclude Include="src\common.hpp" />
     <ClInclude Include="src\utils\file.hpp" />

@@ -1,6 +1,6 @@
 #include "interpreter.hpp" 
 
-#include "frontend/parser/scanner.hpp"
+#include "frontend/parser/tokenizer/scanner.hpp"
 #include <iostream>
 
 #ifdef _WIN32
