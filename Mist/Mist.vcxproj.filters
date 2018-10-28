@@ -48,6 +48,9 @@
     <ClCompile Include="src\frontend\parser\ast\ast_typespec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\frontend\parser\ast\ast_printer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.hpp">
@@ -81,6 +84,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\frontend\parser\ast\ast_typespec.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\frontend\parser\ast\ast_printer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

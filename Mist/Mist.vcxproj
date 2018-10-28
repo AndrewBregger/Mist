@@ -126,6 +126,7 @@
     <ClCompile Include="src\frontend\parser\ast\ast_common.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_decl.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_expr.cpp" />
+    <ClCompile Include="src\frontend\parser\ast\ast_printer.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_stmt.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_typespec.cpp" />
     <ClCompile Include="src\frontend\parser\token.cpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="src\frontend\parser\ast\ast_common.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_decl.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_expr.hpp" />
+    <ClInclude Include="src\frontend\parser\ast\ast_printer.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_stmt.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_typespec.hpp" />
     <ClInclude Include="src\frontend\parser\scanner.hpp" />

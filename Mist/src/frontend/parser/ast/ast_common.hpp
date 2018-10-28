@@ -22,6 +22,8 @@ namespace mist {
 }
 
 namespace ast {
+    struct Decl;
+
     enum Visibility {
         Public,
         Private
@@ -59,5 +61,10 @@ namespace ast {
     struct Path {
         // std::vector<PathElement*> fields;
         // Path(const std::vector<PathElement*> fields);
+    };
+
+    struct Program {
+        // file
+        std::vector<Decl*> toplevelDeclarations;
     };
 }
