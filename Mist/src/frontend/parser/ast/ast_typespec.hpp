@@ -18,7 +18,8 @@ namespace ast {
 		Pointer,
 		Reference,
 		Constant,
-		Path
+		Path,
+		Unit
 	};
 
 	struct TypeSpec {
@@ -28,7 +29,10 @@ namespace ast {
 
 		TypeSpec(TypeSpecKind k, mist::Pos p);
 		TypeSpec(TypeSpec* base, TypeSpecKind k, mist::Pos p);
+
+		const std::string& name();
 	};
+
 
 	enum GenericParameterType {
 		TypeParam,
@@ -108,5 +112,9 @@ namespace ast {
 	struct PathSpec : public TypeSpec  {
 		std::vector<NamedSpec*> path;
 		PathSpec(const std::vector<NamedSpec*>& path, mist::Pos pos);
+	};
+
+	struct UnitSpec : public TypeSpec {
+		UnitSpec(mist::Pos pos);
 	};
 }

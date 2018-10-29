@@ -9,8 +9,8 @@
 
 namespace ast {
 	void print(std::fstream& out, ast::Program* program);
-	void print(std::fstream& out, Expr* expr);
-	void print(std::fstream& out, Decl* decl);
-	void print(std::fstream& out, TypeSpec* spec);
+	std::ostream& print(std::ostream& out, Expr* expr);
+	std::ostream& print(std::ostream& out, Decl* decl);
+	std::ostream& print(std::ostream& out, TypeSpec* spec);
 }
 

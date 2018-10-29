@@ -1,12 +1,48 @@
 #include "ast_expr.hpp"
 #include "ast_decl.hpp"
 
+#define ToString(x) #x
+
 namespace ast {
+
+	const static std::vector<std::string> expr_strings = {
+		ToString(Value),
+		ToString(Tuple),
+		ToString(IntegerConst),
+		ToString(FloatConst),
+		ToString(StringConst),
+		ToString(BooleanConst),
+		ToString(CharConst),
+		ToString(Binary),
+		ToString(Unary),
+		ToString(If),
+		ToString(While),
+		ToString(Loop),
+		ToString(For),
+		ToString(Match),
+		ToString(DeclDecl),
+		ToString(Parenthesis),
+		ToString(Selector),
+		ToString(Break),
+		ToString(Continue),
+		ToString(Return),
+		ToString(Cast),
+		ToString(Range),
+		ToString(Slice),
+		ToString(TupleIndex),
+		ToString(Assignment),
+		ToString(Block)
+	};
+
 	ExprKind Expr::kind() { return k; }
 	
 	Type* Expr::type() { return t; }
 	
 	mist::Pos Expr::pos() { return p; }
+
+	const std::string& Expr::name() {
+		return expr_strings[k];
+	}
 
 	Expr::Expr(ExprKind k, mist::Pos p) : k(k), p(p) {}
 
@@ -22,7 +58,7 @@ namespace ast {
 	FloatConstExpr::FloatConstExpr(f64 val, ConstantType cty, mist::Pos pos) : Expr(FloatConst, pos),
 		value(val), cty(cty) {	}
 	
-	StringConstExpr::StringConstExpr(const std::string& val, mist::Pos pos) : Expr(StringConst, pos), value(value) {
+	StringConstExpr::StringConstExpr(const std::string& val, mist::Pos pos) : Expr(StringConst, pos), value(val) {
 	}
 	
 	BooleanConstExpr::BooleanConstExpr(bool val, mist::Pos pos) : Expr(BooleanConst, pos), value(val) {
@@ -58,7 +94,7 @@ namespace ast {
 	DeclExpr::DeclExpr(Decl* decl) : Expr(ExprKind::DeclDecl, decl->pos), decl(decl) {
 	}
 	
-	ParenthesisExpr::ParenthesisExpr(Expr* operand) : Expr(Parenthesis, operand->pos()), operand(operand) {
+	ParenthesisExpr::ParenthesisExpr(Expr* operand, const std::vector<Expr*>& params, mist::Pos pos) : Expr(Parenthesis, pos), operand(operand), params(params){
 	}
 	
 	SelectorExpr::SelectorExpr(Expr* operand, TypeSpec* element, mist::Pos pos) : Expr(Selector, pos), operand(operand), element(element) {

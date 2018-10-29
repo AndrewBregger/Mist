@@ -31,6 +31,8 @@ namespace ast {
 		DeclKind kind();
 
 		Type* type();
+
+		const std::string& string();
 	};
 
 	struct GenericDecl :  public Decl {

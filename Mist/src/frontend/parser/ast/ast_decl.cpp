@@ -2,7 +2,20 @@
 
 #include "ast_common.hpp"
 
+#define ToString(x) #x
+
 namespace ast {
+	const static std::vector<std::string> decl_strings = {
+		ToString(Local),
+		ToString(MultiLocal),
+		ToString(Struct),
+		ToString(TypeClass),
+		ToString(Function),
+		ToString(Use),
+		ToString(Impl),
+		ToString(Generic)
+	};
+
 	Decl::Decl(Ident* name, DeclKind k, mist::Pos pos) : name(name), k(k), pos(pos) {
 
 	}
@@ -13,6 +26,10 @@ namespace ast {
 
 	Type* Decl::type() {
 		return t;
+	}
+
+	const std::string& Decl::string() {
+		return decl_strings[k];
 	}
 
 	GenericDecl::GenericDecl(Ident* name, TypeSpec* bounds, mist::Pos pos) :

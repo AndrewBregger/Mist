@@ -5,6 +5,7 @@
 
 #include "interpreter.hpp"
 #include "frontend/parser/ast/ast.hpp"
+#include "frontend/parser/ast/ast_printer.hpp"
 #include "frontend/parser/ast/ast_common.hpp"
 #include "frontend/parser/ast/ast_decl.hpp"
 #include "frontend/parser/ast/ast_expr.hpp"
@@ -23,6 +24,9 @@ int main(int argc, const char** argv) {
     mist::Interpreter interp(args);    
 
     interp.compile_root();
+
+    ast::ValueExpr v = ast::ValueExpr(new ast::Ident(new mist::String{"identifier"}, mist::Pos()));
+    ast::print(std::cout, &v);
 
 	auto end = std::chrono::high_resolution_clock::now();
 

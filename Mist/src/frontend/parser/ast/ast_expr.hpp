@@ -115,6 +115,8 @@ namespace ast {
 		ExprKind kind();
 		Type* type();
 		mist::Pos pos();
+
+		const std::string& name();
 	};
 
 	struct ValueExpr : public Expr {
@@ -227,8 +229,8 @@ namespace ast {
 
 	struct ParenthesisExpr : public Expr {
 		Expr* operand;
-
-		ParenthesisExpr(Expr* operand);
+		std::vector<Expr*> params;
+		ParenthesisExpr(Expr* operand, const std::vector<Expr*>& params, mist::Pos pos);
 	};
 
 	struct SelectorExpr : public Expr {
