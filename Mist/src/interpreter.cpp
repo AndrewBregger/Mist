@@ -1,5 +1,4 @@
 #include "interpreter.hpp" 
-
 #include "frontend/parser/tokenizer/scanner.hpp"
 #include <iostream>
 
@@ -110,5 +109,26 @@ namespace mist {
         auto scanner = new Scanner(this);
         scanners.push_back(scanner);
         return scanner;
+    }
+
+//#pragma optimize("", off)
+    void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, ...) {
+		va_list va;
+		const char* m = msg.c_str();
+		va_start(va, m);
+		report_error(pos, msg, va);
+		va_end(va);
+    }
+//#pragma optimize("", on)
+
+    void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, va_list va) {
+		auto file = context.get_file(pos.fileId);
+
+		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
+
+		vprintf_s(msg.c_str(), va);
+
+		std::cout << std::endl;
+		// print file line and location information
     }
 }

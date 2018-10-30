@@ -25,9 +25,6 @@ int main(int argc, const char** argv) {
 
     interp.compile_root();
 
-    ast::ValueExpr v = ast::ValueExpr(new ast::Ident(new mist::String{"identifier"}, mist::Pos()));
-    ast::print(std::cout, &v);
-
 	auto end = std::chrono::high_resolution_clock::now();
 
 	auto diff = end - start;

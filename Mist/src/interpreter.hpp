@@ -1,12 +1,12 @@
 #pragma once
 
 #include "common.hpp"
-#include <vector>
-
 #include "utils/file.hpp"
+#include "frontend/parser/ast/ast_common.hpp"
 
 #include <unordered_map>
-
+#include <cstdarg>
+#include <vector>
 
 namespace mist {
 	class Scanner;
@@ -59,6 +59,8 @@ namespace mist {
 
             Scanner* get_scanner();
 
+            void report_error(const Pos& pos, const std::string& msg, ...);
+            void report_error(const Pos& pos, const std::string& msg, va_list va);
 		private:
 			Context context;
             std::vector<Scanner*> scanners;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -129,6 +129,7 @@
     <ClCompile Include="src\frontend\parser\ast\ast_printer.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_stmt.cpp" />
     <ClCompile Include="src\frontend\parser\ast\ast_typespec.cpp" />
+    <ClCompile Include="src\frontend\parser\parser.cpp" />
     <ClCompile Include="src\frontend\parser\tokenizer\token.cpp" />
     <ClCompile Include="src\interpreter.cpp" />
     <ClCompile Include="src\frontend\parser\tokenizer\scanner.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="src\frontend\parser\ast\ast_printer.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_stmt.hpp" />
     <ClInclude Include="src\frontend\parser\ast\ast_typespec.hpp" />
+    <ClInclude Include="src\frontend\parser\parser.hpp" />
     <ClInclude Include="src\frontend\parser\tokenizer\scanner.hpp" />
     <ClInclude Include="src\frontend\parser\tokenizer\token.hpp" />
     <ClInclude Include="src\interpreter.hpp" />

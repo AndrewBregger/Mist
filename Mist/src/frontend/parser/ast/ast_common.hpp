@@ -2,7 +2,10 @@
 
 #include "common.hpp"
 #include <vector>
-//#include "interpreter.hpp"
+
+namespace io {
+	class File;
+}
 
 namespace mist {
     struct Pos {
@@ -63,8 +66,9 @@ namespace ast {
         // Path(const std::vector<PathElement*> fields);
     };
 
-    struct Program {
+    struct Module {
         // file
+        io::File* file;
         std::vector<Decl*> toplevelDeclarations;
     };
 }
