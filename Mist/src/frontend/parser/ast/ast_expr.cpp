@@ -51,6 +51,23 @@ namespace ast {
 		}
 	}
 
+	mist::TokenKind from_unary(ast::UnaryOp op) {
+		switch(op) {
+			case UMinus:
+				return mist::Tkn_Minus;
+			case Bang:
+				return mist::Tkn_Bang;
+			case Tilde:
+				return mist::Tkn_Tilde;
+			case UAmpersand:
+				return mist::Tkn_Ampersand;
+			case UAstrick:
+				return mist::Tkn_Astrick;
+			default:
+				return mist::Tkn_Error;
+		 }
+	}
+
 	ExprKind Expr::kind() { return k; }
 	
 	Type* Expr::type() { return t; }

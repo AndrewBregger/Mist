@@ -80,6 +80,7 @@ namespace ast {
 	};
 
 	UnaryOp from_token(mist::TokenKind k);
+	mist::TokenKind from_unary(ast::UnaryOp op);
 
 	enum ConstantType {
 		I8,

@@ -57,16 +57,16 @@ namespace ast {
 				auto e = CAST(BinaryExpr, expr);
 				out << "op: " << mist::Token::get_string((mist::TokenKind) (mist::Tkn_Plus + e->op)) << ", " << std::endl;
 				out << "lhs: {" << std::endl;
-				print(out, e->lhs) << std::endl << "}," << std::endl;
+				print(out, e->lhs) << "}," << std::endl;
 				out << "rhs: {" << std::endl;
-				print(out, e->rhs) << std::endl << "}" << std::endl;
+				print(out, e->rhs) << "}" << std::endl;
 				break;
 			}
 			case Unary: {
 				auto e = CAST(UnaryExpr, expr);
-				out << "op: " << mist::Token::get_string((mist::TokenKind) (mist::Tkn_Plus + e->op)) << ", " << std::endl;
+				out << "op: " << mist::Token::get_string(ast::from_unary(e->op)) << ", " << std::endl;
 				out << "value: {" << std::endl;
-				print(out, e->expr) << std::endl << "}" << std::endl;
+				print(out, e->expr) << "}" << std::endl;
 			} break;
 			case If: {
 				auto e = CAST(IfExpr, expr);
@@ -121,9 +121,9 @@ namespace ast {
 			case Selector: {
 				auto e = CAST(SelectorExpr, expr);
 				out << "operand: {" << std::endl;
-				print(out, e->operand) << std::endl << "}," << std::endl;
+				print(out, e->operand) << "}," << std::endl;
 				out << "element: {" << std::endl;
-				print(out, e->element) << std::endl << "}" << std::endl;
+				print(out, e->element) << "}" << std::endl;
 				break;
 			}
 			case Break:

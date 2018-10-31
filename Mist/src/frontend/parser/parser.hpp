@@ -25,7 +25,7 @@ namespace mist {
 			// This is used when startin the parsing process.
 			ast::Module* parse_root(io::File* file);
 
-		private:
+		//private:
 
 			// gets the parser ready for the new file.
 			void reset();
@@ -36,7 +36,9 @@ namespace mist {
 
 			ast::Expr* parse_expr();
 
-			ast::Expr* parse_expr_with_res(i32 prec, Restriction res = Default);
+			ast::Expr* parse_expr_with_res(Restriction res = Default);
+
+			ast::Expr* parse_accoc_expr(i32 prec);
 
 			ast::Expr* parse_primary_expr();
 
@@ -46,11 +48,15 @@ namespace mist {
 
 			ast::Expr* parse_suffix_expr(ast::Expr* already_parsed);
 
+			ast::Expr* parse_block();
+
 			ast::Decl* parse_decl();
 
 			ast::Decl* parse_toplevel_decl();
 
 			ast::TypeSpec* parse_typespec();
+
+			ast::Ident* parse_ident();
 
 			mist::Token& peek();
 			mist::Token& current();

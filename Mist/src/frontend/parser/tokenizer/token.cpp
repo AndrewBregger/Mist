@@ -168,4 +168,14 @@ namespace mist {
                 return Associative::None;
         }
     }
+
+    bool Token::is_operator() {
+        auto k = kind();
+        return Tkn_Plus <= k && k <= Tkn_PipeEqual;
+    }
+
+    bool Token::is_assignment() {
+        auto k = kind();
+        return Tkn_Equal <= k && k <= Tkn_PipeEqual;
+    }
 }

@@ -34,7 +34,10 @@ namespace mist {
         index = 0;
         position = mist::Pos(0, 0, 0, file->id());
 
-		if (!file->load()) return false;
+		if (!file->load()) {
+			interp->report_error(this->position, "Failed to load file");
+			return false;
+		}
 	
             
         // std::cout << "Waiting for the file to load" << std::endl;

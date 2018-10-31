@@ -139,6 +139,10 @@ namespace mist {
 		inline TokenKind kind() { return tokenKind; }
 		inline const Pos& pos() { return position; }
 
+        bool is_operator();
+
+        bool is_assignment();
+
         i32 prec();
         Associative acc();
 
