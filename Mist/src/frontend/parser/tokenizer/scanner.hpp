@@ -1,9 +1,10 @@
 #pragma once
 
-#include "interpreter.hpp"
 #include "token.hpp"
 
 namespace mist {
+    class Interpreter;
+
     class Scanner {
         public:
             Scanner(mist::Interpreter* interp);

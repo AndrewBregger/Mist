@@ -1,6 +1,7 @@
 #include "token.hpp"
 #include <vector>
 #include <algorithm>
+#include "interpreter.hpp"
 
 static const std::vector<std::string> token_strings = {
 #define TOKEN_KIND(n, str) str,
@@ -44,7 +45,7 @@ namespace mist {
 
 	std::ostream& operator<< (std::ostream& out, const Token& t) {
 		out << "Token( " << token_strings[t.tokenKind] << " ";
-	    
+
 		switch (t.tokenKind) {
             case Tkn_IntLiteral:
                 out << "(" << t.integer << ")";
@@ -62,7 +63,7 @@ namespace mist {
                 out << "(" << t.ident->value->value() << ")";
                 break;
 		}
-		out << ", " 
+		out << ", "
             << t.position.line <<  ", "
             << t.position.column << ", "
             << t.position.span << ", "
@@ -70,4 +71,101 @@ namespace mist {
 
 		return out;
 	}
+
+    i32 Token::prec() {
+        switch(kind()) {
+            case Tkn_AstrickAstrick:
+                return 12;
+            case Tkn_Slash:
+            case Tkn_Astrick:
+            case Tkn_Percent:
+                return 11;
+            case Tkn_Plus:
+            case Tkn_Minus:
+                return 10;
+            case Tkn_LessLess:
+            case Tkn_GreaterGreater:
+                return 9;
+            case Tkn_EqualEqual:
+            case Tkn_BangEqual:
+                return 8;
+            case Tkn_LessEqual:
+            case Tkn_GreaterEqual:
+            case Tkn_Less:
+            case Tkn_Greater:
+                return 7;
+            case Tkn_Ampersand:
+                return 6;
+            case Tkn_Carrot:
+                return 5;
+            case Tkn_Pipe:
+                return 4;
+            case Tkn_And:
+                return 3;
+            case Tkn_Or:
+                return 2;
+        // case Tkn_Question:
+        // case Tkn_PeriodPeriod:
+        // case Tkn_PeriodPeriodPeriod:
+        // case Tkn_InfixOp:
+        //   return 2;
+            case Tkn_Equal:
+            case Tkn_LessLessEqual:
+            case Tkn_GreaterGreaterEqual:
+            case Tkn_PlusEqual:
+            case Tkn_MinusEqual:
+            case Tkn_SlashEqual:
+            case Tkn_AstrickEqual:
+            case Tkn_AmpersandEqual:
+            case Tkn_PipeEqual:
+            case Tkn_CarrotEqual:
+            case Tkn_AstrickAstrickEqual:
+            case Tkn_PeriodPeriod:
+            case Tkn_Dollar:
+                return 1;
+            default:
+                return 0;
+        }
+    }
+
+    Associative Token::acc() {
+        switch(kind()) {
+            case Tkn_AstrickAstrick:
+            case Tkn_Dollar:
+                return Associative::Right;
+            case Tkn_Slash:
+            case Tkn_Astrick:
+            case Tkn_Percent:
+            case Tkn_Plus:
+            case Tkn_Minus:
+            case Tkn_LessLess:
+            case Tkn_GreaterGreater:
+            case Tkn_EqualEqual:
+            case Tkn_BangEqual:
+            case Tkn_LessEqual:
+            case Tkn_GreaterEqual:
+            case Tkn_Less:
+            case Tkn_Greater:
+            case Tkn_Ampersand:
+            case Tkn_Carrot:
+            case Tkn_Pipe:
+            case Tkn_And:
+            case Tkn_Or:
+            case Tkn_Equal:
+            case Tkn_LessLessEqual:
+            case Tkn_GreaterGreaterEqual:
+            case Tkn_PlusEqual:
+            case Tkn_MinusEqual:
+            case Tkn_SlashEqual:
+            case Tkn_AstrickEqual:
+            case Tkn_AmpersandEqual:
+            case Tkn_PipeEqual:
+            case Tkn_CarrotEqual:
+            case Tkn_AstrickAstrickEqual:
+            case Tkn_PeriodPeriod:
+                return Associative::Left; 
+            default:
+                return Associative::None;
+        }
+    }
 }

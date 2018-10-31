@@ -1,10 +1,8 @@
 #pragma once
 
-#include "common.hpp"
-#include "interpreter.hpp"
-#include "ast/ast.hpp"
 #include "tokenizer/scanner.hpp"
 #include "utils/file.hpp"
+#include "ast/ast.hpp"
 
 
 namespace ast {
@@ -14,6 +12,12 @@ namespace ast {
 }
 
 namespace mist {
+	class Interpreter;
+	typedef u32 Restriction;
+
+	static Restriction Default = 0;
+	static Restriction NoStructLiterals = 1;
+
 	class Parser {
 		public:
 			Parser(mist::Interpreter* interp);
@@ -32,7 +36,17 @@ namespace mist {
 
 			ast::Expr* parse_expr();
 
-			ast::Decl* parse_delc();
+			ast::Expr* parse_expr_with_res(i32 prec, Restriction res = Default);
+
+			ast::Expr* parse_primary_expr();
+
+			ast::Expr* parse_atomic_expr();
+
+			ast::Expr* parse_bottom_expr();
+
+			ast::Expr* parse_suffix_expr(ast::Expr* already_parsed);
+
+			ast::Decl* parse_decl();
 
 			ast::Decl* parse_toplevel_decl();
 
@@ -51,10 +65,14 @@ namespace mist {
 			bool one_of(std::vector<TokenKind> kind, const std::string& msg, ...);
 			void expect(TokenKind kind, const std::string& msg, ...);
 
+
+			void sync();
+
 			mist::Interpreter* interp; 	// interpreter
 			io::File* file; 			// active file
 			mist::Scanner* scanner; 	// scanner for this parser
 			mist::Token curr;		// the current token. The scanner is one ahead.
+			Restriction res = Default;
 
 			friend class Interpreter;
 	};

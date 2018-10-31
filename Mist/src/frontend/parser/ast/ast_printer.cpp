@@ -10,7 +10,7 @@
 }
 
 namespace ast {
-	void print(std::fstream& out, ast::Module* program) {
+	void print(std::ostream& out, ast::Module* program) {
 		out << "Program: [" << std::endl;
 		for(auto decl : program->toplevelDeclarations)
 			print(out, decl);

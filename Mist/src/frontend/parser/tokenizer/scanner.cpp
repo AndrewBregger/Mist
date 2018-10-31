@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <iostream>
+#include "interpreter.hpp"
 
 namespace mist {
     Scanner::Scanner(Interpreter* interp) : interp(interp) {}

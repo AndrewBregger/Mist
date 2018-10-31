@@ -34,6 +34,23 @@ namespace ast {
 		ToString(Block)
 	};
 
+	UnaryOp from_token(mist::TokenKind k) {
+		switch(k) {
+			case mist::Tkn_Minus:
+				return UMinus;
+			case mist::Tkn_Tilde:
+				return Tilde;
+			case mist::Tkn_Astrick:
+				return UAstrick;
+			case mist::Tkn_Bang:
+				return Bang;
+			case mist::Tkn_Ampersand:
+				return UAmpersand;
+			default:
+				return UMinus;
+		}
+	}
+
 	ExprKind Expr::kind() { return k; }
 	
 	Type* Expr::type() { return t; }

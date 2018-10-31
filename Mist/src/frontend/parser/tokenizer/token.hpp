@@ -3,7 +3,6 @@
 #include "common.hpp"
 #include <string>
 #include <fstream>
-#include "interpreter.hpp"
 #include "frontend/parser/ast/ast_common.hpp"
 
 #define TOKEN_KINDS \
@@ -101,6 +100,9 @@
     TOKEN_KIND(Null, "null")
 
 namespace mist {
+
+    struct String;
+    
     enum TokenKind {
 #define TOKEN_KIND(n, ...) Tkn_##n,
         TOKEN_KINDS
@@ -108,6 +110,12 @@ namespace mist {
     };
     
 #define TOKEN_CONSTRUCTOR_DEF(Type) Token(Type elem, const mist::Pos& pos)
+
+    enum Associative {
+        Right,
+        Left,
+        None
+    };
 
     struct Token {
         Token();
@@ -130,6 +138,9 @@ namespace mist {
 		
 		inline TokenKind kind() { return tokenKind; }
 		inline const Pos& pos() { return position; }
+
+        i32 prec();
+        Associative acc();
 
         TokenKind tokenKind;
 		Pos position;

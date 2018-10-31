@@ -9,7 +9,7 @@
 #include <vector>
 
 namespace mist {
-	class Scanner;
+    class Parser;
 
     struct String {
         std::string val; 
@@ -57,13 +57,14 @@ namespace mist {
 
             String* find_string(const std::string& str);
 
-            Scanner* get_scanner();
+            Parser* get_parser();
+            void close_parser(Parser* p);
 
             void report_error(const Pos& pos, const std::string& msg, ...);
             void report_error(const Pos& pos, const std::string& msg, va_list va);
 		private:
 			Context context;
-            std::vector<Scanner*> scanners;
+            std::vector<std::pair<Parser*, bool>> parsers;
             // std::vector<Parser*> parsers;
 	};
 }

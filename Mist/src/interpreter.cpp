@@ -1,5 +1,8 @@
 #include "interpreter.hpp" 
+
 #include "frontend/parser/tokenizer/scanner.hpp"
+#include "frontend/parser/parser.hpp"
+#include "frontend/parser/ast/ast_printer.hpp"
 #include <iostream>
 
 #ifdef _WIN32
@@ -88,27 +91,36 @@ namespace mist {
     void Interpreter::compile_root() {
         auto root = context.root();
 
-        Scanner* scanner = get_scanner();
-		scanner->init(root);
-        scanner->advance();
-		while (true) {
-			auto& token = scanner->token();
-			std::cout << token << std::endl;
-			if (token.kind() == Tkn_Eof)
-				break;
-			scanner->advance();
-		}
+        auto p = get_parser();
+
+        auto m = p->parse_root(root);
+
+        ast::print(std::cout, m);
+
+        close_parser(p);
+    }
+
+    Parser* Interpreter::get_parser() {
+        for(auto& x : parsers) {
+            if(!x.second) {
+                x.second = true;
+                return x.first;
+            }
+        }
+        auto p = new mist::Parser(this);
+        parsers.emplace_back(p, true);
+        return p; 
+    }
+
+    void Interpreter::close_parser(Parser* p) {
+        for(auto& x : parsers)
+            if(x.first == p)
+                x.second = false;
     }
 
 
     String* Interpreter::find_string(const std::string& str) {
         return context.find_or_create_string(str);
-    }
-
-    Scanner* Interpreter::get_scanner() {
-        auto scanner = new Scanner(this);
-        scanners.push_back(scanner);
-        return scanner;
     }
 
 //#pragma optimize("", off)
@@ -126,7 +138,11 @@ namespace mist {
 
 		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
 
+#if _WIN32
 		vprintf_s(msg.c_str(), va);
+#else
+        vprintf(msg.c_str(), va);
+#endif
 
 		std::cout << std::endl;
 		// print file line and location information

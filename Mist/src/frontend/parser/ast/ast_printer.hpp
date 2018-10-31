@@ -8,7 +8,7 @@
 
 
 namespace ast {
-	void print(std::fstream& out, ast::Module* program);
+	void print(std::ostream& out, ast::Module* program);
 	std::ostream& print(std::ostream& out, Expr* expr);
 	std::ostream& print(std::ostream& out, Decl* decl);
 	std::ostream& print(std::ostream& out, TypeSpec* spec);

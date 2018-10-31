@@ -22,4 +22,10 @@ namespace ast {
 
     WhereClause::WhereClause(const std::vector<WhereElement*>& elems,
         mist::Pos pos) : elements(elems), pos(pos) { }
+
+    Module::Module(io::File* file) : file(file) {}
+
+    void Module::add_decl(Decl* d) {
+        toplevelDeclarations.push_back(d);
+    }
 }

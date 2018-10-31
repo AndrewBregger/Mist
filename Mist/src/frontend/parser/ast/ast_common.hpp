@@ -56,7 +56,7 @@ namespace ast {
 
     struct WhereClause {
         std::vector<WhereElement*> elements;
-        mist::Pos& pos;
+        mist::Pos pos;
 
         WhereClause(const std::vector<WhereElement*>& elems, mist::Pos pos);
     };
@@ -70,5 +70,9 @@ namespace ast {
         // file
         io::File* file;
         std::vector<Decl*> toplevelDeclarations;
+
+        Module(io::File* file);
+
+        void add_decl(Decl* d);
     };
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ast_common.hpp"
+#include "../tokenizer/token.hpp"
 
 namespace ast {
 	struct Type;
@@ -46,7 +47,8 @@ namespace ast {
 
 		Assignment,
 
-		Block
+		Block,
+		StructLiteral
 	};
 
 	enum BinaryOp {
@@ -76,6 +78,8 @@ namespace ast {
 		UAmpersand,
 		UAstrick
 	};
+
+	UnaryOp from_token(mist::TokenKind k);
 
 	enum ConstantType {
 		I8,
@@ -296,4 +300,8 @@ namespace ast {
 
 		BlockExpr(const std::vector<Expr*> elements, mist::Pos pos);
 	};
+
+	// struct StructLiteralExpr : public Expr {
+	// 	std::vector<>
+	// }
 }
