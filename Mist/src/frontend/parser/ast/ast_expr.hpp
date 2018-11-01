@@ -48,7 +48,9 @@ namespace ast {
 		Assignment,
 
 		Block,
-		StructLiteral
+		StructLiteral,
+		Binding,
+		UnitLit
 	};
 
 	enum BinaryOp {
@@ -241,9 +243,9 @@ namespace ast {
 
 	struct SelectorExpr : public Expr {
 		Expr* operand;
-		TypeSpec* element;
+		ValueExpr* element;
 
-		SelectorExpr(Expr* operand, TypeSpec* element, mist::Pos pos);
+		SelectorExpr(Expr* operand, ValueExpr* element, mist::Pos pos);
 	};
 
 	struct BreakExpr : public Expr {
@@ -266,6 +268,7 @@ namespace ast {
 
 		CastExpr(Expr* expr, TypeSpec* ty, mist::Pos pos);
 	};
+
 
 	struct RangeExpr : public Expr {
 		Expr* low;
@@ -301,6 +304,17 @@ namespace ast {
 		std::vector<Expr*> elements;
 
 		BlockExpr(const std::vector<Expr*> elements, mist::Pos pos);
+	};
+
+	struct BindingExpr : public Expr {
+		ast::Ident* name;
+		Expr* expr;
+
+		BindingExpr(ast::Ident* name, Expr* expr, mist::Pos pos);
+	};
+
+	struct UnitExpr : public Expr {
+		UnitExpr(mist::Pos pos);
 	};
 
 	// struct StructLiteralExpr : public Expr {

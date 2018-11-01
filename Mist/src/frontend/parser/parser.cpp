@@ -138,6 +138,16 @@ namespace mist {
 	}
 
 	ast::Expr* Parser::parse_primary_expr() {
+
+		// if there is no restrction agianst allowing in decl in this expression
+		// then try to parse a decl. If there is on then this will return null
+		// and continue parsing as normal.
+		if (res & NoDecl == 0) {
+			auto decl = try_parse_decl();
+			if (decl)
+				return decl;
+		}
+
 		auto c = current();
 		switch(current().kind()) {
 			case Tkn_Bang:
@@ -157,6 +167,7 @@ namespace mist {
 
 	ast::Expr* Parser::parse_atomic_expr() {
 		auto bottom = parse_bottom_expr();
+		//ast::print(std::cout, bottom);
 		return parse_suffix_expr(bottom);
 	}
 
@@ -164,6 +175,10 @@ namespace mist {
 		auto token = current();
 		std::cout << __FUNCTION__ << " " << token << std::endl;
 		switch(token.kind()) {
+			case Tkn_Unit: {
+				advance();
+				return new ast::UnitExpr(token.pos());
+			}
 			case Tkn_OpenParen: {
 				advance();
 				auto expr = parse_expr();
@@ -189,40 +204,7 @@ namespace mist {
 				interp->report_error(current().pos(), "array literal not implemented");
 				break;
 			case Tkn_Identifier: {
-				auto ident = parse_ident();
-				auto pos = ident->pos;
-				std::vector<ast::Expr*> params;
-				if(check(Tkn_OpenBrace)) {
-					pos = pos + current().pos();
-					advance();
-					bool has_comma = false;
-					while(!check(Tkn_CloseBrace) || has_comma) {
-						has_comma = false;
-						// the validity of theses expressions will be validated in the type checker.
-						auto e = parse_expr_with_res(NoStructLiterals | StopAtComma);
-						if(!e) {
-							interp->report_error(current().pos(), "expecting expression in generic parameters");
-							sync();
-							return  nullptr;
-						}
-						pos = pos + e->pos();
-						params.push_back(e);
-						if(check(Tkn_Comma)) {
-							has_comma = true;
-							advance();
-						}
-						else
-							break;
-					}
-
-					if(!check(Tkn_CloseBrace)) {
-						if(current_can_begin_expression()) {
-							interp->report_error(current().pos(), "expecting ',' between generics parameters, found: %s", current().get_string().c_str());
-						}
-					}
-					expect(Tkn_CloseBrace);
-				}
-				return new ast::ValueExpr(ident, params, pos);
+				return parse_value();
 			}
 			case Tkn_IntLiteral: {
 				auto token = current();
@@ -323,7 +305,6 @@ namespace mist {
 				interp->report_error(current().pos(), "found end of file instead of '}'");
 				return nullptr;
 			}
-
 			auto e = parse_expr();
 			pos = pos + e->pos();
 			elements.push_back(e);
@@ -340,7 +321,138 @@ namespace mist {
 	}
 
 	ast::Expr* Parser::parse_suffix_expr(ast::Expr* already_parsed) {
-		return already_parsed;
+		std::cout << __FUNCTION__ << " " << current() << std::endl;
+		auto token = current();
+		auto expr = already_parsed;
+		if(!expr) return nullptr;
+
+		auto pos = expr->pos();
+		bool running = true;
+		while(running) {
+			switch(current().kind()) {
+				case Tkn_Period:
+					pos = pos + current().pos();
+					advance();
+					expr = parse_dot_suffix(expr, pos);
+					if(!expr) return nullptr;
+					break;
+				case Tkn_OpenParen:
+					pos = pos + current().pos();
+					advance();
+					expr = parse_call(expr, pos);
+					expect(Tkn_CloseParen, "expecting ')' following call");
+					if(!expr) return nullptr;
+					break;
+				default:
+					running = false;
+			}
+		}
+		return expr;
+	}
+
+	ast::Expr* Parser::parse_dot_suffix(ast::Expr* operand, mist::Pos pos) {
+		std::cout << __FUNCTION__ << " " << current() << std::endl;
+		if(check(Tkn_Identifier)) {
+			auto element = parse_value();
+			if(!element) {
+				interp->report_error(current().pos(), "expecting name following period, found: %s", current().get_string().c_str());
+				return operand;
+			}
+			return new ast::SelectorExpr(operand, static_cast<ast::ValueExpr*>(element), pos + element->pos());
+		}
+		else if(check(Tkn_IntLiteral)) {
+			auto token = current();
+			advance();
+			return new ast::TupleIndexExpr(operand, (i32) token.integer, pos + token.pos());
+		}
+		else {
+			interp->report_error(current().pos(), "expecting an identifier or integer literal, found: %s", current().get_string().c_str());
+			sync();
+			return nullptr;
+		}
+	}
+
+	ast::Expr* Parser::parse_call(ast::Expr* operand, mist::Pos pos) {
+		std::vector<ast::Expr*> params;
+		while (true) {
+			if (check(Tkn_CloseParen)) break;
+
+			if (check(Tkn_Identifier) && peek().kind() == Tkn_Colon) {
+				auto name = current().ident;
+				auto lpos = name->pos;
+				advance();
+				lpos = lpos + current().pos();
+				expect(Tkn_Colon);
+				auto expr = parse_expr_with_res(StopAtComma);
+				if (!expr) {
+					interp->report_error(current().pos(), "expecting expression in binding");
+					sync();
+					return operand;
+				}
+				lpos = lpos + expr->pos();
+				pos = pos + lpos;
+				params.push_back(new ast::BindingExpr(name, expr, lpos));
+			}
+			else {
+				auto e = parse_expr_with_res(StopAtComma);
+				if (!e) {
+					interp->report_error(current().pos(), "expecting expression following comma");
+					sync();
+					return operand;
+				}
+				pos = pos + e->pos();
+				params.push_back(e);
+			}
+			if (check(Tkn_Comma)) {
+				advance();
+			}
+		}
+		return new ast::ParenthesisExpr(operand, params, pos);
+	}
+
+	ast::Expr* Parser::parse_value() {
+		auto ident = parse_ident();
+		auto pos = ident->pos;
+		std::vector<ast::Expr*> params;
+		if(check(Tkn_OpenBrace)) {
+			pos = pos + current().pos();
+			advance();
+			bool has_comma = false;
+			while(!check(Tkn_CloseBrace) || has_comma) {
+				has_comma = false;
+				// the validity of theses expressions will be validated in the type checker.
+				auto e = parse_expr_with_res(NoStructLiterals | StopAtComma);
+				if(!e) {
+					interp->report_error(current().pos(), "expecting expression in generic parameters");
+					sync();
+					return  nullptr;
+				}
+				pos = pos + e->pos();
+				params.push_back(e);
+				if(check(Tkn_Comma)) {
+					has_comma = true;
+					advance();
+				}
+				else
+					break;
+			}
+
+			if(!check(Tkn_CloseBrace)) {
+				if(current_can_begin_expression()) {
+					interp->report_error(current().pos(), "expecting ',' between generics parameters, found: %s", current().get_string().c_str());
+				}
+			}
+			expect(Tkn_CloseBrace);
+		}
+		return new ast::ValueExpr(ident, params, pos);
+	}
+
+	ast::Expr* Parser::try_parse_decl() {
+		if(check_decl_from_expr()) {
+			auto decl = parse_decl();
+			return new ast::DeclExpr(decl);
+		}
+		return nullptr;
 	}
 
 	ast::Decl* Parser::parse_decl() { return nullptr; }
@@ -443,6 +555,11 @@ namespace mist {
 				break;
 		}
 		return true;
+	}
+
+
+	bool Parser::check_decl_from_expr() {
+		return false;
 	}
 
 	void Parser::sync() {

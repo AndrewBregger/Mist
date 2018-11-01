@@ -66,7 +66,7 @@ namespace mist {
         		auto file = context.get_file(pos.fileId);
         		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
 #if _WIN32
-        		vprintf_s(msg.c_str(), va);
+        		printf_s(msg.c_str(), args...);
 #else
                 printf(msg.c_str(), args...);
 #endif

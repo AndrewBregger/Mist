@@ -193,6 +193,13 @@ namespace ast {
 				out << std::endl << "}" << std::endl;
 				break;
 			}
+			case Binding: {
+				auto e = CAST(BindingExpr, expr);
+				out << "name: " << e->name->value->val << "," << std::endl;
+				print(out, e->expr) << std::endl;
+				break;
+			}
+			case UnitLit: break;
 		}
 		out << "}," << std::endl;
 		return out;
@@ -229,12 +236,12 @@ namespace ast {
 				if(!d->sps.empty()) {
 					out << "types: {" << std::endl;
 					PRINT(d->sps);
-					out << std::endl << "}," << std::endl;
+					out << "}," << std::endl;
 				}
 				if(!d->inits.empty()) {
 					out << "inits: {" << std::endl;
 					PRINT(d->inits);
-					out << std::endl << "}," << std::endl;
+					out << "}," << std::endl;
 				}
 				break;
 			}

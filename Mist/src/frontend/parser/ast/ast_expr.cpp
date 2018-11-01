@@ -31,7 +31,10 @@ namespace ast {
 		ToString(Slice),
 		ToString(TupleIndex),
 		ToString(Assignment),
-		ToString(Block)
+		ToString(Block),
+		ToString(StructLiteral),
+		ToString(Binding),
+		ToString(UnitLit)
 	};
 
 	UnaryOp from_token(mist::TokenKind k) {
@@ -103,7 +106,7 @@ namespace ast {
 	
 	BinaryExpr::BinaryExpr(BinaryOp op, Expr* lhs, Expr* rhs, mist::Pos pos) : Expr(Binary, pos),
 		op(op), lhs(lhs), rhs(rhs) {}
-	
+
 	UnaryExpr::UnaryExpr(UnaryOp op, Expr* expr, mist::Pos pos) : Expr(Unary, pos), op(op), expr(expr) {
 	}
 	
@@ -131,7 +134,7 @@ namespace ast {
 	ParenthesisExpr::ParenthesisExpr(Expr* operand, const std::vector<Expr*>& params, mist::Pos pos) : Expr(Parenthesis, pos), operand(operand), params(params){
 	}
 	
-	SelectorExpr::SelectorExpr(Expr* operand, TypeSpec* element, mist::Pos pos) : Expr(Selector, pos), operand(operand), element(element) {
+	SelectorExpr::SelectorExpr(Expr* operand, ValueExpr* element, mist::Pos pos) : Expr(Selector, pos), operand(operand), element(element) {
 	}
 	
 	BreakExpr::BreakExpr(mist::Pos pos) : Expr(Break, pos) {
@@ -159,5 +162,11 @@ namespace ast {
 	}
 	
 	BlockExpr::BlockExpr(const std::vector<Expr*> elements, mist::Pos pos) : Expr(Block, pos), elements(elements) {
+	}
+	
+	BindingExpr::BindingExpr(ast::Ident* name, Expr* expr, mist::Pos pos) : Expr(Binding, pos), name(name), expr(expr) {
+	}
+	
+	UnitExpr::UnitExpr(mist::Pos pos) : Expr(UnitLit, pos) {
 	}
 }

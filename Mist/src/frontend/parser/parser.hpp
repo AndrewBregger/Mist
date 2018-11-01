@@ -18,6 +18,7 @@ namespace mist {
 	static Restriction Default = 1 << 0;
 	static Restriction NoStructLiterals = 1 << 1;
 	static Restriction StopAtComma = 1 << 2;
+	static Restriction NoDecl = 1 << 3;
 
 	class Parser {
 		public:
@@ -49,7 +50,17 @@ namespace mist {
 
 			ast::Expr* parse_suffix_expr(ast::Expr* already_parsed);
 
+			ast::Expr* parse_dot_suffix(ast::Expr* operand, mist::Pos pos);
+
+			ast::Expr* parse_call(ast::Expr* operand, mist::Pos pos);
+
 			ast::Expr* parse_block();
+
+			ast::Expr* parse_value();
+
+			ast::Expr* try_parse_decl();
+	
+			bool check_decl_from_expr();
 
 			ast::Decl* parse_decl();
 
@@ -74,8 +85,6 @@ namespace mist {
 				auto& t = current();
 				auto elem = std::find(kind.begin(), kind.end(), t.kind());
 				if (elem == kind.end()) {
-					va_list va;
-					const char* m = msg.c_str();
 					interp->report_error(t.pos(), msg, args...);
 					return false;
 				}
@@ -85,7 +94,6 @@ namespace mist {
 			template <typename... Args>
 			void expect(TokenKind kind, const std::string& msg, Args... args) {
 				auto t = current();
-				std::cout << "Expecting: " << t << std::endl;
 				advance();
 				if (t.kind() != kind)
 					interp->report_error(t.pos(), msg, args...);
