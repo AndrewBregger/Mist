@@ -37,7 +37,7 @@ namespace mist {
 		ast::print(std::cout, e);
 
 		auto module = new ast::Module(file);
-		//// while we are not at the end of the file. 
+		//// while we are not at the end of the file.
 		//// Try to parse a new declaration
 		//while(current().kind() != mist::Tkn_Eof) {
 		//	auto d = parse_toplevel_decl();
@@ -72,13 +72,14 @@ namespace mist {
 	ast::Expr* Parser::parse_accoc_expr(i32 prec) {
 		auto expr = parse_primary_expr();
 		std::cout << __FUNCTION__ << " " << current() << std::endl;
-		if(check(Tkn_Comma)) {
+		
+		if(check(Tkn_Comma) && ((res & StopAtComma) == 0)) {
 			std::vector<ast::Expr*> lvalues = { expr };
 			auto pos = expr->pos();
 			while (check(mist::Tkn_Comma)) {
 				pos = pos + current().pos();
 				advance();
-				lvalues.push_back(parse_expr_with_res(NoStructLiterals));
+				lvalues.push_back(parse_expr_with_res(NoStructLiterals | StopAtComma));
 				pos = pos + lvalues.back()->pos();
 			}
 			auto token = current();
@@ -105,13 +106,24 @@ namespace mist {
 				break;
 			}
 
-			if(!token.is_operator()) {
-				interp->report_error(current().pos(), "expecting binary operator, found: %s", token.get_string().c_str());
+			if(!token.is_operator() && !token.is_assignment()) {
+				interp->report_error(current().pos(), "expecting binary or assignement assignment, found: %s", token.get_string().c_str());
 			}
 
 			auto rhs = parse_accoc_expr(curr_prec + 1);
-			ast::BinaryOp op = (ast::BinaryOp) (token.kind() - mist::Tkn_Plus);
-			expr = new ast::BinaryExpr(op, expr, rhs, expr->pos() + token.pos() + rhs->pos());
+			if(!rhs) return expr;
+			auto pos = expr->pos() + token.pos() + rhs->pos();
+			if(token.is_operator() && !token.is_assignment()) {
+				if(expr->kind() == ast::Assignment) {
+					interp->report_error(expr->pos(), "invalid sub expression of binary operator");
+				}
+				ast::BinaryOp op = (ast::BinaryOp) (token.kind() - mist::Tkn_Plus);
+				expr = new ast::BinaryExpr(op, expr, rhs, pos);
+			}
+			else {
+				ast::AssignmentOp op = (ast::AssignmentOp) (token.kind() - mist::Tkn_Equal);
+				expr = new ast::AssignmentExpr(op, {expr}, rhs, pos);
+			}
 		}
 
 		return expr;
@@ -135,6 +147,7 @@ namespace mist {
 			case Tkn_Ampersand: {
 				advance();
 				auto e = parse_primary_expr();
+				if(!e) return e;
 				return new ast::UnaryExpr(ast::from_token(c.kind()), e, c.position + e->p);
 			}
 			default:
@@ -154,6 +167,7 @@ namespace mist {
 			case Tkn_OpenParen: {
 				advance();
 				auto expr = parse_expr();
+				if(!expr) return expr;
 				if(check(Tkn_Comma)) {
 					std::vector<ast::Expr*> exprs;
 					auto pos = token.pos();
@@ -176,7 +190,39 @@ namespace mist {
 				break;
 			case Tkn_Identifier: {
 				auto ident = parse_ident();
-				return new ast::ValueExpr(ident);
+				auto pos = ident->pos;
+				std::vector<ast::Expr*> params;
+				if(check(Tkn_OpenBrace)) {
+					pos = pos + current().pos();
+					advance();
+					bool has_comma = false;
+					while(!check(Tkn_CloseBrace) || has_comma) {
+						has_comma = false;
+						// the validity of theses expressions will be validated in the type checker.
+						auto e = parse_expr_with_res(NoStructLiterals | StopAtComma);
+						if(!e) {
+							interp->report_error(current().pos(), "expecting expression in generic parameters");
+							sync();
+							return  nullptr;
+						}
+						pos = pos + e->pos();
+						params.push_back(e);
+						if(check(Tkn_Comma)) {
+							has_comma = true;
+							advance();
+						}
+						else
+							break;
+					}
+
+					if(!check(Tkn_CloseBrace)) {
+						if(current_can_begin_expression()) {
+							interp->report_error(current().pos(), "expecting ',' between generics parameters, found: %s", current().get_string().c_str());
+						}
+					}
+					expect(Tkn_CloseBrace);
+				}
+				return new ast::ValueExpr(ident, params, pos);
 			}
 			case Tkn_IntLiteral: {
 				auto token = current();
@@ -247,14 +293,50 @@ namespace mist {
 				return new ast::CharConstExpr(token.character, token.pos());
 			} break;
 			case Tkn_OpenBracket:
-				break;
+				return parse_block();
 		}
 
 		return nullptr;
 	}
 
 	ast::Expr* Parser::parse_block() {
-		return nullptr;
+		auto pos = current().pos();
+		expect(Tkn_OpenBracket);
+
+		/*
+			this newline check is to allow there to be
+			a new line following the opening of the
+			block
+
+			othewise this is the only block
+			that is value: { x }
+
+			now this is{
+				x
+			}
+		*/
+		if(check(Tkn_NewLine))
+			advance();
+		std::vector<ast::Expr*> elements;
+		while(!check(Tkn_CloseBracket)) {
+			if(check(Tkn_Eof)) {
+				interp->report_error(current().pos(), "found end of file instead of '}'");
+				return nullptr;
+			}
+
+			auto e = parse_expr();
+			pos = pos + e->pos();
+			elements.push_back(e);
+			if(check(Tkn_NewLine)) {
+				pos = pos + current().pos();
+				advance();
+			}
+			else interp->report_error(current().pos(), "expecting new line at end of expression, found: %s", current().get_string().c_str());
+		}
+		pos = pos + current().pos();
+		expect(Tkn_CloseBracket);
+
+		return new ast::BlockExpr(elements, pos);
 	}
 
 	ast::Expr* Parser::parse_suffix_expr(ast::Expr* already_parsed) {
@@ -316,36 +398,51 @@ namespace mist {
 							   current().get_string().c_str());
 	}
 
-	bool Parser::one_of(std::vector<TokenKind> kind, const std::string& msg, ...) {
-		auto& t = current();
-		auto elem = std::find(kind.begin(), kind.end(), t.kind());
-		if (elem == kind.end()) {
-			va_list va;
-			const char* m = msg.c_str();
-			va_start(va, m);
-			interp->report_error(t.pos(), msg, va);
-			va_end(va);
-
-			return false;
+	bool Parser::current_can_begin_expression() {
+		switch(current().kind()) {
+			case Tkn_Comma:
+			case Tkn_Period:
+			case Tkn_Colon:
+			case Tkn_ColonEqual:
+			case Tkn_ColonColon:
+			case Tkn_Dollar:
+			case Tkn_And:
+			case Tkn_Or:
+			case Tkn_Arrow:
+			case Tkn_PeriodPeriod:
+			case Tkn_At:
+			case Tkn_Where:
+			case Tkn_Derive:
+			case Tkn_Struct:
+			case Tkn_Enum:
+			case Tkn_Else:
+			case Tkn_Slash:
+			case Tkn_Percent:
+			case Tkn_AstrickAstrick:
+			case Tkn_Less:
+			case Tkn_Greater:
+			case Tkn_LessEqual:
+			case Tkn_GreaterEqual:
+			case Tkn_EqualEqual:
+			case Tkn_BangEqual:
+			case Tkn_Equal:
+			case Tkn_PlusEqual:
+			case Tkn_MinusEqual:
+			case Tkn_AstrickEqual:
+			case Tkn_SlashEqual:
+			case Tkn_PercentEqual:
+			case Tkn_AstrickAstrickEqual:
+			case Tkn_LessLessEqual:
+			case Tkn_GreaterGreaterEqual:
+			case Tkn_CarrotEqual:
+			case Tkn_AmpersandEqual:
+			case Tkn_PipeEqual:
+			case Tkn_None:
+				return false;
+			default:
+				break;
 		}
 		return true;
-	}
-
-
-
-	void Parser::expect(TokenKind kind, const std::string& msg, ...) {
-		auto& t = current();
-		std::cout << "Expecting: " << t << std::endl;
-		advance();
-		if (t.kind() != kind) {
-			va_list va;
-			const char* m = msg.c_str();
-			va_start(va, m);
-		
-			interp->report_error(t.pos(), msg, va);
-	
-			va_end(va);
-		}
 	}
 
 	void Parser::sync() {

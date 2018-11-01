@@ -15,8 +15,9 @@ namespace mist {
 	class Interpreter;
 	typedef u32 Restriction;
 
-	static Restriction Default = 0;
-	static Restriction NoStructLiterals = 1;
+	static Restriction Default = 1 << 0;
+	static Restriction NoStructLiterals = 1 << 1;
+	static Restriction StopAtComma = 1 << 2;
 
 	class Parser {
 		public:
@@ -68,9 +69,30 @@ namespace mist {
 			bool check(TokenKind kind);
 			void expect(TokenKind kind);
 
-			bool one_of(std::vector<TokenKind> kind, const std::string& msg, ...);
-			void expect(TokenKind kind, const std::string& msg, ...);
+			template <typename... Args>
+			bool one_of(std::vector<TokenKind> kind, const std::string& msg, Args... args) {
+				auto& t = current();
+				auto elem = std::find(kind.begin(), kind.end(), t.kind());
+				if (elem == kind.end()) {
+					va_list va;
+					const char* m = msg.c_str();
+					interp->report_error(t.pos(), msg, args...);
+					return false;
+				}
+				return true;
+			}
 
+			template <typename... Args>
+			void expect(TokenKind kind, const std::string& msg, Args... args) {
+				auto t = current();
+				std::cout << "Expecting: " << t << std::endl;
+				advance();
+				if (t.kind() != kind)
+					interp->report_error(t.pos(), msg, args...);
+			}
+
+
+			bool current_can_begin_expression();
 
 			void sync();
 

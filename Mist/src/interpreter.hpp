@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <cstdarg>
 #include <vector>
+#include <iostream>
 
 namespace mist {
     class Parser;
@@ -60,8 +61,17 @@ namespace mist {
             Parser* get_parser();
             void close_parser(Parser* p);
 
-            void report_error(const Pos& pos, const std::string& msg, ...);
-            void report_error(const Pos& pos, const std::string& msg, va_list va);
+            template <typename... Args>
+            void report_error(const Pos& pos, const std::string& msg, Args... args) {
+        		auto file = context.get_file(pos.fileId);
+        		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
+#if _WIN32
+        		vprintf_s(msg.c_str(), va);
+#else
+                printf(msg.c_str(), args...);
+#endif
+        		std::cout << std::endl;
+            }
 		private:
 			Context context;
             std::vector<std::pair<Parser*, bool>> parsers;

@@ -80,7 +80,7 @@ namespace ast {
 
 	Expr::Expr(ExprKind k, mist::Pos p) : k(k), p(p) {}
 
-	ValueExpr::ValueExpr(Ident* name) : Expr(Value, name->pos), name(name) {}
+	ValueExpr::ValueExpr(Ident* name, const std::vector<Expr*>& generics, mist::Pos pos) : Expr(Value, pos), name(name), genericValues(generics) {}
 	
 	TupleExpr::TupleExpr(const std::vector<Expr*>& values, mist::Pos pos) : Expr(Tuple, pos), values(values) {
 

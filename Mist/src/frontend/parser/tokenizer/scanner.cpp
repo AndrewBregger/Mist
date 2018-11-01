@@ -103,7 +103,7 @@ namespace mist {
 
 	Token Scanner::scan_identifier() {
         std::string temp;
-        while(isalnum(*currentCh) or check('_')) {
+        while(currentCh && (isalnum(*currentCh) or check('_'))) {
             temp.push_back(*currentCh);
             bump();
         }
@@ -131,7 +131,7 @@ namespace mist {
 			if (check('x') or
 				check('X')) {
                 bump();
-				while (isxdigit(*currentCh)){
+				while (currentCh && isxdigit(*currentCh)){
                     temp.push_back(*currentCh);
                     bump();
                 }
@@ -157,7 +157,7 @@ namespace mist {
 		bool floating_point = false;
 		bool scientific_notation = false;
         // scan digits before the decimal point
-		while (isdigit(*currentCh)) {
+		while (currentCh && isdigit(*currentCh)) {
             temp.push_back(*currentCh);
             bump();
         }
@@ -165,7 +165,7 @@ namespace mist {
 		if (check('.') and (nextCh and *nextCh != '.')) {
             temp.push_back(*currentCh);
             bump();
-			while (isdigit(*currentCh)) {
+			while (currentCh && isdigit(*currentCh)) {
                 temp.push_back(*currentCh);
                 bump();
             }
@@ -185,8 +185,8 @@ namespace mist {
 
 
 
-			if (isdigit(*currentCh))
-				while(isdigit(*currentCh)) {
+			if (currentCh && isdigit(*currentCh))
+				while(currentCh && isdigit(*currentCh)) {
                     temp.push_back(*currentCh);
                     bump();
                 }
@@ -352,6 +352,9 @@ namespace mist {
 
     Token Scanner::scan_character() {
         char temp;
+        if(!currentCh)  {
+            interp->report_error(position, "found end of file while expecting to find character");
+        }
         switch(*currentCh) {
             case '\\':
                 temp = validate_escape();
@@ -396,7 +399,7 @@ namespace mist {
         // consume the next forward slash
 		bump();
         std::string temp;
-		while (!check('\n')) {
+		while (currentCh && !check('\n')) {
 			temp.push_back(*currentCh);
 			bump();
 		}
@@ -409,6 +412,9 @@ namespace mist {
     }
 
     char Scanner::validate_escape() {
+        if(!currentCh) {
+            interp->report_error(position, "invalid escape character at end of file");
+        }
         bump();               // consumes the the the forward slash
         auto ch = *currentCh; // gets the character following the forward slash.
 		bump();               // consumes it.

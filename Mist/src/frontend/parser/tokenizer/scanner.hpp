@@ -34,7 +34,7 @@ namespace mist {
             // this is to allow the span to be updated as we move along.
             inline void new_token() { position.span = 0; savePos = position; }
 
-			inline bool check(char ch) { return *currentCh == ch; }
+			inline bool check(char ch) { return currentCh && *currentCh == ch; }
 
 
 		private:

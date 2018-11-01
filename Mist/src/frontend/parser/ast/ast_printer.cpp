@@ -25,7 +25,12 @@ namespace ast {
 		switch (expr->k) {
 			case Value: {
 				auto e = CAST(ValueExpr, expr);
-				out << "name: " << e->name->value->val << std::endl;
+					out << "name: " << e->name->value->val << std::endl;
+				if(!e->genericValues.empty()) {
+					out << "params: [" << std::endl;
+					PRINT(e->genericValues)
+					out << "], " << std::endl;
+				}
 			} break;
 			case Tuple: {
 				auto e = CAST(TupleExpr, expr);

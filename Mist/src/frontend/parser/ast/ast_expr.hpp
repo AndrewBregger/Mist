@@ -126,8 +126,9 @@ namespace ast {
 
 	struct ValueExpr : public Expr {
 		Ident* name;
+		std::vector<Expr*> genericValues;
 
-		ValueExpr(Ident* name);
+		ValueExpr(Ident* name, const std::vector<Expr*>& generics, mist::Pos pos);
 	};
 
 	struct TupleExpr : public Expr {

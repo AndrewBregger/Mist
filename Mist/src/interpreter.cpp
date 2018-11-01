@@ -3,7 +3,6 @@
 #include "frontend/parser/tokenizer/scanner.hpp"
 #include "frontend/parser/parser.hpp"
 #include "frontend/parser/ast/ast_printer.hpp"
-#include <iostream>
 
 #ifdef _WIN32
     #include <windows.h>
@@ -123,28 +122,28 @@ namespace mist {
         return context.find_or_create_string(str);
     }
 
-//#pragma optimize("", off)
-    void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, ...) {
-		va_list va;
-		const char* m = msg.c_str();
-		va_start(va, m);
-		report_error(pos, msg, va);
-		va_end(va);
-    }
-//#pragma optimize("", on)
+// //#pragma optimize("", off)
+//     void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, ...) {
+// 		va_list va;
+// 		const char* m = msg.c_str();
+// 		va_start(va, m);
+// 		report_error(pos, msg, va);
+// 		va_end(va);
+//     }
+// //#pragma optimize("", on)
 
-    void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, va_list va) {
-		auto file = context.get_file(pos.fileId);
+//     void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, va_list va) {
+// 		auto file = context.get_file(pos.fileId);
 
-		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
+// 		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
 
-#if _WIN32
-		vprintf_s(msg.c_str(), va);
-#else
-        vprintf(msg.c_str(), va);
-#endif
+// #if _WIN32
+// 		vprintf_s(msg.c_str(), va);
+// #else
+//         vprintf(msg.c_str(), va);
+// #endif
 
-		std::cout << std::endl;
-		// print file line and location information
-    }
+// 		std::cout << std::endl;
+// 		// print file line and location information
+//     }
 }
