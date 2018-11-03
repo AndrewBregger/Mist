@@ -9,6 +9,7 @@ namespace ast {
 	struct Expr;
 	struct Decl;
 	struct TypeSpec;
+	struct Generics;
 }
 
 namespace mist {
@@ -64,6 +65,20 @@ namespace mist {
 
 			ast::Decl* parse_decl();
 
+			ast::Decl* parse_local_decl(const std::vector<ast::Ident*>& names, mist::Pos pos);
+
+			ast::Decl* parse_struct_decl(ast::Ident* name, ast::Generics* generics);
+
+			ast::Decl* parse_enum_decl(ast::Ident* name, ast::Generics* generics);
+
+			ast::Decl* parse_typeclass_decl(ast::Ident* name, ast::Generics* generics);
+
+			ast::Decl* parse_function_decl(ast::Ident* name, ast::Generics* generics);
+
+			ast::Decl* parse_user_decl(ast::Ident* name);
+
+			ast::Generics* parse_generics();
+
 			ast::Decl* parse_toplevel_decl();
 
 			ast::TypeSpec* parse_typespec();
@@ -109,6 +124,16 @@ namespace mist {
 			mist::Scanner* scanner; 	// scanner for this parser
 			mist::Token curr;		// the current token. The scanner is one ahead.
 			Restriction res = Default;
+
+			struct SavedState {
+				mist::Token current;
+				Restriction res;
+				mist::Scanner::State state;
+			};
+
+
+			SavedState save_state();
+			void restore_state(const SavedState& state);
 
 			friend class Interpreter;
 	};

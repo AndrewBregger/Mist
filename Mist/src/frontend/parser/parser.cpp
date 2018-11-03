@@ -31,23 +31,23 @@ namespace mist {
 		this->file = file;
 		reset();
 
-		auto e = parse_expr();
+		// auto e = parse_expr();
 
-		std::cout << e << std::endl;
-		ast::print(std::cout, e);
+		// std::cout << e << std::endl;
+		// ast::print(std::cout, e);
 
 		auto module = new ast::Module(file);
 		//// while we are not at the end of the file.
 		//// Try to parse a new declaration
-		//while(current().kind() != mist::Tkn_Eof) {
-		//	auto d = parse_toplevel_decl();
-		//	if(d)
-		//		module->add_decl(d);
-		//	else {
-		//		interp->report_error(current().pos(), "failed to find top level declaration");
-		//		sync();
-		//	}
-		//}
+		while(current().kind() != mist::Tkn_Eof) {
+			auto d = parse_toplevel_decl();
+			if(d)
+				module->add_decl(d);
+			else {
+				interp->report_error(current().pos(), "failed to find top level declaration");
+				sync();
+			}
+		}
 
 		return module;
 	}
@@ -142,7 +142,7 @@ namespace mist {
 		// if there is no restrction agianst allowing in decl in this expression
 		// then try to parse a decl. If there is on then this will return null
 		// and continue parsing as normal.
-		if (res & NoDecl == 0) {
+		if ((res & NoDecl) == 0) {
 			auto decl = try_parse_decl();
 			if (decl)
 				return decl;
@@ -277,7 +277,6 @@ namespace mist {
 			case Tkn_OpenBracket:
 				return parse_block();
 		}
-
 		return nullptr;
 	}
 
@@ -455,8 +454,148 @@ namespace mist {
 		return nullptr;
 	}
 
-	ast::Decl* Parser::parse_decl() { return nullptr; }
-	ast::Decl* Parser::parse_toplevel_decl() { return nullptr; }
+	ast::Decl* Parser::parse_decl() {
+		std::cout << "Parsing a decl" << std::endl;
+		auto name = current();
+		if(peek().kind() == Tkn_Comma) {
+			std::vector<ast::Ident*> names;
+			auto pos = current().pos();
+			names.push_back(current().ident);
+			advance();
+			while(check(Tkn_Comma)) {
+				advance();
+				if(check(Tkn_Identifier)) {
+					names.push_back(current().ident);
+					pos = pos + current().pos();
+					advance();
+				}
+				else {
+					interp->report_error(current().pos(), "expecting identifier following comma, found: '%s", current().get_string().c_str());
+				}
+			}
+			return parse_local_decl(names, pos);
+		}
+		else {
+			auto name = current().ident;
+			expect(Tkn_Identifier);
+			switch(current().kind()) {
+				case Tkn_Colon:
+				case Tkn_ColonEqual:
+					return parse_local_decl({name}, name->pos);
+				case Tkn_ColonColon: {
+					return parse_user_decl(name);
+				}
+			}
+		}
+		
+		return nullptr;
+	}
+
+	ast::Decl* Parser::parse_local_decl(const std::vector<ast::Ident*>& names, mist::Pos pos) {
+		std::vector<ast::TypeSpec*> specs;
+		std::vector<ast::Expr*> exprs;
+		ast::Expr* expr = nullptr;
+
+		if(check(Tkn_Colon)) {
+			advance();
+
+			bool expectComma = false;	
+			while(true) {
+				if(check(Tkn_Equal) || check(Tkn_ColonEqual))
+					break;
+				expectComma = false;
+				auto spec = parse_typespec();
+				if(spec)
+					specs.push_back(spec);
+				else {
+					interp->report_error(current().pos(), "expecting type specification following ','");
+					return nullptr;
+				}
+
+				if(!check(Tkn_Comma))
+					break;
+				else {
+					advance();
+					expectComma = true;
+				}
+			}
+		}
+
+		if(check(Tkn_ColonEqual) || check(Tkn_Equal)) {
+			advance();
+
+			bool expectComma = false;	
+			while(true) {
+				if(check(Tkn_Equal) || check(Tkn_ColonEqual))
+					break;
+				expectComma = false;
+				expr = parse_expr_with_res(StopAtComma);
+				if(expr)
+					exprs.push_back(expr);
+				else {
+					interp->report_error(current().pos(), "expecting expression following ','");
+					return nullptr;
+				}
+
+				if(!check(Tkn_Comma))
+					break;
+				else {
+					advance();
+					expectComma = true;
+				}
+			}
+		}
+		
+		if(names.size() > 1) {
+			// this is for multiple local declarations
+			return new ast::MultiLocalDecl(names, specs, exprs, pos);
+		}
+		else if(names.size() == 1) {
+			if(specs.size() > 1) {
+				interp->report_error(specs[1]->p, "expecting only one type specification following a single identifer");
+			}
+			if(exprs.size() > 1) {
+				interp->report_error(exprs[1]->pos(), "expecting only one type specification following a single identifer");
+			}
+			return new ast::LocalDecl(names.front(), specs.front(), exprs.front(), pos);
+		}
+	}
+
+	ast::Decl* Parser::parse_struct_decl(ast::Ident* name, ast::Generics* generics) {
+		return nullptr;
+	}
+
+	ast::Decl* Parser::parse_enum_decl(ast::Ident* name, ast::Generics* generics) {
+		return nullptr;
+	}
+
+	ast::Decl* Parser::parse_typeclass_decl(ast::Ident* name, ast::Generics* generics) {
+		return nullptr;
+	}
+
+	ast::Decl* Parser::parse_function_decl(ast::Ident* name, ast::Generics* generics) {
+		return nullptr;
+	}
+
+	ast::Decl* Parser::parse_user_decl(ast::Ident* name) {
+		return nullptr;
+	}
+
+	ast::Generics* Parser::parse_generics() {
+		return nullptr;
+	}
+
+	ast::Decl* Parser::parse_toplevel_decl() {
+		auto decl = parse_decl();
+
+		if(check(Tkn_NewLine)) {
+			advance();
+			return decl;
+		}
+
+		interp->report_error(current().pos(), "expecting newline following declaration, found: '%s'", current().get_string().c_str());
+		return nullptr;
+	}
 	ast::TypeSpec* Parser::parse_typespec() { return nullptr; }
 
 	ast::Ident* Parser::parse_ident() {
@@ -559,10 +698,63 @@ namespace mist {
 
 
 	bool Parser::check_decl_from_expr() {
+		Token token = current();
+
+		// only check if there is an identifier there,
+		// otherwise it isn't a declaration.
+		if(check(Tkn_Identifier)) {
+			Token p = peek();
+			// this is a function, struct, enum declaration
+			if(p.kind() == Tkn_ColonColon)
+				return true;
+			else if(p.kind() == Tkn_Comma) {
+				auto oldState = save_state();
+				while(check(Tkn_Identifier)) {
+					advance();
+					if(!check(Tkn_Comma))
+						break;
+					else
+						advance();
+				}
+				if(check(Tkn_Colon) || check(Tkn_ColonEqual)) {
+					restore_state(oldState);
+					return true;
+				}
+				else {
+					restore_state(oldState);
+					return false;
+				}
+			}
+			else if(p.kind() == Tkn_Colon) {
+				return true;
+			}
+			else if(p.kind() == Tkn_ColonColon) {
+				return true;
+			}
+			else if(p.kind() == Tkn_ColonEqual) {
+				return true;
+			}
+			else return false;
+		}
+		// else if()
 		return false;
 	}
 
 	void Parser::sync() {
 
+	}
+
+	Parser::SavedState Parser::save_state() {
+		return SavedState {
+			curr,
+			res,
+			scanner->save()
+		};
+	}
+
+	void Parser::restore_state(const Parser::SavedState& state) {
+		curr = state.current;
+		res = state.res;
+		scanner->restore(state.state);
 	}
 }

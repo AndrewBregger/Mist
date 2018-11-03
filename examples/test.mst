@@ -1,5 +1,1 @@
-{
-	x[1].name[3, i32](begin: 1, last: 1 * 3, step: y + y)
-	y()
-	<>
-}
+x, y, z := 1, 2, 3

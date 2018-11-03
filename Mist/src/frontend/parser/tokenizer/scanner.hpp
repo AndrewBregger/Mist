@@ -7,6 +7,14 @@ namespace mist {
 
     class Scanner {
         public:
+            struct State {
+                u64 index;               /// the index within the source
+                const char* currentCh;         /// the current character
+                const char* nextCh;            /// the next character
+                Pos position;            /// the current position within the file
+                Pos savePos;             /// the start of current token
+            };
+
             Scanner(mist::Interpreter* interp);
 
             ~Scanner();
@@ -22,6 +30,12 @@ namespace mist {
     
             // returns the most resent token
             Token& token();
+
+            State save();
+
+            void restore(const State& state);
+
+
 
         private:
     
@@ -63,5 +77,7 @@ namespace mist {
             const std::string* source;     /// the source
             Pos position;            /// the current position within the file
             Pos savePos;             /// the start of current token
+
+
     };
 }

@@ -469,4 +469,22 @@ namespace mist {
         }
         return 0x0;
     }
+
+    Scanner::State Scanner::save() {
+        return State {
+            index,
+            currentCh,
+            nextCh,
+            position,
+            savePos
+        };
+    }
+
+    void Scanner::restore(const State& state) {
+        index = state.index;
+        currentCh = state.currentCh;
+        nextCh = state.nextCh;
+        position = state.position;
+        savePos = state.savePos;
+    }
 }
