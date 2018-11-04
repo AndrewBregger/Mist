@@ -32,7 +32,7 @@ namespace ast {
 		return decl_strings[k];
 	}
 
-	GenericDecl::GenericDecl(Ident* name, TypeSpec* bounds, mist::Pos pos) :
+	GenericDecl::GenericDecl(Ident* name, const std::vector<TypeSpec*>& bounds, mist::Pos pos) :
 		Decl(name, Generic, pos), bounds(bounds) {}
 
 	Generics::Generics(const std::vector<GenericDecl*>& parameters) : parameters(parameters) {

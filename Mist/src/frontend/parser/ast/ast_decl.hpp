@@ -36,9 +36,9 @@ namespace ast {
 	};
 
 	struct GenericDecl :  public Decl {
-		TypeSpec* bounds;
+		std::vector<TypeSpec*> bounds;
 
-		GenericDecl(Ident* name, TypeSpec* bounds, mist::Pos pos);
+		GenericDecl(Ident* name, const std::vector<TypeSpec*>& bounds, mist::Pos pos);
 	};
 
 	struct Generics {

@@ -10,6 +10,7 @@ namespace ast {
 	struct Decl;
 	struct TypeSpec;
 	struct Generics;
+	struct GenericDecl;
 }
 
 namespace mist {
@@ -78,6 +79,8 @@ namespace mist {
 			ast::Decl* parse_user_decl(ast::Ident* name);
 
 			ast::Generics* parse_generics();
+
+			ast::GenericDecl* parse_generic_decl();
 
 			ast::Decl* parse_toplevel_decl();
 

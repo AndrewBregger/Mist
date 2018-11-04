@@ -246,6 +246,21 @@ namespace ast {
 				break;
 			}
 			case Struct: {
+				auto d = CAST(StructDecl, decl);
+				out << "fields: [" << std::endl;
+				PRINT(d->fields);
+				out << "]," << std::endl;
+				out << "derives: [" << std::endl;
+				PRINT(d->derives);
+				out << "]," << std::endl;
+				if(d->where) {
+
+				}
+				if(d->generics) {
+					out << "generics: [" << std::endl;
+					PRINT(d->generics->parameters)
+					out << "]," << std::endl;
+				}
 				break;
 			}
 			case TypeClass: {
