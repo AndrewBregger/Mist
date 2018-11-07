@@ -3,10 +3,10 @@
 #include "ast_common.hpp"
 
 namespace ast {
-	
+
 	struct Expr;
 	struct IntegerConstExpr;
-	
+
 	enum TypeSpecKind  {
 		Named,
 		TupleType,
@@ -23,7 +23,7 @@ namespace ast {
 	};
 
 	struct TypeSpec {
-		TypeSpecKind k;	
+		TypeSpecKind k;
 		mist::Pos p;
 		TypeSpec* base{nullptr};
 
@@ -40,16 +40,9 @@ namespace ast {
 	};
 
 	struct GenericParameters {
-		GenericParameterType ty;
-		mist::Pos pos;
+		std::vector<Expr*> exprs;
 
-		union {
-			TypeSpec* type;
-			Expr* expr;
-		};
-
-		GenericParameters(TypeSpec* type);
-		GenericParameters(Expr* expr);
+		GenericParameters(const std::vector<Expr*>& expr);
 	};
 
 	struct NamedSpec : public TypeSpec {
@@ -82,7 +75,7 @@ namespace ast {
 	struct ArraySpec : public TypeSpec {
 		TypeSpec* element;
 
-		IntegerConstExpr* size;	
+		IntegerConstExpr* size;
 
 		ArraySpec(TypeSpec* element, IntegerConstExpr* size, mist::Pos pos);
 	};

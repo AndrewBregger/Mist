@@ -13,15 +13,14 @@ How to handle newlines in the middle of an expression?
 #include "ast/ast_printer.hpp"
 
 // REMOVE ME!!!
+#include <bitset>
 #include <iostream>
 
 namespace mist {
 	Parser::Parser(mist::Interpreter* interp) : interp(interp), file(nullptr),
 		scanner(new Scanner(interp)), curr(Tkn_Error, Pos()) {
 	}
-
-	// for now these arent different. They probabily will
-	// later.
+// for now these arent different. They probabily will // later.
 	ast::Module* Parser::parse_root(io::File* file) {
 		return parse_module(file);
 	}
@@ -72,7 +71,7 @@ namespace mist {
 	ast::Expr* Parser::parse_accoc_expr(i32 prec) {
 		auto expr = parse_primary_expr();
 		std::cout << __FUNCTION__ << " " << current() << std::endl;
-		
+
 		if(check(Tkn_Comma) && ((res & StopAtComma) == 0)) {
 			std::vector<ast::Expr*> lvalues = { expr };
 			auto pos = expr->pos();
@@ -276,6 +275,8 @@ namespace mist {
 			} break;
 			case Tkn_OpenBracket:
 				return parse_block();
+			default:
+				break;
 		}
 		return nullptr;
 	}
@@ -458,13 +459,13 @@ namespace mist {
 		std::cout << "Parsing a decl" << std::endl;
 		auto name = current();
 		if(peek().kind() == Tkn_Comma) {
-			std::vector<ast::ident*> names;
+			std::vector<ast::Ident*> names;
 			auto pos = current().pos();
 			names.push_back(current().ident);
 			advance();
-			while(check(tkn_comma)) {
+			while(check(Tkn_Comma)) {
 				advance();
-				if(check(tkn_identifier)) {
+				if(check(Tkn_Identifier)) {
 					names.push_back(current().ident);
 					pos = pos + current().pos();
 					advance();
@@ -486,9 +487,11 @@ namespace mist {
 					advance();
 					return parse_user_decl(name);
 				}
+				default:
+					break;
 			}
 		}
-		
+
 		return nullptr;
 	}
 
@@ -497,12 +500,10 @@ namespace mist {
 		std::vector<ast::Expr*> exprs;
 		ast::Expr* expr = nullptr;
 
-		if(check(Tkn_Colon)) {
-			advance();
-
-			bool expectComma = false;	
+		if(allow(Tkn_Colon)) {
+			bool expectComma = false;
 			while(true) {
-				if(check(Tkn_Equal) || check(Tkn_ColonEqual))
+				if(check(Tkn_Equal))
 					break;
 				expectComma = false;
 				auto spec = parse_typespec();
@@ -516,16 +517,16 @@ namespace mist {
 				if(!check(Tkn_Comma))
 					break;
 				else {
+					if(res & NoMultiSpecs)
+						break;
 					advance();
 					expectComma = true;
 				}
 			}
 		}
 
-		if(check(Tkn_ColonEqual) || check(Tkn_Equal)) {
-			advance();
-
-			bool expectComma = false;	
+		if(allow(Tkn_Equal)) {
+			bool expectComma = false;
 			while(true) {
 				if(check(Tkn_Equal) || check(Tkn_ColonEqual))
 					break;
@@ -546,12 +547,15 @@ namespace mist {
 				}
 			}
 		}
-		
+
 		if(names.size() > 1) {
 			// this is for multiple local declarations
 			return new ast::MultiLocalDecl(names, specs, exprs, pos);
 		}
 		else if(names.size() == 1) {
+			std::cout << "Num specs: " << specs.size() << std::endl;
+			for(auto x : specs)
+				ast::print(std::cout, x) << std::endl;
 			if(specs.size() > 1) {
 				interp->report_error(specs[1]->p, "expecting only one type specification following a single identifer");
 			}
@@ -559,7 +563,16 @@ namespace mist {
 			if(exprs.size() > 1) {
 				interp->report_error(exprs[1]->pos(), "expecting only one type specification following a single identifer");
 			}
-			return new ast::LocalDecl(names.front(), specs.front(), exprs.front(), pos);
+			ast::TypeSpec* spec = nullptr;
+			if(!specs.empty())
+				spec = specs.front();
+			ast::Expr* expr = nullptr;
+			if(!exprs.empty())
+				expr = exprs.front();
+			if(!expr and !spec) {
+				interp->report_error(pos, "untyped variable must have intialization expression");
+			}
+			return new ast::LocalDecl(names.front(), spec, expr, pos);
 		}
 
 		interp->report_error(current().pos(), "expecting one of ':', ':=', '=' found: '%s'", current().get_string().c_str());
@@ -567,35 +580,135 @@ namespace mist {
 	}
 
 	ast::Decl* Parser::parse_struct_decl(ast::Ident* name, ast::Generics* generics) {
+		auto old = res;
+		res |= IgnoreNewline;
+		res |= NoMultiSpecs;
+
 		expect(Tkn_Struct);
 		expect(Tkn_OpenBracket);
-		if(check(Tkn_NewLine))
-			advance();
 
 		std::vector<ast::FieldDecl*> fields;
+
 		while(!check(Tkn_CloseBracket)) {
 			std::vector<ast::Ident*> names;
 			auto pos = current().pos();
-			names.push_back(current().ident);
-			advance();`
-			while(check(Tkn_Comma)) {
-				advance();
+
+			if(current().kind() != Tkn_Identifier)
+				break;
+
+			names.push_back(parse_ident());
+
+			while(allow(Tkn_Comma)) {
 				if(check(Tkn_Identifier)) {
-					names.push_back(current().ident);
-					pos = pos + current().pos();
-					advance();
+					names.push_back(parse_ident());
+					pos = pos + names.back()->pos;
 				}
 				else {
-					interp->report_error(current().pos(), "expecting identifier following comma, found: '%s", current().get_string().c_str());
+					interp->report_error(current().pos(), "expecting identifier following ',', found: '%s", current().get_string().c_str());
 				}
 			}
-			auto d = parse_local_decl(names, pos);
+			auto d = (ast::FieldDecl*) parse_local_decl(names, pos);
+			ast::print(std::cout, d) << std::endl;
 			if(d)
 				fields.push_back(d);
-			
-			if()
+
+			if(check(Tkn_Comma))
+				advance();
+			else
+				break;
 		}
-		return nullptr;
+		res = old;
+		expect(Tkn_CloseBracket);
+		return parse_struct_decl_suffix(name, generics, fields);
+	}
+
+	ast::Decl* Parser::parse_struct_decl_suffix(ast::Ident* name, ast::Generics* gens,
+		const std::vector<ast::FieldDecl*>& fields) {
+		ast::WhereClause* where;
+		std::vector<ast::TypeSpec*> derives;
+
+		if(allow(Tkn_Where)) {
+			where = parse_where_clause();
+			allow(Tkn_NewLine);
+			if(allow(Tkn_Derive))
+				derives = parse_derive_suffix();
+		}
+		else if(allow(Tkn_Derive)) {
+			derives = parse_derive_suffix();
+			allow(Tkn_NewLine);
+			if(allow(Tkn_Where))
+				where = parse_where_clause();
+		}
+
+		return new ast::StructDecl(name, fields, derives, where, gens, name->pos);
+	}
+
+	ast::WhereClause* Parser::parse_where_clause() {
+		std::vector<ast::WhereElement*> elements;
+		mist::Pos tpos = current().pos();
+		tpos.span = 0;
+
+		while(true) {
+			if(check(Tkn_Identifier)) {
+				auto name = current().ident;
+				mist::Pos pos = name->pos;
+				advance();
+
+				pos = pos + current().pos();
+				expect(Tkn_Colon, "expecting ':' following identifier");
+
+				std::vector<ast::TypeSpec*> types;
+
+				while(true) {
+					auto tspec = parse_typespec();
+					if(tspec) {
+						types.push_back(tspec);
+						pos = pos + tspec->p;
+					}
+					else {
+						interp->report_error(current().pos(), "expecting type following comma");
+						break;
+					}
+					if(check(Tkn_Plus)) {
+						advance();
+					}
+					else
+						break;
+				}
+				tpos = tpos + pos;
+				elements.push_back(new ast::WhereElement(name, types, pos));
+				if(check(Tkn_Comma)) {
+					advance();
+				}
+				else break;
+			}
+			else break;
+		}
+
+		return new ast::WhereClause(elements, tpos);
+	}
+
+	std::vector<ast::TypeSpec*> Parser::parse_derive_suffix() {
+		std::vector<ast::TypeSpec*> specs;
+		auto t = parse_typespec();
+		if(!t) {
+			interp->report_error(current().pos(), "expecting type following 'derive'");
+			return specs;
+		}
+
+		specs.push_back(t);
+		auto pos = t->p;
+		while(check(Tkn_Comma)) {
+			advance();
+
+			auto t = parse_typespec();
+			if(!t) {
+				interp->report_error(current().pos(), "expecting type following ','");
+			}
+			else
+				specs.push_back(t);
+		}
+		return specs;
 	}
 
 	ast::Decl* Parser::parse_enum_decl(ast::Ident* name, ast::Generics* generics) {
@@ -652,13 +765,13 @@ namespace mist {
 		}
 		return nullptr;
 	}
-	
+
 	ast::GenericDecl* Parser::parse_generic_decl() {
 		if(check(Tkn_Identifier)) {
 			auto name = current().ident;
 			auto pos = name->pos;
 			advance();
-			std::vector<ast::TypeSpec*> bounds;	
+			std::vector<ast::TypeSpec*> bounds;
 			if(check(Tkn_Colon)) {
 				advance();
 				while(true) {
@@ -671,14 +784,13 @@ namespace mist {
 						interp->report_error(current().pos(), "expecting type following comma");
 						break;
 					}
-					if(check(Tkn_Comma)) {
+					if(check(Tkn_Plus)) {
 						advance();
 					}
 					else
 						break;
 				}
 			}
-
 			return new ast::GenericDecl(name, bounds, pos);
 		}
 		return nullptr;
@@ -688,15 +800,26 @@ namespace mist {
 		// add the parsing of use decls.
 		auto decl = parse_decl();
 
-		if(check(Tkn_NewLine)) {
-			advance();
+		if(allow(Tkn_NewLine)) {
 			return decl;
 		}
 
-		interp->report_error(current().pos(), "expecting newline following declaration, found: '%s'", current().get_string().c_str());
+		if(!check(Tkn_Eof)) {
+			interp->report_error(current().pos(), "expecting newline following declaration, found: '%s'", current().get_string().c_str());
+			return nullptr;
+		}
+		return decl;
+	}
+	ast::TypeSpec* Parser::parse_typespec() {
+		auto token = current();
+		switch(current().kind()) {
+			case Tkn_Identifier:
+				return value_to_type((ast::ValueExpr*) parse_value());
+			default:
+				break;
+		}
 		return nullptr;
 	}
-	ast::TypeSpec* Parser::parse_typespec() { return nullptr; }
 
 	ast::Ident* Parser::parse_ident() {
 		if(current().kind() != Tkn_Identifier) {
@@ -715,9 +838,16 @@ namespace mist {
 	mist::Token& Parser::current() { return curr; }
 
 	void Parser::advance() {
-		curr = scanner->token();
-		scanner->advance();
-		//std::cout << "Advancing: " << curr << std::endl;
+		if(res & IgnoreNewline) {
+			do {
+				curr = scanner->token();
+				scanner->advance();
+			} while(current().kind() == Tkn_NewLine);
+		}
+		else {
+			curr = scanner->token();
+			scanner->advance();
+		}
 	}
 
 	bool Parser::one_of(std::vector<TokenKind> kind) {
@@ -747,6 +877,14 @@ namespace mist {
 	void Parser::expect(TokenKind kind) {
 		expect(kind, "Expecting: %s. Found: %s", mist::Token::get_string(kind).c_str(),
 							   current().get_string().c_str());
+	}
+
+	bool Parser::allow(TokenKind kind) {
+		if(current().kind() == kind) {
+			advance();
+			return true;
+		}
+		return false;
 	}
 
 	bool Parser::current_can_begin_expression() {
@@ -796,6 +934,16 @@ namespace mist {
 		return true;
 	}
 
+	ast::TypeSpec* Parser::value_to_type(ast::ValueExpr* expr) {
+		auto name = expr->name;
+		auto pos = name->pos;
+		for(auto e : expr->genericValues)
+			pos = pos + e->pos();
+
+		auto t = new ast::NamedSpec(name, new ast::GenericParameters(expr->genericValues), pos);
+		delete expr;
+		return t;
+	}
 
 	bool Parser::check_decl_from_expr() {
 		Token token = current();
@@ -816,7 +964,7 @@ namespace mist {
 					else
 						advance();
 				}
-				if(check(Tkn_Colon) || check(Tkn_ColonEqual)) {
+				if(check(Tkn_Colon)) {
 					restore_state(oldState);
 					return true;
 				}
@@ -829,9 +977,6 @@ namespace mist {
 				return true;
 			}
 			else if(p.kind() == Tkn_ColonColon) {
-				return true;
-			}
-			else if(p.kind() == Tkn_ColonEqual) {
 				return true;
 			}
 			else return false;

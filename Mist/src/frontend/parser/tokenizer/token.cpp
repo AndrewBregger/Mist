@@ -62,6 +62,8 @@ namespace mist {
             case Tkn_Identifier:
                 out << "(" << t.ident->value->value() << ")";
                 break;
+            default:
+                break;
 		}
 		out << ", "
             << t.position.line <<  ", "
@@ -163,7 +165,7 @@ namespace mist {
             case Tkn_CarrotEqual:
             case Tkn_AstrickAstrickEqual:
             case Tkn_PeriodPeriod:
-                return Associative::Left; 
+                return Associative::Left;
             default:
                 return Associative::None;
         }

@@ -11,6 +11,9 @@ namespace ast {
 	struct TypeSpec;
 	struct Generics;
 	struct GenericDecl;
+	struct ValueExpr;
+	struct LocalDecl;
+	typedef LocalDecl FieldDecl;
 }
 
 namespace mist {
@@ -18,9 +21,11 @@ namespace mist {
 	typedef u32 Restriction;
 
 	static Restriction Default = 1 << 0;
-	static Restriction NoStructLiterals = 1 << 1;
-	static Restriction StopAtComma = 1 << 2;
-	static Restriction NoDecl = 1 << 3;
+	static Restriction IgnoreNewline = 1 << 1;
+	static Restriction NoStructLiterals = 1 << 2;
+	static Restriction StopAtComma = 1 << 3;
+	static Restriction NoDecl = 1 << 4;
+	static Restriction NoMultiSpecs = 1 << 5;
 
 	class Parser {
 		public:
@@ -34,7 +39,7 @@ namespace mist {
 			// gets the parser ready for the new file.
 			void reset();
 
-			// I this is to be used by the Interpreter when I 
+			// I this is to be used by the Interpreter when I
 			// needs to parse module imports.
 			ast::Module* parse_module(io::File* file);
 
@@ -61,7 +66,7 @@ namespace mist {
 			ast::Expr* parse_value();
 
 			ast::Expr* try_parse_decl();
-	
+
 			bool check_decl_from_expr();
 
 			ast::Decl* parse_decl();
@@ -77,6 +82,13 @@ namespace mist {
 			ast::Decl* parse_function_decl(ast::Ident* name, ast::Generics* generics);
 
 			ast::Decl* parse_user_decl(ast::Ident* name);
+
+			ast::Decl* parse_struct_decl_suffix(ast::Ident* name, ast::Generics* gens,
+				const std::vector<ast::FieldDecl*>& fields);
+
+			ast::WhereClause* parse_where_clause();
+
+			std::vector<ast::TypeSpec*> parse_derive_suffix();
 
 			ast::Generics* parse_generics();
 
@@ -97,6 +109,8 @@ namespace mist {
 			bool one_of(std::vector<TokenKind> kind);
 			bool check(TokenKind kind);
 			void expect(TokenKind kind);
+
+			bool allow(TokenKind kind);
 
 			template <typename... Args>
 			bool one_of(std::vector<TokenKind> kind, const std::string& msg, Args... args) {
@@ -137,6 +151,8 @@ namespace mist {
 
 			SavedState save_state();
 			void restore_state(const SavedState& state);
+
+			ast::TypeSpec* value_to_type(ast::ValueExpr* expr);
 
 			friend class Interpreter;
 	};

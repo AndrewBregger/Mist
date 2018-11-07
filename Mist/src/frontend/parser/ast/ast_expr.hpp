@@ -12,7 +12,7 @@ namespace ast {
 		// Represents an identifier.
 		Value,
 		Tuple,
-		
+
 		// Constants
 		IntegerConst,
 		FloatConst,
@@ -56,7 +56,7 @@ namespace ast {
 	enum BinaryOp {
 		Plus,
 		BMinus,
-		Slash, 
+		Slash,
 		Percent,
 		BAstrick,
 		AstrickAstrick,
@@ -97,7 +97,7 @@ namespace ast {
 		F64,
 		Char
 	};
-	
+
 	enum AssignmentOp {
 		PlusEqual,
 		MinusEqual,
@@ -182,7 +182,7 @@ namespace ast {
 	struct UnaryExpr : public Expr {
 		UnaryOp op;
 		Expr* expr;
-		
+
 		UnaryExpr(UnaryOp op, Expr* expr, mist::Pos pos);
 	};
 

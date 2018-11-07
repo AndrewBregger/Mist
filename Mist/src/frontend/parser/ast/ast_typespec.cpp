@@ -19,19 +19,14 @@ namespace ast {
 		ToString(Unit)
 	};
 
-	
+
 	TypeSpec::TypeSpec(TypeSpecKind k, mist::Pos p) : k(k), p(p) { } TypeSpec::TypeSpec(TypeSpec* base, TypeSpecKind k, mist::Pos p) : k(k), p(p), base(base) { }
 
 	const std::string& TypeSpec::name() {
 		return spec_names[k];
 	}
 
-	GenericParameters::GenericParameters(TypeSpec* type) {
-
-	}
-
-	GenericParameters::GenericParameters(Expr* expr) {
-
+	GenericParameters::GenericParameters(const std::vector<Expr*>& expr) : exprs(expr) {
 	}
 
 	NamedSpec::NamedSpec(Ident* name, GenericParameters* params, mist::Pos pos) :

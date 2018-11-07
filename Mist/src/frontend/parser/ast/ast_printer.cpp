@@ -6,7 +6,7 @@
 
 #define PRINT(l) { \
 	for(auto x : l) \
-		print(out, x); \
+		print(out, x)<<std::endl; \
 }
 
 namespace ast {
@@ -254,7 +254,15 @@ namespace ast {
 				PRINT(d->derives);
 				out << "]," << std::endl;
 				if(d->where) {
-
+					out << "where: {" << std::endl;
+					for(auto x : d->where->elements) {
+						out << "param: {" << std::endl;
+						out << x->parameter->value->val << "," << std::endl;
+						out << "bounds: [" << std::endl;
+						PRINT(x->type);
+						out << "]" << std::endl;;
+					}
+					out << "}" << std::endl;
 				}
 				if(d->generics) {
 					out << "generics: [" << std::endl;
@@ -289,7 +297,10 @@ namespace ast {
 //		out << "pos: { line: " << spec->p.line << ", column: " << spec->p.column << ", span: " << spec->p.span << " }," << std::endl;
 		switch(spec->k) {
 			case Named: {
-				out << CAST(NamedSpec, spec)->name->value->val;
+				auto e = CAST(NamedSpec, spec);
+				out << e->name->value->val << "[" << std::endl;
+				PRINT(e->params->exprs);
+				out << "]" << std::endl;
 				break;
 			}
 			case TupleType: {

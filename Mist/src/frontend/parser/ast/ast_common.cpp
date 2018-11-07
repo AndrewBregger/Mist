@@ -16,8 +16,8 @@ namespace mist {
 namespace ast {
     Ident::Ident(mist::String* value,
         const mist::Pos& pos) : value(value), pos(pos) { }
-    
-    WhereElement::WhereElement(Ident* parameter, TypeSpec* type,
+
+    WhereElement::WhereElement(Ident* parameter, const std::vector<TypeSpec*>& type,
         mist::Pos pos) : parameter(parameter), type(type), pos(pos) { }
 
     WhereClause::WhereClause(const std::vector<WhereElement*>& elems,

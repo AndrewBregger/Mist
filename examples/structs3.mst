@@ -1,0 +1,4 @@
+Vector :: [T, N] struct {
+
+}   where T: Numeric, N: i32
+    derive Copy Arithmetic Index

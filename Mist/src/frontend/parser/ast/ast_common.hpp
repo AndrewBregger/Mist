@@ -20,7 +20,7 @@ namespace mist {
 
         Pos operator+ (const Pos& p);
     };
-	
+
 	struct String;
 }
 
@@ -48,10 +48,10 @@ namespace ast {
 
     struct WhereElement {
         Ident* parameter;
-        TypeSpec* type;
+        std::vector<TypeSpec*> type;
         mist::Pos pos;
 
-        WhereElement(Ident* parameter, TypeSpec* type, mist::Pos pos);
+        WhereElement(Ident* parameter, const std::vector<TypeSpec*>& type, mist::Pos pos);
     };
 
     struct WhereClause {
