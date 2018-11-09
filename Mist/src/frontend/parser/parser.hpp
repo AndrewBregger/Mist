@@ -86,6 +86,10 @@ namespace mist {
 			ast::Decl* parse_struct_decl_suffix(ast::Ident* name, ast::Generics* gens,
 				const std::vector<ast::FieldDecl*>& fields);
 
+			std::vector<ast::FieldDecl*> parse_function_params();
+
+			std::vector<ast::TypeSpec*> parse_returns();
+
 			ast::WhereClause* parse_where_clause();
 
 			std::vector<ast::TypeSpec*> parse_derive_suffix();

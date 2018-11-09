@@ -624,7 +624,7 @@ namespace mist {
 
 	ast::Decl* Parser::parse_struct_decl_suffix(ast::Ident* name, ast::Generics* gens,
 		const std::vector<ast::FieldDecl*>& fields) {
-		ast::WhereClause* where;
+		ast::WhereClause* where = nullptr;
 		std::vector<ast::TypeSpec*> derives;
 
 		if(allow(Tkn_Where)) {
@@ -720,7 +720,18 @@ namespace mist {
 	}
 
 	ast::Decl* Parser::parse_function_decl(ast::Ident* name, ast::Generics* generics) {
-		return nullptr;
+		auto params = parse_function_params();
+		auto returns = parse_returns();
+		if(check(Tkn_Equal)) {
+			if(peek().kind() == Tkn_OpenBracket) {
+				// warning!!!
+				interp->report_error(peek().pos(), "remove the preceding '='");
+			}
+			advance();
+		}
+		auto body = parse_expr();
+
+		return new ast::FunctionDecl(name, params, returns, generics, name->pos);
 	}
 
 	ast::Decl* Parser::parse_user_decl(ast::Ident* name) {
@@ -794,6 +805,41 @@ namespace mist {
 			return new ast::GenericDecl(name, bounds, pos);
 		}
 		return nullptr;
+	}
+
+	std::vector<ast::FieldDecl*> Parser::parse_function_params() {
+		std::vector<ast::FieldDecl*> params;
+
+		expect(Tkn_OpenParen);
+		if(allow(Tkn_CloseParen))
+			return params;
+		do {
+			auto name = parse_ident();
+			if(name) {
+				auto decl = parse_local_decl({name}, name->pos);
+				params.push_back((ast::FieldDecl*) decl);
+			}
+			else break;
+		} while(allow(Tkn_Comma));
+		
+		expect(Tkn_CloseParen);
+
+		return params;
+	}
+
+	std::vector<ast::TypeSpec*> Parser::parse_returns() {
+		std::vector<ast::TypeSpec*> returns;
+		if(allow(Tkn_Arrow)) {
+			do {
+				auto spec = parse_typespec();
+				if(spec)
+					returns.push_back(spec);
+				else {
+					one_of({Tkn_Identifier, Tkn_Astrick, Tkn_OpenParen, Tkn_Ampersand});
+				}
+			} while(allow(Tkn_Comma));
+		}
+		return returns;
 	}
 
 	ast::Decl* Parser::parse_toplevel_decl() {

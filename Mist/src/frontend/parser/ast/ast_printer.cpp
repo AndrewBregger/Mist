@@ -275,6 +275,16 @@ namespace ast {
 				break;
 			}
 			case Function: {
+				auto d = CAST(FunctionDecl, decl);
+				out << "params: [" << std::endl;
+				PRINT(d->parameters);
+				out << "]," << std::endl;
+				out << "returns: [" << std::endl;
+				PRINT(d->returns);
+				out << "]," << std::endl;
+				out << "body: {" << std::endl;
+				ast::print(out, d->body) << std::endl;
+				out << "}" << std::endl;
 				break;
 			}
 			case Use: {

@@ -1,5 +1,2 @@
-Vector :: struct {
-    x, y, z: f32,
-    i: i32,
-
-} where T: Numeric+Debug, N: i32 derive Index[i32], Debug
+mult :: () -> f32 {
+}
