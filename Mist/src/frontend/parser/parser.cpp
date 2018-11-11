@@ -306,8 +306,10 @@ namespace mist {
 				return nullptr;
 			}
 			auto e = parse_expr();
-			pos = pos + e->pos();
-			elements.push_back(e);
+			if(e) {
+				pos = pos + e->pos();
+				elements.push_back(e);
+			}
 			if(check(Tkn_NewLine)) {
 				pos = pos + current().pos();
 				advance();
@@ -730,8 +732,8 @@ namespace mist {
 			advance();
 		}
 		auto body = parse_expr();
-
-		return new ast::FunctionDecl(name, params, returns, generics, name->pos);
+		if(!body) std::cout << "Failed to parse body" << std::endl;
+		return new ast::FunctionDecl(name, params, returns, body, generics, name->pos);
 	}
 
 	ast::Decl* Parser::parse_user_decl(ast::Ident* name) {
@@ -813,23 +815,37 @@ namespace mist {
 		expect(Tkn_OpenParen);
 		if(allow(Tkn_CloseParen))
 			return params;
+
+		auto old = res;
+		res |= NoMultiSpecs;
 		do {
-			auto name = parse_ident();
-			if(name) {
-				auto decl = parse_local_decl({name}, name->pos);
-				params.push_back((ast::FieldDecl*) decl);
+			// I didnt design the ast to accomidate this. Woops
+			if(check(Tkn_SelfLit)) {
+				auto pos = current().pos();
+				advance();
+				auto local = new ast::LocalDecl(nullptr, nullptr, nullptr, pos);
+				local->is_self = true;
+				params.push_back((ast::FieldDecl*) local);
+			}
+			else if(check(Tkn_Identifier)) {
+				auto name = parse_ident();
+				if(name) {
+					auto decl = parse_local_decl({name}, name->pos);
+					params.push_back((ast::FieldDecl*) decl);
+				}
 			}
 			else break;
 		} while(allow(Tkn_Comma));
 		
 		expect(Tkn_CloseParen);
+		res = old;
 
 		return params;
 	}
 
 	std::vector<ast::TypeSpec*> Parser::parse_returns() {
 		std::vector<ast::TypeSpec*> returns;
-		if(allow(Tkn_Arrow)) {
+		if(allow(Tkn_MinusGreater)) {
 			do {
 				auto spec = parse_typespec();
 				if(spec)

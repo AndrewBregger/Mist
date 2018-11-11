@@ -97,7 +97,9 @@
     TOKEN_KIND(True, "true") \
     TOKEN_KIND(Ref, "ref") \
     TOKEN_KIND(False, "false") \
-    TOKEN_KIND(Null, "null")
+    TOKEN_KIND(Null, "null") \
+    TOKEN_KIND(SelfLit, "self") \
+    TOKEN_KIND(Self, "Self")
 
 namespace mist {
 

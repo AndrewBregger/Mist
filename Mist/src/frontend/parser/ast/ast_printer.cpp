@@ -210,7 +210,8 @@ namespace ast {
 		out << decl->string() << ": {" << std::endl;
 		out << "pos: { line: " << decl->pos.line << ", column: " << decl->pos.column << ", span: " << decl->pos.span << " }," << std::endl;
 		if(decl->k != MultiLocal) {
-			out << "name: " << decl->name->value->val << "," << std::endl;
+			// self is the only time we do not set the name field.
+			out << "name: " << (decl->name ? decl->name->value->val : "self") << "," << std::endl;
 		}
 		switch(decl->k) {
 			case Local: {

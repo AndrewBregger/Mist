@@ -51,6 +51,7 @@ namespace ast {
 	struct LocalDecl : public Decl {
 		TypeSpec* sp{nullptr};
 		Expr* init{nullptr};
+		bool is_self{false};
 
 		LocalDecl(Ident* name, TypeSpec* spec, Expr* init, mist::Pos pos);
 
@@ -88,7 +89,7 @@ namespace ast {
 		Generics* generics{nullptr};
 
 		FunctionDecl(Ident* ident, const std::vector<FieldDecl*>& params,
-					 const std::vector<TypeSpec*>& rets, Generics* gen, mist::Pos pos);
+					 const std::vector<TypeSpec*>& rets, Expr* body, Generics* gen, mist::Pos pos);
 	};
 
 	struct TypeClassDecl : public Decl {

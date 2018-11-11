@@ -62,8 +62,8 @@ namespace ast {
 	}
 
 	FunctionDecl::FunctionDecl(Ident* ident, const std::vector<FieldDecl*>& params,
-					const std::vector<TypeSpec*>& rets, Generics* gen, mist::Pos pos) :
-			Decl(ident, Function, pos), parameters(params), returns(rets), generics(gen) {
+					const std::vector<TypeSpec*>& rets,  Expr* body, Generics* gen, mist::Pos pos) :
+			Decl(ident, Function, pos), parameters(params), returns(rets), body(body), generics(gen) {
 	}
 
 	TypeClassDecl::TypeClassDecl(Ident* ident, const std::vector<Decl*>& members, Generics* gen, mist::Pos pos) :
