@@ -1,3 +1,4 @@
-mult :: (self, x: i32, y: i32) -> f32 {
-    
+Expr :: enum {
+   Literal(i32),
+   Binary(Op, *Expr, *Expr),
 }

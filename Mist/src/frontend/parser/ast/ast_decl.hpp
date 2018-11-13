@@ -14,9 +14,35 @@ namespace ast {
 		Struct,
 		TypeClass,
 		Function,
+		OpFunction,
 		Use, // module system
 		Impl,
-		Generic
+		Generic,
+		Enum,
+		EnumMember
+	};
+
+	enum Op {
+		OpPlus,
+		OpMinus,
+		OpSlash,
+		OpPercent,
+		OpAstrick,
+		OpAstrickAstrick,
+		OpLessLess,
+		OpGreaterGreater,
+		OpAmpersand,
+		OpPipe,
+		OpCarrot,
+		OpTilde,
+		OpBang,
+		OpLess,
+		OpGreater,
+		OpLessEqual,
+		OpGreaterEqual,
+		OpEqualEqual,
+		OpBangEqual,
+		OpParenthesis
 	};
 
 	struct Decl {
@@ -92,6 +118,17 @@ namespace ast {
 					 const std::vector<TypeSpec*>& rets, Expr* body, Generics* gen, mist::Pos pos);
 	};
 
+	struct OpFunctionDecl : public Decl {
+		Op op;	
+		std::vector<FieldDecl*> parameters;
+		std::vector<TypeSpec*> returns;
+		Expr* body{nullptr};
+		Generics* generics{nullptr};
+
+		OpFunctionDecl(Op name, const std::vector<FieldDecl*>& params,
+					 const std::vector<TypeSpec*>& rets, Expr* body, Generics* gen, mist::Pos pos);
+	};
+
 	struct TypeClassDecl : public Decl {
 		std::vector<Decl*> members;		
 		Generics* generics;
@@ -111,6 +148,27 @@ namespace ast {
 		Generics* generics;
 
 		ImplDecl(Ident* ident, const std::vector<FunctionDecl*>& methods, Generics* gen, mist::Pos pos);
+	};
+
+	enum EnumDeclKind {
+		EnumIdent,
+		EnumStruct
+	};
+
+	struct EnumMemberDecl : public Decl {
+		EnumDeclKind ekind;
+		Expr* init{nullptr};
+		std::vector<TypeSpec*> types;
+
+		EnumMemberDecl(Ident* name, EnumDeclKind ekind, mist::Pos pos, const 
+			std::vector<TypeSpec*>& types = std::vector<TypeSpec*>(), Expr* init = nullptr);
+	};
+
+	struct EnumDecl : public Decl {
+		std::vector<EnumMemberDecl*> members;
+		Generics* generics;
+
+		EnumDecl(Ident* name, const std::vector<EnumMemberDecl*> members, Generics* gen, mist::Pos pos);
 	};
 
 }

@@ -13,6 +13,7 @@ namespace ast {
 	struct GenericDecl;
 	struct ValueExpr;
 	struct LocalDecl;
+	struct EnumMemberDecl;
 	typedef LocalDecl FieldDecl;
 }
 
@@ -78,6 +79,8 @@ namespace mist {
 			ast::Decl* parse_enum_decl(ast::Ident* name, ast::Generics* generics);
 
 			ast::Decl* parse_typeclass_decl(ast::Ident* name, ast::Generics* generics);
+
+			ast::EnumMemberDecl* parse_enum_member();
 
 			ast::Decl* parse_function_decl(ast::Ident* name, ast::Generics* generics);
 
@@ -157,6 +160,8 @@ namespace mist {
 			void restore_state(const SavedState& state);
 
 			ast::TypeSpec* value_to_type(ast::ValueExpr* expr);
+
+			void remove_newlines();
 
 			friend class Interpreter;
 	};

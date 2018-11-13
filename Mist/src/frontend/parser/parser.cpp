@@ -46,6 +46,9 @@ namespace mist {
 				interp->report_error(current().pos(), "failed to find top level declaration");
 				sync();
 			}
+			// this removes the newlines between top level declarations.
+			while(allow(Tkn_NewLine))
+				std::cout << "Removing unused new line" << std::endl;
 		}
 
 		return module;
@@ -458,7 +461,7 @@ namespace mist {
 	}
 
 	ast::Decl* Parser::parse_decl() {
-		std::cout << "Parsing a decl" << std::endl;
+		std::cout << __FUNCTION__ << " " << current() << std::endl;
 		auto name = current();
 		if(peek().kind() == Tkn_Comma) {
 			std::vector<ast::Ident*> names;
@@ -480,18 +483,93 @@ namespace mist {
 		}
 		else {
 			auto name = current().ident;
-			expect(Tkn_Identifier);
-			switch(current().kind()) {
-				case Tkn_Colon:
-				case Tkn_ColonEqual:
-					return parse_local_decl({name}, name->pos);
-				case Tkn_ColonColon: {
-					advance();
-					return parse_user_decl(name);
+			if(check(Tkn_Identifier)) {
+				expect(Tkn_Identifier);
+				switch(current().kind()) {
+					case Tkn_Colon:
+					case Tkn_ColonEqual:
+						return parse_local_decl({name}, name->pos);
+					case Tkn_ColonColon: {
+						advance();
+						return parse_user_decl(name);
+					}
+					default:
+						break;
 				}
-				default:
-					break;
 			}
+			else {
+				ast::Op op;
+				auto token = current();
+				switch(token.kind()) {
+					case Tkn_Plus:
+						op = ast::OpPlus;
+						break;
+					case Tkn_Minus:
+						op = ast::OpMinus;
+						break;
+					case Tkn_Slash:
+						op = ast::OpSlash;
+						break;
+					case Tkn_Astrick:
+						op = ast::OpAstrick;
+						break;
+					case Tkn_Percent:
+						op = ast::OpPercent;
+						break;
+					case Tkn_AstrickAstrick:
+						op = ast::OpAstrickAstrick;
+						break;
+					case Tkn_LessLess:
+						op = ast::OpLessLess;
+						break;
+					case Tkn_GreaterGreater:
+						op = ast::OpGreaterGreater;
+						break;
+					case Tkn_Ampersand:
+						op = ast::OpAmpersand;
+						break;
+					case Tkn_Pipe:
+						op = ast::OpPipe;
+						break;
+					case Tkn_Carrot:
+						op = ast::OpCarrot;
+						break;
+					case Tkn_Tilde:
+						op = ast::OpTilde;
+						break;
+					case Tkn_Bang:
+						op = ast::OpBang;
+						break;
+					case Tkn_Less:
+						op = ast::OpLess;
+						break;
+					case Tkn_Greater:
+						op = ast::OpGreater;
+						break;
+					case Tkn_LessEqual:
+						op = ast::OpLessEqual;
+						break;
+					case Tkn_GreaterEqual:
+						op = ast::OpGreaterEqual;
+						break;
+					case Tkn_EqualEqual:
+						op = ast::OpEqualEqual;
+						break;
+					case Tkn_BangEqual:
+						op = ast::OpBangEqual;
+						break;
+					case Tkn_OpenParen:
+						if(check(Tkn_CloseParen))
+							op = ast::OpParenthesis;
+						else {
+							interp->report_error(current().pos(), "expecting ')' following '('");
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			advance();
 		}
 
 		return nullptr;
@@ -589,6 +667,7 @@ namespace mist {
 		expect(Tkn_Struct);
 		expect(Tkn_OpenBracket);
 
+		remove_newlines();
 		std::vector<ast::FieldDecl*> fields;
 
 		while(!check(Tkn_CloseBracket)) {
@@ -618,6 +697,7 @@ namespace mist {
 				advance();
 			else
 				break;
+			remove_newlines();
 		}
 		res = old;
 		expect(Tkn_CloseBracket);
@@ -713,11 +793,73 @@ namespace mist {
 		return specs;
 	}
 
-	ast::Decl* Parser::parse_enum_decl(ast::Ident* name, ast::Generics* generics) {
+	ast::EnumMemberDecl* Parser::parse_enum_member() {
+		if(check(Tkn_Identifier)) {
+			auto name = parse_ident();
+			auto pos = name->pos;
+			ast::Expr* init = nullptr;
+			std::vector<ast::TypeSpec*> types;
+			auto ekind = ast::EnumIdent;
+			if(allow(Tkn_Equal))
+				 init = parse_expr();
+			else if(allow(Tkn_OpenParen)) {
+				ekind = ast::EnumStruct;
+				do {
+					auto t = parse_typespec();
+					if(t) {
+						types.push_back(t);
+						pos = pos + t->p;
+					}
+					else {
+						interp->report_error(current().pos(), "expecting type following "
+						"comma, found: '%s'", current().get_string().c_str());
+					}
+				} while(allow(Tkn_Comma));
+				expect(Tkn_CloseParen);
+			}
+			if(ekind == ast::EnumStruct && types.empty()) {
+				interp->report_error(current().pos(), "empty type list in struct enum "
+				"field");
+			}
+			return new ast::EnumMemberDecl(name, ekind, pos, types, init);
+		}
 		return nullptr;
 	}
 
+	ast::Decl* Parser::parse_enum_decl(ast::Ident* name, ast::Generics* generics) {
+		auto pos = name->pos;
+		expect(Tkn_Enum);
+		expect(Tkn_OpenBracket);
+		allow(Tkn_NewLine);
+		std::vector<ast::EnumMemberDecl*> members;
+		auto old = res;
+		res |= StopAtComma;
+		remove_newlines();
+		while(!check(Tkn_CloseBracket)) {
+			auto member = parse_enum_member();
+			if (member) {
+				members.push_back(member);
+				pos = pos + member->pos;
+			}
+			else {
+				interp->report_error(current().pos(), "expecting identifier, found: '%s'", 
+					current().get_string().c_str());
+			}
+
+			if(allow(Tkn_NewLine))
+				continue;
+			else
+				expect(Tkn_Comma);
+			remove_newlines();
+		}
+		res = old;
+		std::cout << "Current: " << current() << std::endl;
+		expect(Tkn_CloseBracket);
+		return new ast::EnumDecl(name, members, generics, pos);
+	}
+
 	ast::Decl* Parser::parse_typeclass_decl(ast::Ident* name, ast::Generics* generics) {
+
 		return nullptr;
 	}
 
@@ -738,6 +880,7 @@ namespace mist {
 
 	ast::Decl* Parser::parse_user_decl(ast::Ident* name) {
 		// this will be null if it isnt found
+		std::cout << __FUNCTION__ << " " << current() << std::endl;
 		auto gen = parse_generics();
 		switch(current().kind()) {
 			case Tkn_Struct:
@@ -877,6 +1020,16 @@ namespace mist {
 		switch(current().kind()) {
 			case Tkn_Identifier:
 				return value_to_type((ast::ValueExpr*) parse_value());
+			case Tkn_Astrick: {
+				advance();
+				auto t = parse_typespec();
+				if(t)
+					return new ast::PointerSpec(t, token.position + t->p);
+				else {
+					interp->report_error(current().pos(), "expecting type to follow '*'");
+				}
+				return nullptr;
+			}
 			default:
 				break;
 		}
@@ -928,7 +1081,7 @@ namespace mist {
 
 		temp += "]";
 
-		return one_of(kind, "Expecting one of: %s. Found: %s", temp.c_str(),
+		return one_of(kind, "Expecting one of: %s. Found: '%s'", temp.c_str(),
 											current().get_string().c_str());
 	}
 
@@ -937,7 +1090,7 @@ namespace mist {
 	}
 
 	void Parser::expect(TokenKind kind) {
-		expect(kind, "Expecting: %s. Found: %s", mist::Token::get_string(kind).c_str(),
+		expect(kind, "Expecting: '%s', Found: '%s'", mist::Token::get_string(kind).c_str(),
 							   current().get_string().c_str());
 	}
 
@@ -989,6 +1142,7 @@ namespace mist {
 			case Tkn_AmpersandEqual:
 			case Tkn_PipeEqual:
 			case Tkn_None:
+			case Tkn_OpenParen:
 				return false;
 			default:
 				break;
@@ -1043,6 +1197,35 @@ namespace mist {
 			}
 			else return false;
 		}
+		else {
+			switch(current().kind()) {
+				case Tkn_Plus:
+				case Tkn_Minus:
+				case Tkn_Slash:
+				case Tkn_Percent:
+				case Tkn_Astrick:
+				case Tkn_AstrickAstrick:
+				case Tkn_LessLess:
+				case Tkn_GreaterGreater:
+				case Tkn_Ampersand:
+				case Tkn_Pipe:
+				case Tkn_Carrot:
+				case Tkn_Tilde:
+				case Tkn_Bang:
+				case Tkn_Less:
+				case Tkn_Greater:
+				case Tkn_LessEqual:
+				case Tkn_GreaterEqual:
+				case Tkn_EqualEqual:
+				case Tkn_BangEqual:
+					return true;
+				case Tkn_OpenParen: {
+					return peek().kind() == Tkn_CloseParen;
+				}
+				default:
+					return false;
+			}
+		}
 		// else if()
 		return false;
 	}
@@ -1063,5 +1246,9 @@ namespace mist {
 		curr = state.current;
 		res = state.res;
 		scanner->restore(state.state);
+	}
+
+	void Parser::remove_newlines() {
+		while(allow(Tkn_NewLine));
 	}
 }

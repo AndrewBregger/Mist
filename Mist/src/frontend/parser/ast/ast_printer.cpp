@@ -297,6 +297,27 @@ namespace ast {
 			case Generic: {
 				break;
 			}
+			case Enum: {
+				auto d = CAST(EnumDecl, decl);
+				out << "members: [" << std::endl;
+				PRINT(d->members);
+				out << "]," << std::endl;
+			} break;
+			case EnumMember: {
+				auto d = CAST(EnumMemberDecl, decl);
+				if (d->ekind == EnumIdent) {
+					if(d->init) {
+						out << "init: {" << std::endl;
+						print(out, d->init) << std::endl;
+						out << "}" << std::endl;
+					}
+				}
+				else {
+					out << "types: [" << std::endl;
+					PRINT(d->types);
+					out << "]" << std::endl;
+				}
+			} break;
 		}
 		out << "}," << std::endl;
 		return out;
