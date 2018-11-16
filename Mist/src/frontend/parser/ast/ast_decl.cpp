@@ -70,7 +70,7 @@ namespace ast {
 	}
 
 	OpFunctionDecl::OpFunctionDecl(Op name, const std::vector<FieldDecl*>& params,
-		const std::vector<TypeSpec*>& rets, Expr* body, Generics* gen, mist::Pos pos) : Decl(nullptr, OpFunction, pos), parameters(params), returns(rets), generics(gen) {
+		const std::vector<TypeSpec*>& rets, Expr* body, Generics* gen, mist::Pos pos) : Decl(nullptr, OpFunction, pos), op(name), parameters(params), returns(rets), generics(gen) {
 	}
 
 	TypeClassDecl::TypeClassDecl(Ident* ident, const std::vector<Decl*>& members, Generics* gen, mist::Pos pos) :
