@@ -3,6 +3,7 @@
 #include "tokenizer/scanner.hpp"
 #include "utils/file.hpp"
 #include "ast/ast.hpp"
+#include "ast/ast_decl.hpp"
 
 
 namespace ast {
@@ -83,6 +84,8 @@ namespace mist {
 			ast::EnumMemberDecl* parse_enum_member();
 
 			ast::Decl* parse_function_decl(ast::Ident* name, ast::Generics* generics);
+
+			ast::Decl* parse_opfunction_decl(ast::Op op, ast::Generics* generics);
 
 			ast::Decl* parse_user_decl(ast::Ident* name);
 

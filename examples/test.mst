@@ -1,4 +1,3 @@
-Expr :: enum {
-   Literal(i32),
-   Binary(Op, *Expr, *Expr),
+* :: (self, y: Vector) -> Vector {
+   self + y
 }

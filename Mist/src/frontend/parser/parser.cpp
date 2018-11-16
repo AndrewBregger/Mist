@@ -559,6 +559,7 @@ namespace mist {
 						op = ast::OpBangEqual;
 						break;
 					case Tkn_OpenParen:
+						advance();
 						if(check(Tkn_CloseParen))
 							op = ast::OpParenthesis;
 						else {
@@ -568,6 +569,8 @@ namespace mist {
 					default:
 						break;
 				}
+				advance();
+				return parse_opfunction_decl(op, parse_generics());
 			}
 			advance();
 		}
@@ -876,6 +879,23 @@ namespace mist {
 		auto body = parse_expr();
 		if(!body) std::cout << "Failed to parse body" << std::endl;
 		return new ast::FunctionDecl(name, params, returns, body, generics, name->pos);
+	}
+
+	ast::Decl* Parser::parse_opfunction_decl(ast::Op op, ast::Generics* generics) {
+		auto token = current();
+		expect(Tkn_ColonColon);
+		auto params = parse_function_params();
+		auto returns = parse_returns();
+		if(check(Tkn_Equal)) {
+			if(peek().kind() == Tkn_OpenBracket) {
+				// warning!!!
+				interp->report_error(peek().pos(), "remove the preceding '='");
+			}
+			advance();
+		}
+		auto body = parse_expr();
+		if(!body) std::cout << "Failed to parse body" << std::endl;
+		return new ast::OpFunctionDecl(op, params, returns, body, generics, token.pos());
 	}
 
 	ast::Decl* Parser::parse_user_decl(ast::Ident* name) {

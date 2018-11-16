@@ -209,7 +209,7 @@ namespace ast {
 		if(!decl) return out;
 		out << decl->string() << ": {" << std::endl;
 		out << "pos: { line: " << decl->pos.line << ", column: " << decl->pos.column << ", span: " << decl->pos.span << " }," << std::endl;
-		if(decl->k != MultiLocal) {
+		if(decl->k != MultiLocal && decl->k != OpFunction) {
 			// self is the only time we do not set the name field.
 			out << "name: " << (decl->name ? decl->name->value->val : "self") << "," << std::endl;
 		}
@@ -277,6 +277,20 @@ namespace ast {
 			}
 			case Function: {
 				auto d = CAST(FunctionDecl, decl);
+				out << "params: [" << std::endl;
+				PRINT(d->parameters);
+				out << "]," << std::endl;
+				out << "returns: [" << std::endl;
+				PRINT(d->returns);
+				out << "]," << std::endl;
+				out << "body: {" << std::endl;
+				ast::print(out, d->body) << std::endl;
+				out << "}" << std::endl;
+				break;
+			}
+			case OpFunction: {
+				auto d = CAST(OpFunctionDecl, decl);
+				out << "op: " << d->op << "," << std::endl;
 				out << "params: [" << std::endl;
 				PRINT(d->parameters);
 				out << "]," << std::endl;
