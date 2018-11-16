@@ -50,7 +50,8 @@ namespace ast {
 		Block,
 		StructLiteral,
 		Binding,
-		UnitLit
+		UnitLit,
+		SelfLit
 	};
 
 	enum BinaryOp {
@@ -315,6 +316,10 @@ namespace ast {
 
 	struct UnitExpr : public Expr {
 		UnitExpr(mist::Pos pos);
+	};
+
+	struct SelfExpr : public Expr {
+		SelfExpr(mist::Pos pos);
 	};
 
 	// struct StructLiteralExpr : public Expr {

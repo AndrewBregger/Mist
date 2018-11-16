@@ -34,7 +34,8 @@ namespace ast {
 		ToString(Block),
 		ToString(StructLiteral),
 		ToString(Binding),
-		ToString(UnitLit)
+		ToString(UnitLit),
+		ToString(SelfLit)
 	};
 
 	UnaryOp from_token(mist::TokenKind k) {
@@ -168,5 +169,8 @@ namespace ast {
 	}
 	
 	UnitExpr::UnitExpr(mist::Pos pos) : Expr(UnitLit, pos) {
+	}
+
+	SelfExpr::SelfExpr(mist::Pos pos) : Expr(SelfLit, pos) {
 	}
 }

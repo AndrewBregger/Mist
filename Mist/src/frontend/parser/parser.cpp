@@ -177,6 +177,10 @@ namespace mist {
 		auto token = current();
 		std::cout << __FUNCTION__ << " " << token << std::endl;
 		switch(token.kind()) {
+			case Tkn_SelfLit: {
+				advance();
+				return new ast::SelfExpr(token.pos());
+			}
 			case Tkn_Unit: {
 				advance();
 				return new ast::UnitExpr(token.pos());

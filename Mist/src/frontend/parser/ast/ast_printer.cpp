@@ -200,6 +200,7 @@ namespace ast {
 				break;
 			}
 			case UnitLit: break;
+			case SelfLit: break;
 		}
 		out << "}," << std::endl;
 		return out;
