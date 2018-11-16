@@ -1025,9 +1025,8 @@ namespace mist {
 				auto t = parse_typespec();
 				if(t)
 					return new ast::PointerSpec(t, token.position + t->p);
-				else {
+				else
 					interp->report_error(current().pos(), "expecting type to follow '*'");
-				}
 				return nullptr;
 			}
 			default:
