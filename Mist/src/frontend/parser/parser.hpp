@@ -28,6 +28,7 @@ namespace mist {
 	static Restriction StopAtComma = 1 << 3;
 	static Restriction NoDecl = 1 << 4;
 	static Restriction NoMultiSpecs = 1 << 5;
+	static Restriction AllowNoBodyFunctions = 1 << 6;
 
 	class Parser {
 		public:

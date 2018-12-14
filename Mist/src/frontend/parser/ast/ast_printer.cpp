@@ -274,6 +274,15 @@ namespace ast {
 				break;
 			}
 			case TypeClass: {
+				auto d = CAST(TypeClassDecl, decl);
+				out << "elements: [" << std::endl;
+				PRINT(d->members);
+				out << "]" << std::endl;
+				if(d->generics) {
+					out << "generics: [" << std::endl;
+					PRINT(d->generics->parameters);
+					out << "]" << std::endl;
+				}
 				break;
 			}
 			case Function: {
@@ -287,6 +296,11 @@ namespace ast {
 				out << "body: {" << std::endl;
 				ast::print(out, d->body) << std::endl;
 				out << "}" << std::endl;
+				if(d->generics) {
+					out << "generics: [" << std::endl;
+					PRINT(d->generics->parameters)
+					out << "]," << std::endl;
+				}
 				break;
 			}
 			case OpFunction: {
@@ -301,6 +315,11 @@ namespace ast {
 				out << "body: {" << std::endl;
 				ast::print(out, d->body) << std::endl;
 				out << "}" << std::endl;
+				if(d->generics) {
+					out << "generics: [" << std::endl;
+					PRINT(d->generics->parameters)
+					out << "]," << std::endl;
+				}
 				break;
 			}
 			case Use: {
@@ -345,9 +364,12 @@ namespace ast {
 		switch(spec->k) {
 			case Named: {
 				auto e = CAST(NamedSpec, spec);
-				out << e->name->value->val << "[" << std::endl;
-				PRINT(e->params->exprs);
-				out << "]" << std::endl;
+				out << e->name->value->val;
+				if(! e->params->exprs.empty()) {
+					out  << "[" << std::endl;
+					PRINT(e->params->exprs);
+					out << "]" << std::endl;
+				}
 				break;
 			}
 			case TupleType: {

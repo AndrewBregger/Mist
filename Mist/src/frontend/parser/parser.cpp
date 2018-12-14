@@ -574,7 +574,7 @@ namespace mist {
 						break;
 				}
 				advance();
-				return parse_opfunction_decl(op, parse_generics());
+				return parse_opfunction_decl(op, nullptr);
 			}
 			advance();
 		}
@@ -866,13 +866,46 @@ namespace mist {
 	}
 
 	ast::Decl* Parser::parse_typeclass_decl(ast::Ident* name, ast::Generics* generics) {
+		auto pos = name->pos;
 
-		return nullptr;
+		expect(Tkn_Class);
+		remove_newlines();
+		expect(Tkn_OpenBracket);
+		allow(Tkn_NewLine);
+
+		std::vector<ast::Decl*> members;
+		auto old = res;
+		res |= AllowNoBodyFunctions;
+
+		while(!check(Tkn_CloseBracket)) {
+			auto decl = parse_decl();
+			if(decl) {
+				members.push_back(decl);
+				pos = pos + decl->pos;
+			}
+
+			remove_newlines();
+		}
+
+		expect(Tkn_CloseBracket);
+
+		res = old;
+
+		return new ast::TypeClassDecl(name, members, generics, pos);
 	}
 
 	ast::Decl* Parser::parse_function_decl(ast::Ident* name, ast::Generics* generics) {
 		auto params = parse_function_params();
 		auto returns = parse_returns();
+		ast::Expr* body = nullptr;
+
+		if(res & AllowNoBodyFunctions) {
+			remove_newlines();
+			if(!check(Tkn_Equal) || !check(Tkn_OpenBracket)) {
+				return new ast::FunctionDecl(name, params, returns, body, generics, name->pos);
+			}
+		}
+
 		if(check(Tkn_Equal)) {
 			if(peek().kind() == Tkn_OpenBracket) {
 				// warning!!!
@@ -880,16 +913,26 @@ namespace mist {
 			}
 			advance();
 		}
-		auto body = parse_expr();
-		if(!body) std::cout << "Failed to parse body" << std::endl;
+
+		body = parse_expr();
 		return new ast::FunctionDecl(name, params, returns, body, generics, name->pos);
 	}
 
 	ast::Decl* Parser::parse_opfunction_decl(ast::Op op, ast::Generics* generics) {
 		auto token = current();
 		expect(Tkn_ColonColon);
+		generics = parse_generics();
 		auto params = parse_function_params();
 		auto returns = parse_returns();
+		ast::Expr* body = nullptr;
+
+		if(res & AllowNoBodyFunctions) {
+			remove_newlines();
+			if(!check(Tkn_Equal) || !check(Tkn_OpenBracket)) {
+				return new ast::OpFunctionDecl(op, params, returns, body, generics, token.pos());
+			}
+		}
+
 		if(check(Tkn_Equal)) {
 			if(peek().kind() == Tkn_OpenBracket) {
 				// warning!!!
@@ -897,7 +940,7 @@ namespace mist {
 			}
 			advance();
 		}
-		auto body = parse_expr();
+		body = parse_expr();
 		if(!body) std::cout << "Failed to parse body" << std::endl;
 		return new ast::OpFunctionDecl(op, params, returns, body, generics, token.pos());
 	}
