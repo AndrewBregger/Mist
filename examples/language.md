@@ -2,7 +2,7 @@
 
 This document is to allow me to organize my thoughts and ideas about this language. For the most part is will hold an almost
 complete BNF of the language. The first part holds some ideas I had before starting to write the semantics and just some thoughts
-about how things could work. This is a work in progress and no semantic or sytactic element is final.
+about how things could work. This is a work in progress and no semantic or syntactic element is final.
 
 ## Motivation
 Exploring the idea of developing a system level, data/object oriented language with a
