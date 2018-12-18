@@ -159,10 +159,10 @@ namespace ast {
 	TupleIndexExpr::TupleIndexExpr(Expr* operand, i32 index, mist::Pos pos) : Expr(TupleIndex, pos), operand(operand), index(index) {
 	}
 	
-	AssignmentExpr::AssignmentExpr(AssignmentOp op, const std::vector<Expr*> lvalues, Expr* expr, mist::Pos pos) : Expr(Assignment, pos), op(op), lvalues(lvalues), expr(expr) {
+	AssignmentExpr::AssignmentExpr(AssignmentOp op, const std::vector<Expr*>& lvalues, Expr* expr, mist::Pos pos) : Expr(Assignment, pos), op(op), lvalues(lvalues), expr(expr) {
 	}
 	
-	BlockExpr::BlockExpr(const std::vector<Expr*> elements, mist::Pos pos) : Expr(Block, pos), elements(elements) {
+	BlockExpr::BlockExpr(const std::vector<Expr*>& elements, mist::Pos pos) : Expr(Block, pos), elements(elements) {
 	}
 	
 	BindingExpr::BindingExpr(ast::Ident* name, Expr* expr, mist::Pos pos) : Expr(Binding, pos), name(name), expr(expr) {
@@ -172,5 +172,9 @@ namespace ast {
 	}
 
 	SelfExpr::SelfExpr(mist::Pos pos) : Expr(SelfLit, pos) {
+	}
+
+	StructLiteralExpr::StructLiteralExpr(Expr *name,
+			const std::vector<Expr *> &members, mist::Pos pos) : Expr(StructLiteral, pos), name(name), members(members) {
 	}
 }

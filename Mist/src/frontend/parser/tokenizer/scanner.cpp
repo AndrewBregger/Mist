@@ -32,7 +32,7 @@ namespace mist {
 		//}, this->file);
 
         index = 0;
-        position = mist::Pos(0, 0, 0, file->id());
+        position = mist::Pos(1, 0, 0, file->id());
 
 		if (!file->load()) {
 			interp->report_error(this->position, "Failed to load file");
@@ -262,7 +262,7 @@ namespace mist {
         auto ch = *currentCh;
         bump();
         switch(ch) {
-			case '\n': return Token(Tkn_NewLine, savePos);
+			// case '\n': return Token(Tkn_NewLine, savePos);
             SingleToken('(', Tkn_OpenParen);
             SingleToken(')', Tkn_CloseParen);
             SingleToken('[', Tkn_OpenBrace);
@@ -283,10 +283,18 @@ namespace mist {
 
             TripleToken('|', Tkn_Pipe, Tkn_PipeEqual, Tkn_Or)
             TripleToken('&', Tkn_Ampersand, Tkn_AmpersandEqual, Tkn_And)
-            TripleToken(':', Tkn_Colon, Tkn_ColonEqual, Tkn_ColonColon);
 
 			FourToken('*', Tkn_Astrick, Tkn_AstrickEqual, Tkn_AstrickAstrick, Tkn_AstrickAstrickEqual)
 			FourToken('>', Tkn_Greater, Tkn_GreaterEqual, Tkn_GreaterGreater, Tkn_GreaterGreaterEqual)
+
+            case ':': {
+                    if(check(':')) {
+                        bump();
+                        return Token(Tkn_ColonColon, savePos);
+                    }
+                    else
+                        return Token(Tkn_Colon, savePos);
+            }
 
             case '-': {
                     if(check('>')) {

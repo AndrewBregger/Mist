@@ -1,5 +1,3 @@
-Arithmatic :: [T, B, C] class {
-   * :: (lhs: T, rhs: B) -> C
-   + :: (lhs: T, rhs: B) -> C
-   - :: (lhs: T, rhs: B) -> C
-}
+//x := 1
+///y := 2
+z := Vector.new(x, y)

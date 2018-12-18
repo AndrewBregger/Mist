@@ -298,13 +298,13 @@ namespace ast {
 		std::vector<Expr*> lvalues;
 		Expr* expr;
 
-		AssignmentExpr(AssignmentOp op, const std::vector<Expr*> lvalues, Expr* expr, mist::Pos pos);
+		AssignmentExpr(AssignmentOp op, const std::vector<Expr*>& lvalues, Expr* expr, mist::Pos pos);
 	};
 
 	struct BlockExpr : public Expr {
 		std::vector<Expr*> elements;
 
-		BlockExpr(const std::vector<Expr*> elements, mist::Pos pos);
+		BlockExpr(const std::vector<Expr*>& elements, mist::Pos pos);
 	};
 
 	struct BindingExpr : public Expr {
@@ -322,7 +322,10 @@ namespace ast {
 		SelfExpr(mist::Pos pos);
 	};
 
-	// struct StructLiteralExpr : public Expr {
-	// 	std::vector<>
-	// }
+	 struct StructLiteralExpr : public Expr {
+	 	Expr* name;
+	 	std::vector<Expr*> members;
+
+	 	StructLiteralExpr(Expr* name, const std::vector<Expr*>& members, mist::Pos pos);
+	 };
 }

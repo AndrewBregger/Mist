@@ -1,0 +1,149 @@
+// An example file for the exploration of syntax
+// in Mist.
+
+
+// Classes and Structure
+
+Vector :: class {
+    data: *i32,
+    len: u32,
+    cap: u32
+}
+
+Vector :: impl {
+    // #init :: (cap := 10) -> Self {
+    #init :: (cap: u32 = 10) -> Self {
+        data = mem.alloc<u32>(cap);
+        len = 0
+        cap = cap
+        self
+    }
+    // or
+    #init :: (cap: u32 = 10) -> Self {
+        Vector {
+            data = mem.alloc<u32>(cap),
+            len = 0,
+            cap = cap
+        }
+    }
+
+    pub append :: (mut self, val: i32) {
+        if self.len >= self.cap {
+            self.cap *= 2;
+            mem.realloc(self.data, self.cap);
+        }
+        self.data[self.len] = val;
+        self.len += 1;
+    }
+
+    pub last :: (self) -> u32 {
+        self.data[self.len - 1]
+    }
+
+    pub front :: (self) -> u32 {
+        self.data[0]
+    }
+
+    pub size :: (self) -> u32 {
+        self.len
+    }
+
+    pub remove_back :: (mut self) {
+        self.len -= 1;
+    } 
+
+    remove :: (mut self, index: i32) {
+        j := index;
+        for i in [index + 1..self.len] {
+            self.data[j] = self.data[i];
+            j += 1;
+        }
+    }
+
+    // this is for overloading example
+    pro foo :: (mut self, x: Self) {
+       std.println("Vector Foo")
+    }
+}
+
+Stack :: class Vector {}
+// I am considering using the implicit syntax for inheritance
+// Stack :: class <: Vector {}
+
+Stack :: impl {
+    push :: (mut self, value: i32) {
+        self.append(value)
+    }
+
+    pop :: (mut self) {
+        self.remove_back
+    }
+
+    top :: (self) -> i32 {
+        self.last
+    }
+
+    foo :: override (mut self, x: Self) {
+        std.println("Stack Foo")
+    }
+}
+
+Vector :: [Type: Numeric, N: u32] struct {
+    data: [N]Type
+} derive Arithmetic, Copy, Destroy
+
+// the type bounds are implied by the declaration.
+Vector :: [Type, N] impl {
+    #init :: (data: [N]Type) -> Self {
+        Self {
+            data: data
+        }
+    }
+
+    mag :: (self) -> u32 {
+        math.sqrt(self.data.foldl((^2), 0))
+    }
+
+    unit :: (self) -> Self {
+        mag := self.mag;
+        Self {
+            data: [] for x in self.data x / mag
+        }
+    }
+
+    normalize :: (mut self) -> Self {
+       self = self.unit;
+       self 
+    }
+}
+
+// these method could be implemented in the above 
+// impl block. This would give it an implicit Arithmetic trait.
+// But these functions can be overloaded anywhere.
+Vector :: [Type, N] impl Arithmetic {
+   + :: (self, other: Self) -> Self {
+       Self {
+           data: self.data.zipBy(other.data, (+))
+       }
+   } 
+
+   - :: (self, other: Self) -> Self {
+       Self {
+           data: self.data.zipBy(other.data, (-))
+       }
+   } 
+
+   * :: (self, other: Self) -> Type {
+        self.data.zipBy(other.data, (*)).sum(0.0)
+   } 
+
+   % :: (self, other: Self) -> Self {
+       if N == 3 {
+           // do cross product
+       }
+       else {
+           #error "Unable to perform Cross product on vectors not in 3 Dimensions"
+       }
+   }
+}
+

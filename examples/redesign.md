@@ -44,6 +44,11 @@ There will be build in support for many different primitive and aggregate types.
 * hash map
 * dynamic array
 
+## Object Oriented Langauge
+
+This language will have object oriented design as one of its main design paradigms. However, it will not be the only paradigm it caters too. There will also be feature that allow for the combination of OOP, data driven design, and type safe features such as type classes. All of which can be used in a single program or specific features can be chosen when desired.
+
+All of the neccessary feature for OOP are precent in the lanaguage. How they will interact is still up for debate. Discussion of syntax ans semantics in is the Structures/Classes section.
 
 ## Expressions
 
@@ -190,13 +195,66 @@ assert fn(1.0, 3.0, 4.0) == 0.0
 
 #### Structure/Classes
 
+Structure and classes are two of the user defined data types available. There is a slight distinction between these two. Classes have all of the features of OOP available to them and the ability to derive from a type class. While structures can only derive from a type class. Both entities can have methods and adhere to the Universal Function Interface. The default visibility in classes in private and for structure it is public.
+
+The syntax:
+
+##### Structure
+
+```
+-- Here is a simple structure called Foo
+
+Foo :: struct {
+	x: f32,
+	name: string
+}
+```
+
+This structure has a member variable x and name with type f32 
+and string, respectively.
+
+##### Classes
+
+```
+-- Here is a simple class called Vector
+
+Vector :: class {
+	data: *i32,
+	len: u32,
+	cap: u32
+}
+```
+##### Methods
+
+Look at redesign_syntax.mst for example syntax.
+
+#### Algebraic Data Types
+
+Algebraic Data Types are divided into two categories: sum and product types. In fact, our classes and structure are product types. In this sections sum types are being discussed. Mists version of this are variants or also called tagged unions. The syntax for a variant is as follows:
+
+```
+Expression :: variant {
+	Identifier(val: string),
+	IntegerLiteral(val: u32, tag: LiteralTag),
+	FloatLiteral(val: f32, tag: LiteralTag),
+	// or
+	Binary(Operator, *Expression, *Expression),
+}
+```
+
+This type can double as an enumeration by not giving the members member types. Examples are given in the above code snippet.
+
 #### Type Class
+
+```
+Iterable :: trait {
+
+}
+```
 
 #### Imports
 
 #### Type Alias
-
-
 
 ## Generics
 ### Structure

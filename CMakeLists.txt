@@ -20,6 +20,6 @@ set(SOURCE  ./Mist/src/interpreter.cpp
             ./Mist/src/frontend/parser/tokenizer/scanner.cpp
             ./Mist/src/frontend/parser/tokenizer/token.cpp
             ./Mist/src/frontend/parser/parser.cpp
-            ./Mist/src/main.cpp)
+            ./Mist/src/main.cpp Mist/src/frontend/parser/parser.cpp Mist/src/frontend/parser/parser.hpp)
 
 add_executable(mistc ${SOURCE})

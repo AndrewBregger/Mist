@@ -51,14 +51,25 @@ namespace mist {
 
 	class Interpreter {
 		public:
+			/// Interpreter constructor
+			/// @param args list of command line arguements
 			Interpreter(const std::vector<std::string>& args);
+
 			~Interpreter();
 
+			/// Compiles the root file given from the commandline.
             void compile_root();
 
+            /// Looks up a string in a string table
+            ///		creates a String if it doesnt exist
+            /// @param str the string to lookup
             String* find_string(const std::string& str);
 
+            /// Checks if there is an available parser to use
             Parser* get_parser();
+
+            /// Closes the parser and makes it as available to be used
+            /// 	by get_parser
             void close_parser(Parser* p);
 
             template <typename... Args>
