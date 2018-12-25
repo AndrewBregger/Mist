@@ -35,7 +35,10 @@ namespace ast {
 		ToString(StructLiteral),
 		ToString(Binding),
 		ToString(UnitLit),
-		ToString(SelfLit)
+		ToString(SelfLit),
+		ToString(Lambda),
+		ToString(CompoundLiteral)
+
 	};
 
 	UnaryOp from_token(mist::TokenKind k) {
@@ -132,7 +135,7 @@ namespace ast {
 	DeclExpr::DeclExpr(Decl* decl) : Expr(ExprKind::DeclDecl, decl->pos), decl(decl) {
 	}
 	
-	ParenthesisExpr::ParenthesisExpr(Expr* operand, const std::vector<Expr*>& params, mist::Pos pos) : Expr(Parenthesis, pos), operand(operand), params(params){
+	ParenthesisExpr::ParenthesisExpr(Expr *operand, const std::vector<Expr *> &params, mist::Pos pos) : Expr(Parenthesis, pos), operand(operand), params(params){
 	}
 	
 	SelectorExpr::SelectorExpr(Expr* operand, ValueExpr* element, mist::Pos pos) : Expr(Selector, pos), operand(operand), element(element) {
@@ -165,7 +168,7 @@ namespace ast {
 	BlockExpr::BlockExpr(const std::vector<Expr*>& elements, mist::Pos pos) : Expr(Block, pos), elements(elements) {
 	}
 	
-	BindingExpr::BindingExpr(ast::Ident* name, Expr* expr, mist::Pos pos) : Expr(Binding, pos), name(name), expr(expr) {
+	BindingExpr::BindingExpr(ast::Expr* name, Expr* expr, mist::Pos pos) : Expr(Binding, pos), name(name), expr(expr) {
 	}
 	
 	UnitExpr::UnitExpr(mist::Pos pos) : Expr(UnitLit, pos) {
@@ -176,5 +179,12 @@ namespace ast {
 
 	StructLiteralExpr::StructLiteralExpr(Expr *name,
 			const std::vector<Expr *> &members, mist::Pos pos) : Expr(StructLiteral, pos), name(name), members(members) {
+	}
+
+	LambdaExpr::LambdaExpr(const std::vector<LocalDecl *> &fields, const std::vector<TypeSpec *> &returns, Expr *body,
+                   mist::Pos pos) : Expr(Lambda, pos), fields(fields), returns(returns), body(body) {
+    }
+
+	CompoundLiteralExpr::CompoundLiteralExpr(const std::vector<Expr *> &elements, mist::Pos pos) : Expr(CompoundLiteral, pos), elements(elements) {
 	}
 }

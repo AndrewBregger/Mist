@@ -72,21 +72,31 @@ namespace mist {
             /// 	by get_parser
             void close_parser(Parser* p);
 
+            inline bool has_error() { return errors != 0; }
+
             template <typename... Args>
             void report_error(const Pos& pos, const std::string& msg, Args... args) {
         		auto file = context.get_file(pos.fileId);
         		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
+        		report_error(msg, args...);
+            }
+
+            template <typename... Args>
+            void report_error(const std::string& msg, Args... args) {
 #if _WIN32
-        		printf_s(msg.c_str(), args...);
+                printf_s(msg.c_str(), args...);
 #else
                 printf(msg.c_str(), args...);
 #endif
-        		std::cout << std::endl;
+                std::cout << std::endl;
+                errors++;
             }
 		private:
 			Context context;
             std::vector<std::pair<Parser*, bool>> parsers;
             // std::vector<Parser*> parsers;
+            // Metrics
+            u32 errors{0};
 	};
 }
 

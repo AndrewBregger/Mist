@@ -231,6 +231,33 @@ Mist/src/frontend/parser/ast/ast_expr.cpp.s:
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_expr.cpp.s
 .PHONY : Mist/src/frontend/parser/ast/ast_expr.cpp.s
 
+Mist/src/frontend/parser/ast/ast_pattern.o: Mist/src/frontend/parser/ast/ast_pattern.cpp.o
+
+.PHONY : Mist/src/frontend/parser/ast/ast_pattern.o
+
+# target to build an object file
+Mist/src/frontend/parser/ast/ast_pattern.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_pattern.cpp.o
+.PHONY : Mist/src/frontend/parser/ast/ast_pattern.cpp.o
+
+Mist/src/frontend/parser/ast/ast_pattern.i: Mist/src/frontend/parser/ast/ast_pattern.cpp.i
+
+.PHONY : Mist/src/frontend/parser/ast/ast_pattern.i
+
+# target to preprocess a source file
+Mist/src/frontend/parser/ast/ast_pattern.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_pattern.cpp.i
+.PHONY : Mist/src/frontend/parser/ast/ast_pattern.cpp.i
+
+Mist/src/frontend/parser/ast/ast_pattern.s: Mist/src/frontend/parser/ast/ast_pattern.cpp.s
+
+.PHONY : Mist/src/frontend/parser/ast/ast_pattern.s
+
+# target to generate assembly for a file
+Mist/src/frontend/parser/ast/ast_pattern.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_pattern.cpp.s
+.PHONY : Mist/src/frontend/parser/ast/ast_pattern.cpp.s
+
 Mist/src/frontend/parser/ast/ast_printer.o: Mist/src/frontend/parser/ast/ast_printer.cpp.o
 
 .PHONY : Mist/src/frontend/parser/ast/ast_printer.o
@@ -468,6 +495,9 @@ help:
 	@echo "... Mist/src/frontend/parser/ast/ast_expr.o"
 	@echo "... Mist/src/frontend/parser/ast/ast_expr.i"
 	@echo "... Mist/src/frontend/parser/ast/ast_expr.s"
+	@echo "... Mist/src/frontend/parser/ast/ast_pattern.o"
+	@echo "... Mist/src/frontend/parser/ast/ast_pattern.i"
+	@echo "... Mist/src/frontend/parser/ast/ast_pattern.s"
 	@echo "... Mist/src/frontend/parser/ast/ast_printer.o"
 	@echo "... Mist/src/frontend/parser/ast/ast_printer.i"
 	@echo "... Mist/src/frontend/parser/ast/ast_printer.s"

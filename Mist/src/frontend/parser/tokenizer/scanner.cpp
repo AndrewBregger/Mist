@@ -11,9 +11,7 @@ namespace mist {
 
     void Scanner::init(io::File* file) {
         this->file = file;
-        if (!init()) {
-			// report error
-		}
+        init();
     }
 
     void Scanner::advance() {
@@ -35,7 +33,7 @@ namespace mist {
         position = mist::Pos(1, 0, 0, file->id());
 
 		if (!file->load()) {
-			interp->report_error(this->position, "Failed to load file");
+			interp->report_error(this->position, "Failed to load file: '%s'", file->name().c_str());
 			return false;
 		}
 	
@@ -84,7 +82,7 @@ namespace mist {
 
     Token Scanner::next_token() {
         // consumes all of the whitespace
-        while(currentCh and isspace(*currentCh) and !check('\n'))
+        while(currentCh and isspace(*currentCh))
             bump();
        
         // initializes a new token from the currnet point in the text
@@ -262,7 +260,6 @@ namespace mist {
         auto ch = *currentCh;
         bump();
         switch(ch) {
-			// case '\n': return Token(Tkn_NewLine, savePos);
             SingleToken('(', Tkn_OpenParen);
             SingleToken(')', Tkn_CloseParen);
             SingleToken('[', Tkn_OpenBrace);
@@ -274,6 +271,7 @@ namespace mist {
             SingleToken(';', Tkn_Semicolon);
             SingleToken('_', Tkn_Underscore);
             SingleToken('#', Tkn_Hash);
+            SingleToken('\\', Tkn_BackSlash);
 
             DoubleToken('^', Tkn_Carrot, Tkn_CarrotEqual)
             DoubleToken('%', Tkn_Percent, Tkn_PercentEqual)

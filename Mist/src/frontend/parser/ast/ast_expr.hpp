@@ -6,7 +6,9 @@
 namespace ast {
 	struct Type;
 	struct Decl;
+	struct LocalDecl;
 	struct TypeSpec;
+
 
 	enum ExprKind {
 		// Represents an identifier.
@@ -51,7 +53,11 @@ namespace ast {
 		StructLiteral,
 		Binding,
 		UnitLit,
-		SelfLit
+
+		SelfLit,
+
+		Lambda,
+		CompoundLiteral
 	};
 
 	enum BinaryOp {
@@ -79,7 +85,8 @@ namespace ast {
 		Bang,
 		Tilde,
 		UAmpersand,
-		UAstrick
+		UAstrick,
+		UBang
 	};
 
 	UnaryOp from_token(mist::TokenKind k);
@@ -96,7 +103,8 @@ namespace ast {
 		U64,
 		F32,
 		F64,
-		Char
+		Char,
+		None
 	};
 
 	enum AssignmentOp {
@@ -239,7 +247,7 @@ namespace ast {
 	struct ParenthesisExpr : public Expr {
 		Expr* operand;
 		std::vector<Expr*> params;
-		ParenthesisExpr(Expr* operand, const std::vector<Expr*>& params, mist::Pos pos);
+		ParenthesisExpr(Expr *operand, const std::vector<Expr *> &params, mist::Pos pos);
 	};
 
 	struct SelectorExpr : public Expr {
@@ -308,10 +316,10 @@ namespace ast {
 	};
 
 	struct BindingExpr : public Expr {
-		ast::Ident* name;
+		ast::Expr* name;
 		Expr* expr;
 
-		BindingExpr(ast::Ident* name, Expr* expr, mist::Pos pos);
+		BindingExpr(ast::Expr* name, Expr* expr, mist::Pos pos);
 	};
 
 	struct UnitExpr : public Expr {
@@ -327,5 +335,19 @@ namespace ast {
 	 	std::vector<Expr*> members;
 
 	 	StructLiteralExpr(Expr* name, const std::vector<Expr*>& members, mist::Pos pos);
+	 };
+
+	 struct LambdaExpr : public Expr {
+		std::vector<LocalDecl*> fields;
+		std::vector<TypeSpec*> returns;
+		Expr* body;
+
+		LambdaExpr(const std::vector<LocalDecl*>& fields, const std::vector<TypeSpec*>& returns, Expr* body, mist::Pos pos);
+	 };
+
+	 struct CompoundLiteralExpr : public Expr {
+		std::vector<Expr*> elements;
+
+		CompoundLiteralExpr(const std::vector<Expr*>& elements, mist::Pos pos);
 	 };
 }

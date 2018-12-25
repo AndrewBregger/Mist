@@ -11,6 +11,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/mistc.dir/Mist/src/frontend/parser/tokenizer/token.cpp.o"
   "CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o"
   "CMakeFiles/mistc.dir/Mist/src/main.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_pattern.cpp.o"
   "mistc.pdb"
   "mistc"
 )

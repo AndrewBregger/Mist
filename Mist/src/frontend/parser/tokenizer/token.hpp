@@ -22,6 +22,7 @@
     TOKEN_KIND(CloseBrace, "]") \
     TOKEN_KIND(OpenBracket, "{") \
     TOKEN_KIND(CloseBracket, "}") \
+    TOKEN_KIND(BackSlash, "\\") \
     TOKEN_KIND(Period, ".") \
     TOKEN_KIND(PeriodPeriod, "..") \
     TOKEN_KIND(Comma, ",") \
@@ -68,7 +69,7 @@
     TOKEN_KIND(PipeEqual, "|=") \
     TOKEN_KIND(Underscore, "_") \
     TOKEN_KIND(If, "if") \
-    TOKEN_KIND(Else, "else") \
+    TOKEN_KIND(Elif, "elif") \
     TOKEN_KIND(Let, "let") \
     TOKEN_KIND(Mut, "mut") \
     TOKEN_KIND(Type, "type") \

@@ -42,17 +42,18 @@ namespace mist {
 #endif
         
         if(!res)
-            return nullptr;
+            return create_file(filename);
 
         
         // absolute path of the given file
         auto name = std::string(tmpBuffer);
         
         u64 hash = io::File::hash_filename(name);
-        auto iter = files.find(hash);
-        if(iter == files.end())
+        auto file = get_file(hash);
+        if(file)
+            return file;
+        else
             return create_file(name);
-        return iter->second;
     }
 
     io::File* Context::get_file(u64 id) {
@@ -94,7 +95,10 @@ namespace mist {
 
         auto m = p->parse_root(root);
 
-        ast::print(std::cout, m);
+        std::cout << "Parsing Expression" << std::endl;
+        auto e = p->parse_expr();
+
+        ast::print(std::cout, e);
 
         close_parser(p);
     }

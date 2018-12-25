@@ -195,8 +195,28 @@ namespace ast {
 			}
 			case Binding: {
 				auto e = CAST(BindingExpr, expr);
-				out << "name: " << e->name->value->val << "," << std::endl;
+				out << "name: ";
+				print(out, e->name) << std::endl;
 				print(out, e->expr) << std::endl;
+				break;
+			}
+			case StructLiteral: {
+				auto e = CAST(StructLiteralExpr, expr);
+				out << "name: ";
+				print(out, e->name) << std::endl;
+			    out << "elements: ";
+			    PRINT(e->members)
+			    out << "}" << std::endl;
+				break;
+			}
+			case Lambda: {
+				break;
+			}
+			case CompoundLiteral: {
+				auto e = CAST(CompoundLiteralExpr, expr);
+				out << "elements: ";
+				PRINT(e->elements)
+				out << "}" << std::endl;
 				break;
 			}
 			case UnitLit: break;

@@ -108,6 +108,12 @@
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_expr.hpp">
 			<Option target="mistc"/>
 		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_pattern.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_pattern.hpp">
+			<Option target="mistc"/>
+		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_printer.cpp">
 			<Option target="mistc"/>
 		</Unit>
