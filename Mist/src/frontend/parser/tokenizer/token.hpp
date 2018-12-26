@@ -25,6 +25,7 @@
     TOKEN_KIND(BackSlash, "\\") \
     TOKEN_KIND(Period, ".") \
     TOKEN_KIND(PeriodPeriod, "..") \
+    TOKEN_KIND(PeriodPeriodPeriod, "...") \
     TOKEN_KIND(Comma, ",") \
     TOKEN_KIND(Colon, ":") \
     TOKEN_KIND(Semicolon, ";") \
@@ -75,7 +76,8 @@
     TOKEN_KIND(Type, "type") \
     TOKEN_KIND(Struct, "struct") \
     TOKEN_KIND(Class, "class") \
-    TOKEN_KIND(Enum, "enum") \
+    TOKEN_KIND(Variant, "variant") \
+    TOKEN_KIND(Impl, "impl")  \
     TOKEN_KIND(Break, "break") \
     TOKEN_KIND(Continue, "continue") \
     TOKEN_KIND(Return, "return") \
@@ -100,7 +102,9 @@
     TOKEN_KIND(False, "false") \
     TOKEN_KIND(Null, "null") \
     TOKEN_KIND(SelfLit, "self") \
-    TOKEN_KIND(Self, "Self")
+    TOKEN_KIND(Self, "Self") \
+    TOKEN_KIND(Pub, "pub") \
+    TOKEN_KIND(Pro, "pro")
 
 namespace mist {
 

@@ -40,6 +40,7 @@ CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_common.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_decl.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_expr.hpp
+ /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_pattern.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_printer.cpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_printer.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_typespec.hpp
@@ -58,6 +59,7 @@ CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_common.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_decl.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_expr.hpp
+ /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_pattern.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_typespec.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/parser.cpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/parser.hpp
@@ -84,6 +86,7 @@ CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_common.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_decl.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_expr.hpp
+ /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_pattern.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_printer.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_typespec.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/parser.hpp
@@ -98,6 +101,7 @@ CMakeFiles/mistc.dir/Mist/src/main.cpp.o
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_common.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_decl.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_expr.hpp
+ /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_pattern.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_printer.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_typespec.hpp
  /Users/andy/Documents/Mist/Mist/src/frontend/parser/tokenizer/token.hpp

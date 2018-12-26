@@ -95,8 +95,8 @@ namespace mist {
 
         auto m = p->parse_root(root);
 
-        std::cout << "Parsing Expression" << std::endl;
-        auto e = p->parse_expr();
+//        std::cout << "Parsing Expression" << std::endl;
+        auto e = p->parse_test();
 
         ast::print(std::cout, e);
 

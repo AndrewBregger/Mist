@@ -10,8 +10,12 @@ namespace ast {
 
     struct Expr;
 
+    /// @note: I am considering adding a pattern that can handle abitrary boolean expressions.
+    /// I am not sure about the syntax. Maybe the solution is to use currying to solve this.
+
     enum PatternKind {
         IdentPatKind,
+        UnderscorePatKind,
         TuplePatKind,
         StructurePatKind,
         VariantPatKind,
@@ -33,12 +37,18 @@ namespace ast {
         inline mist::Pos pos() { return p; }
 
         inline PatternKind kind() { return k; }
+
+        const std::string& name();
     };
 
     struct IdentPat : public Pattern {
         ast::Ident* name;
 
         IdentPat(ast::Ident* name, mist::Pos pos);
+    };
+
+    struct UnderscorePat : public Pattern {
+        UnderscorePat(mist::Pos pos);
     };
 
     struct TuplePat : public Pattern {
@@ -93,8 +103,9 @@ namespace ast {
 
     struct RangePat : public Pattern {
         Expr* low,* high;
+        bool inclusive;
 
-        RangePat(Expr* low, Expr* high, mist::Pos pos);
+        RangePat(Expr *low, Expr *high, bool inclusive, mist::Pos pos);
     };
 
 }

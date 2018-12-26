@@ -381,11 +381,13 @@ namespace ast {
 		if(!spec) return out;
 //		out << spec->name() << ": {" << std::endl;
 //		out << "pos: { line: " << spec->p.line << ", column: " << spec->p.column << ", span: " << spec->p.span << " }," << std::endl;
+		if(spec->mut == ast::Mutablity::Mutable)
+			out << "mut ";
 		switch(spec->k) {
 			case Named: {
 				auto e = CAST(NamedSpec, spec);
 				out << e->name->value->val;
-				if(! e->params->exprs.empty()) {
+				if(e->params && !e->params->exprs.empty()) {
 					out  << "[" << std::endl;
 					PRINT(e->params->exprs);
 					out << "]" << std::endl;
@@ -421,16 +423,18 @@ namespace ast {
 			}
 			case Array: {
 				auto s = CAST(ArraySpec, spec);
-				out << '[' << s->size->value << ']';
-				print(out, s->element);
+				out << "size: {" << std::endl;
+				print(out, s->size) << std::endl;
+				out << "}," << std::endl;
+				print(out, s->base);
 				break;
 			}
-			case DynamicArray: {
-				auto s = CAST(DynamicArraySpec, spec);
-				out << "[..]";
-				print(out, s->element);
-				break;
-			}
+//			case DynamicArray: {
+//				auto s = CAST(DynamicArraySpec, spec);
+//				out << "[..]";
+//				print(out, s->element);
+//				break;
+//			}
 			case Map: {
 				auto s = CAST(MapSpec, spec);
 				out << "[ ";
@@ -442,8 +446,7 @@ namespace ast {
 			}
 			case Pointer: {
 				out << "*";
-				print(out, spec->base);
-				break;
+				print(out, spec->base); break;
 			}
 			case Reference: {
 				out << "&";
@@ -457,16 +460,83 @@ namespace ast {
 			}
 			case Path: {
 				const auto& p = CAST(PathSpec, spec)->path;
-				print(out, p[0]);
-				for(auto iter = p.begin() + 1; iter < p.end(); ++iter) {
-					out << '.';
-					print(out, *iter);
-				}
+				print(out, p.front());
+				if(p.size() != 1) {
+                    for(auto iter = p.begin() + 1; iter < p.end(); ++iter) {
+                        out << '.';
+                        print(out, *iter);
+                    }
+                }
 				break;
 			}
 			case Unit: {
 				out << "Unit";
 			} break;
+		}
+		return out;
+	}
+
+	std::ostream& print(std::ostream& out, Pattern* pat) {
+		if(!pat)
+			return out;
+		out << pat->name() << ": {" << std::endl;
+		out << "pos: { line: " << pat->p.line << ", column: " << pat->p.column << ", span: " << pat->p.span << " }," << std::endl;
+
+
+		switch(pat->kind()) {
+			case IdentPatKind: {
+				auto p = CAST(IdentPat, pat);
+				out << "name: " << p->name->value->val;
+			} break;
+			case TuplePatKind: {
+				auto p = CAST(TuplePat, pat);
+				out << "elements: {";
+				PRINT(p->elements)
+				out << "}";
+			} break;
+			case StructurePatKind: {
+				auto p = CAST(StructPat, pat);
+				print(out, p->name);
+				out << "members: {";
+				PRINT(p->members)
+				out << "}";
+			} break;
+			case VariantPatKind: {
+				auto p = CAST(VariantPat, pat);
+				print(out, p->name);
+				out << "members: {";
+				PRINT(p->members)
+				out << "}";
+			} break;
+			case IntegerLiteralPatKind: {
+				auto p = CAST(IntegerPat, pat);
+				out << p->value;
+			} break;
+			case FloatLiteralPatKind: {
+				auto p = CAST(FloatPat, pat);
+
+				out << "value: " << p->value;
+			} break;
+			case StringLiteralPatKind: {
+				auto p = CAST(StringPat, pat);
+				out  << "value: " << p->value->val;
+			} break;
+			case CharLiteralPatKind: {
+				auto p = CAST(CharacterPat, pat);
+				out << "value: "  << p->value;
+			} break;
+			case BooleanPatKind: {
+				auto p = CAST(BooleanPat, pat);
+				out << "value: " << (p->value? "true":"false");
+			} break;
+			case RangePatKind: {
+				auto p = CAST(RangePat, pat);
+
+				out << "low: ";
+				print(out, p->low) << std::endl;
+				out << "high: ";
+				print(out, p->high)  << std::endl;
+			}
 		}
 		return out;
 	}

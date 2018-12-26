@@ -306,7 +306,12 @@ namespace mist {
             case '.': {
                     if(check('.')) {
                         bump();
-                        return Token(Tkn_PeriodPeriod, savePos);
+                        if(check('.')) {
+                            bump();
+                            return Token(Tkn_PeriodPeriodPeriod, savePos);
+                        }
+                        else
+                            return Token(Tkn_PeriodPeriod, savePos);
                     }
                     return Token(Tkn_Period, savePos);
                 }

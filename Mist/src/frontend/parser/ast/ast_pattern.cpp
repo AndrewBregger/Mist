@@ -4,12 +4,35 @@
 
 #include "ast_pattern.hpp"
 
+#define ToString(x) #x
+
+std::vector<std::string> pattern_strings = {
+        ToString(IdentPatKind),
+        ToString(UnderscorePatKind),
+        ToString(TuplePatKind),
+        ToString(StructurePatKind),
+        ToString(VariantPatKind),
+        ToString(IntegerLiteralPatKind),
+        ToString(FloatLiteralPatKind),
+        ToString(StringLiteralPatKind),
+        ToString(CharLiteralPatKind),
+        ToString(BooleanPatKind),
+        ToString(RangePatKind)
+};
+
 ast::Pattern::Pattern(ast::PatternKind k, mist::Pos p) : k(k), p(p) {
 
 }
 
+const std::string &ast::Pattern::name() {
+    return pattern_strings[k];
+}
+
 ast::IdentPat::IdentPat(ast::Ident *name, mist::Pos pos) : Pattern(IdentPatKind, pos), name(name) {
 
+}
+
+ast::UnderscorePat::UnderscorePat(mist::Pos pos) : Pattern(UnderscorePatKind, pos) {
 }
 
 ast::TuplePat::TuplePat(const std::vector<ast::Pattern *> &elements, mist::Pos pos) :
@@ -39,8 +62,8 @@ ast::CharacterPat::CharacterPat(char value, mist::Pos pos) : Pattern(CharLiteral
 ast::BooleanPat::BooleanPat(bool value, mist::Pos pos) : Pattern(BooleanPatKind, pos), value(value) {
 }
 
-ast::RangePat::RangePat(ast::Expr *low, ast::Expr *high, mist::Pos pos) : Pattern(RangePatKind, pos),
-    low(low), high(high){
+ast::RangePat::RangePat(Expr *low, Expr *high, bool inclusive, mist::Pos pos) : Pattern(RangePatKind, pos),
+                                                                                low(low), high(high), inclusive(inclusive) {
 }
 
 

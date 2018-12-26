@@ -147,3 +147,19 @@ Vector :: [Type, N] impl Arithmetic {
    }
 }
 
+/// It occured to me that I could go with a Haskell flavor for polymorphism.
+/// If a functions parameter is declared without a type it is assumed to be generic, if the type is desired
+/// within the body of the function then type info facility can be used. Or a symbol can be given before
+/// the typename to signify it is generic. The the type parameter can be given bounds inline or within a
+/// where block.
+
+/// original syntax
+foo :: [A, B, C] (x: A, y: B) -> C {
+    /// do whatever
+}
+
+/// new syntax
+
+foo :: (x, y) -> $ {
+    /// the types of x, y and the return will be inferd from usage using hindly-miler (I think that is the correct name)
+}

@@ -25,12 +25,15 @@ namespace ast {
 	struct TypeSpec {
 		TypeSpecKind k;
 		mist::Pos p;
+		Mutablity mut;
 		TypeSpec* base{nullptr};
 
-		TypeSpec(TypeSpecKind k, mist::Pos p);
-		TypeSpec(TypeSpec* base, TypeSpecKind k, mist::Pos p);
+		TypeSpec(TypeSpecKind k, Mutablity mut, mist::Pos p);
+		TypeSpec(TypeSpec *base, TypeSpecKind k, Mutablity mut, mist::Pos p);
 
 		const std::string& name();
+
+		inline mist::Pos pos() { return p; }
 	};
 
 
@@ -49,13 +52,13 @@ namespace ast {
 		Ident* name;
 		GenericParameters* params;
 
-		NamedSpec(Ident* name, GenericParameters* params, mist::Pos pos);
+		NamedSpec(Ident *name, GenericParameters *params, Mutablity mut, mist::Pos pos);
 	};
 
 	struct TupleSpec : public TypeSpec  {
 		std::vector<TypeSpec*> types;
 
-		TupleSpec(const std::vector<TypeSpec*>& types, mist::Pos pos);
+		TupleSpec(const std::vector<TypeSpec *> &types, Mutablity mut, mist::Pos pos);
 	};
 
 	struct FunctionSpec : public TypeSpec  {
@@ -75,27 +78,27 @@ namespace ast {
 	struct ArraySpec : public TypeSpec {
 		TypeSpec* element;
 
-		IntegerConstExpr* size;
+		Expr* size;
 
-		ArraySpec(TypeSpec* element, IntegerConstExpr* size, mist::Pos pos);
+		ArraySpec(TypeSpec *element, Expr *size, Mutablity mut, mist::Pos pos);
 	};
-
-	struct DynamicArraySpec : public TypeSpec  {
-		TypeSpec* element;
-		DynamicArraySpec(TypeSpec* element, mist::Pos pos);
-	};
+//
+//	struct DynamicArraySpec : public TypeSpec  {
+//		TypeSpec* element;
+//		DynamicArraySpec(TypeSpec* element, mist::Pos pos);
+//	};
 
 	struct MapSpec : public TypeSpec  {
 		TypeSpec* key,* value;
-		MapSpec(TypeSpec* key, TypeSpec* value, mist::Pos pos);
+		MapSpec(TypeSpec *key, TypeSpec *value, Mutablity mut, mist::Pos pos);
 	};
 
 	struct PointerSpec : public TypeSpec  {
-		PointerSpec(TypeSpec* base, mist::Pos pos);
+		PointerSpec(TypeSpec *base, Mutablity mut, mist::Pos pos);
 	};
 
 	struct ReferenceSpec : public TypeSpec  {
-		ReferenceSpec(TypeSpec* base, mist::Pos pos);
+		ReferenceSpec(TypeSpec *base, Mutablity mut, mist::Pos pos);
 	};
 
 	struct ConstantSpec : public TypeSpec  {
@@ -104,7 +107,7 @@ namespace ast {
 
 	struct PathSpec : public TypeSpec  {
 		std::vector<NamedSpec*> path;
-		PathSpec(const std::vector<NamedSpec*>& path, mist::Pos pos);
+		PathSpec(const std::vector<NamedSpec *> &path, Mutablity mut, mist::Pos pos);
 	};
 
 	struct UnitSpec : public TypeSpec {

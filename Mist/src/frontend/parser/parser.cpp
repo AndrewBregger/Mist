@@ -21,7 +21,6 @@ ast::Module *mist::Parser::parse_root(io::File *root) {
 
     auto module = new ast::Module(root);
 
-
     // process imports
     return module;
 }
@@ -33,7 +32,7 @@ ast::Expr *mist::Parser::parse_expr() {
 ast::Expr *mist::Parser::parse_expr_with_res(mist::Parser::Restriction res) {
     PDEBUG();
     auto old = restriction;
-    restriction = res;
+    restriction |= res;
     auto expr = parse_assoc_expr(1);
     restriction = old;
     return expr;
@@ -116,6 +115,11 @@ ast::Expr *mist::Parser::parse_primary(ast::Expr *operand) {
             } continue;
             case Tkn_OpenBracket: {
                 // struct expression
+                if(restriction & NoStructLiteral) {
+                    if(!(restriction & NoError))
+                        interp->report_error(current().pos(), "structure literal is invalid here");
+                    return operand;
+                }
                 advance();
                 auto pos = operand->pos();
                 auto members = many<ast::Expr>([this]() {
@@ -329,6 +333,465 @@ ast::ValueExpr *mist::Parser::parse_value() {
     auto ident = parse_ident();
     // parse identifier
     return new ast::ValueExpr(ident, std::vector<ast::Expr*>(), ident->pos);
+}
+
+
+ast::Pattern *mist::Parser::parse_pattern() {
+    PDEBUG();
+    auto token = current();
+    switch(token.kind()) {
+        case Tkn_Identifier:
+        case Tkn_OpenParen:
+        case Tkn_Underscore:
+            return parse_lvalue_pattern();
+        case Tkn_OpenBrace:
+            return parse_range_pattern();
+        case Tkn_Minus: {
+            advance();
+            auto lit = current();
+            expect(Tkn_IntLiteral);
+            return new ast::IntegerPat(-token.integer, const_cast<Pos&>(lit.pos()) + const_cast<Pos&>(token.pos()));
+        }
+        case Tkn_IntLiteral: {
+            advance();
+            return new ast::IntegerPat(token.integer, token.pos());
+        }
+        case Tkn_FloatLiteral:
+            advance();
+            return new ast::FloatPat(token.floating, token.pos());
+        case Tkn_StringLiteral: {
+           auto str = interp->find_string(token.str);
+           return new ast::StringPat(str, token.pos());
+        }
+        case Tkn_CharLiteral:
+            advance();
+            return new ast::CharacterPat(token.character, token.pos());
+        case Tkn_True:
+            advance();
+            return new ast::BooleanPat(true, token.pos());
+        case Tkn_False:
+            advance();
+            return new ast::BooleanPat(false, token.pos());
+        default:
+            break;
+    }
+    return nullptr;
+}
+
+ast::Pattern *mist::Parser::parse_lvalue_pattern() {
+    PDEBUG();
+    auto token = current();
+
+    switch(token.kind()) {
+        case Tkn_Identifier: {
+            // this is a name or a selection, which mean it has to be
+            // a struct/variant pattern
+            switch(peak()) {
+                case Tkn_Period:
+                case Tkn_OpenBrace:
+                case Tkn_OpenParen:
+                case Tkn_OpenBracket:
+                    return parse_struct_variant_pattern(parse_expr_with_res(NoStructLiteral | NoError));
+                case Tkn_Underscore:
+                    advance();
+                    return new ast::UnderscorePat(token.pos());
+                default: {
+                    auto ident = parse_ident();
+                    return new ast::IdentPat(ident, ident->pos);
+                }
+            }
+        }
+        case Tkn_Underscore: {
+            advance();
+            return new ast::UnderscorePat(token.pos());
+        }
+        case Tkn_OpenParen: {
+            advance();
+            auto pos = token.pos();
+            auto elements = many<ast::Pattern>([this] () {
+                return this->parse_pattern();
+            }, Tkn_Comma);
+            expect(Tkn_CloseParen);
+            for(auto e : elements)
+                pos = pos + e->pos();
+            return new ast::TuplePat(elements, pos);
+        }
+        default:
+            break;
+    }
+    return nullptr;
+}
+
+ast::Pattern *mist::Parser::parse_struct_variant_pattern(ast::Expr *name) {
+    PDEBUG();
+    auto token = current();
+    auto opposite = token.kind();
+    switch(token.kind()) {
+        case Tkn_OpenParen:
+            opposite = Tkn_CloseParen;
+            break;
+        case Tkn_OpenBracket:
+            opposite = Tkn_CloseBracket;
+            break;
+        default:
+            interp->report_error(current().pos(), "expecting '[' or '}'");
+    }
+
+    advance();
+
+    auto members = many<ast::Pattern>([this] () {
+        return this->parse_pattern();
+    }, Tkn_Comma);
+
+    auto pos = name->pos() + token.pos();
+    for(auto m : members)
+        pos = pos + m->pos();
+
+    pos = pos + current().pos();
+    expect(opposite);
+
+    if(token.kind() == Tkn_OpenParen)
+        return new ast::VariantPat(name, members, pos);
+    else
+        return new ast::StructPat(name, members, pos);
+}
+
+ast::Pattern *mist::Parser::parse_range_pattern() {
+    PDEBUG();
+    expect(Tkn_OpenBrace);
+    auto pos = current().pos();
+    auto low = parse_expr_with_res(NoStructLiteral);
+    auto token = current();
+    bool inclusive = false;
+
+    switch(token.kind()) {
+        case Tkn_PeriodPeriod:
+            inclusive = false;
+            break;
+        case Tkn_PeriodPeriodPeriod:
+            inclusive = true;
+            break;
+        default:
+            interp->report_error(token.pos(), "expecting '..' or '...' found: '%s'", token.get_string().c_str());
+            break;
+    }
+    advance();
+    auto high = parse_expr_with_res(NoStructLiteral);
+    pos = pos + low->pos() + token.pos() + high->pos() + const_cast<Pos&>(token.pos());
+    expect(Tkn_CloseBrace);
+
+    return new ast::RangePat(low, high, inclusive, pos);
+}
+
+ast::Decl *mist::Parser::parse_decl() {
+    if(check(Tkn_Use)) {
+        return parse_use();
+    }
+    else {
+        auto pat = parse_pattern();
+        if(check(Tkn_Colon)) {
+            return parse_local(pat);
+        }
+        else {
+            if(expect(Tkn_ColonColon)) {
+                return parse_type_decl(pat);
+            }
+        }
+    }
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_structure(ast::Pattern *name) {
+    if(name->kind() != ast::PatternKind::IdentPatKind) {
+        interp->report_error(name->pos(), "invalid structure name");
+        // sync();
+        return nullptr;
+    }
+
+    if(expect(Tkn_Struct)) {
+        auto members = many<ast::Decl>([this]() {
+            auto pat = this->parse_pattern();
+            return this->parse_local(pat);
+        }, Tkn_Comma, true);
+
+        expect(Tkn_CloseBracket);
+
+        ast::WhereClause* where = parse_where();
+    }
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_class(ast::Pattern *name) {
+    if(name->kind() != ast::PatternKind::IdentPatKind) {
+        interp->report_error(name->pos(), "invalid class name");
+        // sync();
+        return nullptr;
+    }
+    if(expect(Tkn_Class)) {
+
+    }
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_impl(ast::Pattern *name) {
+    if(name->kind() != ast::PatternKind::IdentPatKind) {
+        interp->report_error(name->pos(), "invalid invalid type name for impl block");
+        // sync();
+        return nullptr;
+    }
+    if(expect(Tkn_Impl)) {
+
+    }
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_variant(ast::Pattern *name) {
+    if(name->kind() != ast::PatternKind::IdentPatKind) {
+        interp->report_error(name->pos(), "invalid variant name");
+        // sync();
+        return nullptr;
+    }
+    if(expect(Tkn_Variant)) {
+
+    }
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_function(ast::Pattern *name) {
+    if(name->kind() != ast::PatternKind::IdentPatKind) {
+        interp->report_error(name->pos(), "invalid function name");
+        // sync();
+        return nullptr;
+    }
+    if(expect(Tkn_OpenParen)) {
+
+    }
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_type_decl(ast::Pattern *name) {
+    // auto gen = parse_generics_decl();
+    auto token = current();
+    switch(token.kind()) {
+        case Tkn_Struct:
+            return parse_structure(name);
+        case Tkn_Class:
+            return parse_class(name);
+        case Tkn_Impl:
+            return parse_impl(name);
+        case Tkn_Variant:
+            return parse_variant(name);
+        case Tkn_OpenParen:
+            return parse_function(name);
+        default:
+            interp->report_error(token.pos(), "expecting: 'struct', 'class', 'impl', or 'variant' found: '%s'",
+                    token.get_string().c_str());
+            break;
+    }
+    if(expect(Tkn_Struct)) {
+
+    }
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_local(ast::Pattern *name) {
+    return nullptr;
+}
+
+ast::Decl *mist::Parser::parse_use() {
+    return nullptr;
+}
+
+ast::TypeSpec *mist::Parser::parse_typespec() {
+
+    auto mut = ast::Mutablity::Immutable;
+
+    if(allow(Tkn_Mut))
+        mut = ast::Mutablity::Mutable;
+    auto token = current();
+    switch(token.kind()) {
+        case Tkn_Identifier:
+            return parse_path(mut);
+        case Tkn_OpenParen:
+            return parse_function_or_tuple(mut);
+        case Tkn_OpenBrace: {
+            ast::TypeSpec* key = nullptr;
+            ast::Expr* size = nullptr;
+            auto pos = current().pos();
+            advance();
+
+            auto mutkey = ast::Mutablity::Immutable;
+            if(check(Tkn_Mut)) {
+                mut = ast::Mutablity::Mutable;
+                key = parse_typespec();
+            } else {
+                size = parse_expr();
+                if(!check(Tkn_Comma)) {
+                    /// array
+                    if(expect(Tkn_CloseBrace)) {
+                        auto type = parse_typespec();
+                        return new ast::ArraySpec(type, size, mut, pos);
+                    }
+                    return nullptr;
+                }
+                else {
+                    /// map
+                    key = expr_to_typespec(mutkey, size);
+                }
+            }
+            auto comma = current();
+            if(expect(Tkn_Comma)) {
+                auto value = parse_typespec();
+                pos = pos + key->pos() + value->pos() + comma.pos() + current().pos();
+                expect(Tkn_CloseBrace);
+                return new ast::MapSpec(key, value, mut, pos);
+            }
+            return nullptr;
+        }
+        case Tkn_Astrick: {
+            advance();
+            auto type = parse_typespec();
+            return new ast::PointerSpec(type, mut, const_cast<Pos &>(token.pos()) + type->pos());
+        }
+        case Tkn_Ref:
+        case Tkn_Ampersand:{
+            advance();
+            auto type = parse_typespec();
+            return new ast::ReferenceSpec(type, mut, const_cast<Pos&>(token.pos()) + type->pos());
+        }
+        case Tkn_Unit:
+            advance();
+            return new ast::UnitSpec(token.pos());
+        default:
+            break;
+    }
+    return nullptr;
+}
+
+ast::TypeSpec * mist::Parser::parse_function_or_tuple(ast::Mutablity mut) {
+    // parse a tuple
+    auto pos = current().pos();
+    auto fn = [this] () {
+        return this->parse_typespec();
+    };
+    if(expect(Tkn_OpenParen)) {
+        auto elements = many<ast::TypeSpec>(fn, Tkn_Comma);
+        for(auto e : elements)
+            pos = pos + e->pos();
+        expect(Tkn_CloseParen);
+
+        if(allow(Tkn_MinusGreater)) {
+            auto rets = many<ast::TypeSpec>(fn, Tkn_Comma);
+
+            for(auto e : rets)
+                pos = pos + e->pos();
+
+            return new ast::FunctionSpec(elements, rets, pos);
+        }
+        else
+            return new ast::TupleSpec(elements, mut, pos);
+    }
+    return nullptr;
+}
+
+ast::TypeSpec *mist::Parser::parse_path(ast::Mutablity mut) {
+    auto parse_name = [this, mut] () {
+        auto ident = this->parse_ident();
+        // handle generics
+        return new ast::NamedSpec(ident, nullptr, mut, ident->pos);
+    };
+
+    std::vector<ast::NamedSpec*> names;
+    auto pos = current().pos();
+    pos.span = 0;
+    do {
+        auto name = parse_name();
+        if(name) {
+            names.push_back(name);
+            pos = pos + name->pos();
+        }
+        else {
+            interp->report_error(current().pos(), "expecting identifier, found: '%s'", current().get_string().c_str());
+            // sync();
+            break;
+        }
+    } while(allow(Tkn_Period));
+
+    return new ast::PathSpec(names, mut, pos);
+}
+
+
+bool reduce(std::vector<ast::NamedSpec*>& names, ast::Expr* curr) {
+    switch(curr->kind()) {
+        case ast::Selector: {
+            auto s = static_cast<ast::SelectorExpr*>(curr);
+            auto r = reduce(names, s->operand);
+            if(r) {
+                return reduce(names, s->element);
+            } else
+                return false;
+
+        } break;
+        case ast::Value: {
+            auto v = static_cast<ast::ValueExpr*>(curr);
+            // auto gen = convert_generics(v->genericValues);
+            auto name = new ast::NamedSpec(v->name, nullptr, ast::Mutable, v->name->pos);
+            names.push_back(name);
+            return true;
+        }
+        default:
+            return false;
+    }
+}
+
+ast::TypeSpec *mist::Parser::expr_to_typespec(ast::Mutablity mut, ast::Expr *expr) {
+    std::vector<ast::NamedSpec*> names;
+
+    if(reduce(names, expr)) {
+        if(names.empty()) {
+            return nullptr;
+        }
+
+        auto pos = names.front()->pos();
+        pos.span = 0;
+
+        for(auto x : names)
+            pos = pos + x->pos();
+
+        return new ast::PathSpec(names, mut, pos);
+    }
+    return nullptr;
+}
+
+ast::WhereClause *mist::Parser::parse_where() {
+    auto parse_where_element = [this] () -> ast::WhereElement* {
+        auto name = parse_ident();
+        if(expect(Tkn_Colon)) {
+            auto pos = name->pos;
+            auto bounds = many<ast::TypeSpec>([this]() {
+                return parse_path(ast::Immutable);
+            }, Tkn_Plus);
+
+            for(auto b : bounds)
+                pos = pos + b->pos();
+            return new ast::WhereElement(name, bounds, pos);
+        }
+        else
+            return nullptr;
+    };
+
+    if(expect(Tkn_Where)) {
+        auto pos = prev.pos();
+
+        auto elements = many<ast::WhereElement>(parse_where_element, Tkn_Comma);
+
+        for(auto p : elements)
+            pos = pos + p->pos;
+
+        return new ast::WhereClause(elements, pos);
+    }
+
+    return nullptr;
 }
 
 ast::ConstantType mist::Parser::parse_literal_suffix() {

@@ -39,6 +39,7 @@ CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src/frontend/parser/ast/ast_common.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src/frontend/parser/ast/ast_decl.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src/frontend/parser/ast/ast_expr.hpp
+CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src/frontend/parser/ast/ast_pattern.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src/frontend/parser/ast/ast_printer.cpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src/frontend/parser/ast/ast_printer.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_printer.cpp.o: ../Mist/src/frontend/parser/ast/ast_typespec.hpp
@@ -57,6 +58,7 @@ CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend/parser/ast/ast_common.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend/parser/ast/ast_decl.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend/parser/ast/ast_expr.hpp
+CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend/parser/ast/ast_pattern.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend/parser/ast/ast_typespec.hpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend/parser/parser.cpp
 CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o: ../Mist/src/frontend/parser/parser.hpp
@@ -83,6 +85,7 @@ CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/ast
 CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/ast/ast_common.hpp
 CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/ast/ast_decl.hpp
 CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/ast/ast_expr.hpp
+CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/ast/ast_pattern.hpp
 CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/ast/ast_printer.hpp
 CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/ast/ast_typespec.hpp
 CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o: ../Mist/src/frontend/parser/parser.hpp
@@ -97,6 +100,7 @@ CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/ast/ast.hp
 CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/ast/ast_common.hpp
 CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/ast/ast_decl.hpp
 CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/ast/ast_expr.hpp
+CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/ast/ast_pattern.hpp
 CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/ast/ast_printer.hpp
 CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/ast/ast_typespec.hpp
 CMakeFiles/mistc.dir/Mist/src/main.cpp.o: ../Mist/src/frontend/parser/tokenizer/token.hpp
