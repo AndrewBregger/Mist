@@ -114,7 +114,7 @@ This language has support for native multi return from functions. But this coupl
 e.g.
 
 ```
-Enum(x, y) := function_returning_enum();
+Variant(x, y) := function_returning_enum();
 
 --or--
 
@@ -122,7 +122,7 @@ x, y := multi_return_function();
 
 -- with type annotations --
 
-Enum(x, y) : f32, string = function_returning_enum(); // i do not know if this is needed
+Variant(x, y) : f32, string = function_returning_enum(); // i do not know if this is needed
 
 --or--
 

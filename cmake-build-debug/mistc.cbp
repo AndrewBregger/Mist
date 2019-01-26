@@ -45,13 +45,13 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add directory="/Users/andy/Documents/Mist/Mist/src"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/include"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
-					<Add directory="/usr/include"/>
-					<Add directory="/System/Library/Frameworks"/>
-					<Add directory="/Library/Frameworks"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include-fixed"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 mistc"/>
@@ -68,13 +68,13 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add directory="/Users/andy/Documents/Mist/Mist/src"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1"/>
-					<Add directory="/usr/local/include"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/include"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
-					<Add directory="/usr/include"/>
-					<Add directory="/System/Library/Frameworks"/>
-					<Add directory="/Library/Frameworks"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include-fixed"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 mistc/fast"/>
@@ -84,6 +84,24 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/scope.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/scope.hpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/typer.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/typer.hpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/types/type.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/types/type.hpp">
+			<Option target="mistc"/>
+		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast.cpp">
 			<Option target="mistc"/>
 		</Unit>
@@ -153,10 +171,22 @@
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/main.cpp">
 			<Option target="mistc"/>
 		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/utils/directory.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/utils/directory.hpp">
+			<Option target="mistc"/>
+		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/utils/file.cpp">
 			<Option target="mistc"/>
 		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/utils/file.hpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/utils/fileio.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/utils/fileio.hpp">
 			<Option target="mistc"/>
 		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/CMakeLists.txt">

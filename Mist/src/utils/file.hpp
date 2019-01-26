@@ -1,41 +1,23 @@
 #pragma once
 
 #include "common.hpp"
+#include "fileio.hpp"
 
 // it is assumed this class is given the absolute path of the file.
 
 namespace io {
-	class File {
+	class File : public FileIO {
     public:
-        File(const std::string& path);
+        File(const fs::path& p);
 
-        bool load(bool force = false);
+        virtual ~File();
 
         std::string extention();
-        std::string fullpath();
-    
-        u64 id();
-        const std::string& dir();
-        const std::string& name();
+
+        virtual bool load();
+
         const std::string& value();
-        bool is_loaded();
-
-
-        // optional api
-        
-        // returns the path of the file relative to the given dir
-        std::string relative_path(const std::string& dir);
-    
-    
-        // creates a hash of the filename for easily identifying it.
-        static u64 hash_filename(const std::string& filename);
     private:
-        // rune* content{nullptr}; // the buffer when converted to unicode.
         std::string content;
-        u64 uid{0};
-
-        std::string path;
-        std::string filename;
-        bool loaded{false};
 	};
 }

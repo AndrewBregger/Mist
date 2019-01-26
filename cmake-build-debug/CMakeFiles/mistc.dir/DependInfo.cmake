@@ -4,6 +4,9 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/Users/andy/Documents/Mist/Mist/src/frontend/checker/scope.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.o"
+  "/Users/andy/Documents/Mist/Mist/src/frontend/checker/typer.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/typer.cpp.o"
+  "/Users/andy/Documents/Mist/Mist/src/frontend/checker/types/type.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_common.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_common.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_decl.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_decl.cpp.o"
@@ -16,9 +19,11 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/Users/andy/Documents/Mist/Mist/src/frontend/parser/tokenizer/token.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/parser/tokenizer/token.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/interpreter.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/main.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/main.cpp.o"
+  "/Users/andy/Documents/Mist/Mist/src/utils/directory.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/utils/file.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/utils/file.cpp.o"
+  "/Users/andy/Documents/Mist/Mist/src/utils/fileio.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.o"
   )
-set(CMAKE_CXX_COMPILER_ID "AppleClang")
+set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH

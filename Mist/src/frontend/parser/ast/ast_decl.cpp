@@ -6,16 +6,18 @@
 
 namespace ast {
 	const static std::vector<std::string> decl_strings = {
+        ToString(Global),
 		ToString(Local),
-		ToString(MultiLocal),
+		ToString(SelfField),
 		ToString(Struct),
+		ToString(Class),
 		ToString(TypeClass),
 		ToString(Function),
 		ToString(OpFunction),
 		ToString(Use),
 		ToString(Impl),
 		ToString(Generic),
-		ToString(Enum),
+		ToString(Variant),
 		ToString(EnumMember)
 	};
 
@@ -35,6 +37,51 @@ namespace ast {
 		return decl_strings[k];
 	}
 
+	mist::Scope *Decl::get_scope() {
+	    switch(kind()) {
+	    	case Struct:
+            case Class: {
+	    		auto decl = static_cast<StructDecl*>(this);
+	    		return decl->scope;
+	    	}
+	    	case TypeClass: {
+				auto decl = static_cast<TypeClassDecl*>(this);
+				return decl->scope;
+	    	}
+	    	case Function: {
+				auto decl = static_cast<FunctionDecl*>(this);
+				return decl->paramScope;
+	    	}
+	    	case OpFunction: {
+				auto decl = static_cast<OpFunctionDecl*>(this);
+				return decl->paramScope;
+	    	}
+	    	case Use: {
+				auto decl = static_cast<UseDecl*>(this);
+				return decl->module->scope;
+	    	}
+	    	case Impl: {
+				auto decl = static_cast<ImplDecl*>(this);
+				return decl->scope;
+	    	}
+	    	case Generic: {
+				auto decl = static_cast<GenericDecl*>(this);
+				return nullptr;
+	    	}
+	    	case Variant: {
+				auto decl = static_cast<VariantDecl*>(this);
+				return decl->scope;
+	    	}
+	    	case VariantMember: {
+				auto decl = static_cast<VariantMemberDecl*>(this);
+				return decl->scope;
+	    	}
+	    	default:
+	    		break;
+		}
+		return nullptr;
+	}
+
 	GenericDecl::GenericDecl(Ident* name, const std::vector<TypeSpec*>& bounds, mist::Pos pos) :
 		Decl(name, Generic, pos), bounds(bounds) {}
 
@@ -42,22 +89,32 @@ namespace ast {
 
 	}
 
-	LocalDecl::LocalDecl(Ident* name, TypeSpec* spec, Expr* init, mist::Pos pos) :
-		Decl(name, Local, pos), sp(spec), init(init) {
+	GlobalDecl::GlobalDecl(Ident *name, TypeSpec *tp, Expr *init, mist::Pos pos) : Decl(name, Global, pos), name(name), tp(tp), init(init) {
 
 	}
 
-	Expr* LocalDecl::expr() {
+	LocalDecl::LocalDecl(Pattern *name, const std::vector<TypeSpec *> &spec, const std::vector<Expr *> &init,
+						 mist::Pos pos) :
+		Decl(nullptr, Local, pos), name(name), sp(spec), init(init) {
+	}
+
+	const std::vector<Expr*>& LocalDecl::expr() {
 		return init;
 	}
 
-	TypeSpec* LocalDecl::spec() {
+	const std::vector<TypeSpec*>& LocalDecl::spec() {
 		return sp;
 	}
 
-	MultiLocalDecl::MultiLocalDecl(const std::vector<Ident*>& names, const std::vector<TypeSpec*>& sps,
-		const std::vector<Expr*>& inits, mist::Pos pos) : Decl(nullptr, MultiLocal, pos), names(names), sps(sps), inits(inits) {
+	ClassDecl::ClassDecl(Ident *name, const std::vector<FieldDecl *> &fields, const std::vector<TypeSpec *> &derives,
+						 WhereClause *where, Generics *gen, const std::vector<TypeSpec *> &parents, mist::Pos pos) :
+						 StructDecl(name, fields, derives, where, gen, pos), parents(parents) {
+		k = Class;
+	}
 
+	SelfFieldDecl::SelfFieldDecl(Mutability mut, mist::Pos pos) :
+		LocalDecl(nullptr, std::vector<TypeSpec*>(), std::vector<ast::Expr*>(), pos), mut(mut) {
+		k = SelfField;
 	}
 
 	StructDecl::StructDecl(Ident* name, const std::vector<FieldDecl*>& fields, const std::vector<TypeSpec*>& derives, WhereClause* where, Generics* gen, mist::Pos pos) :
@@ -85,13 +142,12 @@ namespace ast {
 		Decl(ident, Impl, pos), methods(methods), generics(gen) {
 	}
 
-	EnumMemberDecl::EnumMemberDecl(Ident* name, EnumDeclKind ekind, mist::Pos pos,
-		const std::vector<TypeSpec*>& types, Expr* init) : Decl(name, EnumMember, pos),
-		types(types), init(init), ekind(ekind) {
-
+	VariantMemberDecl::VariantMemberDecl(ast::Ident *name, ast::VariantMemberKind ekind, mist::Pos pos,
+										 const std::vector<ast::TypeSpec *> &types, ast::Expr *init) : Decl(name, VariantMember, pos),
+										 ekind(ekind), types(types), init(init) {
 	}
 
-	EnumDecl::EnumDecl(Ident* name, const std::vector<EnumMemberDecl*> members, Generics* gen,
-		mist::Pos pos) : Decl(name, Enum, pos), members(members), generics(gen) {
+	VariantDecl::VariantDecl(Ident *name, const std::vector<VariantMemberDecl *> &members, Generics *gen,
+							 mist::Pos pos) : Decl(name, Variant, pos), members(members), generics(gen) {
 	}
 }

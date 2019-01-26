@@ -1,18 +1,37 @@
-#include "interpreter.hpp" 
+#include "interpreter.hpp"
+#include "frontend/checker/types/type.hpp"
+#include "frontend/checker/typer.hpp"
 
 #include "frontend/parser/tokenizer/scanner.hpp"
 #include "frontend/parser/parser.hpp"
 #include "frontend/parser/ast/ast_printer.hpp"
 
+
 #ifdef _WIN32
     #include <windows.h>
 #endif
+
+mist::Type* type_u8;
+mist::Type* type_u16;
+mist::Type* type_u32;
+mist::Type* type_u64;
+mist::Type* type_i8;
+mist::Type* type_i16;
+mist::Type* type_i32;
+mist::Type* type_i64;
+mist::Type* type_f32;
+mist::Type* type_f64;
+mist::Type* type_char;
+mist::Type* type_bool;
+mist::Type* type_unit;
+mist::Type* type_emptytuple;
 
 const u32 BUFFER_SIZE = 128; // if it larger then 128 for now then there is problem
 
 namespace mist {
     // @TODO: parser the command line arguments
-    Context::Context(const std::vector<std::string>& args) : args(args) {
+    Context::Context(const std::vector<std::string>& args) : args(args), directory(fs::current_path(), true) {
+        directory.load();
     }
     
     
@@ -24,65 +43,39 @@ namespace mist {
     }
 
     io::File* Context::load_file(const std::string& filename) {
-        char tmpBuffer[BUFFER_SIZE];
-		char** ttBuffer = nullptr;
-        int res = 0;
+        fs::path p(filename);
+        u64 hash = io::FileIO::hash_name(p);
 
-#ifdef _WIN32
-        res = GetFullPathNameA(
-                filename.c_str(),
-                BUFFER_SIZE, // find a way to get the length the path.
-                tmpBuffer, 
-                ttBuffer
-            );
-#else
-        char* t = realpath(filename.c_str(), tmpBuffer);
-        if(t)
-            res = 1;
-#endif
-        
-        if(!res)
-            return create_file(filename);
-
-        
-        // absolute path of the given file
-        auto name = std::string(tmpBuffer);
-        
-        u64 hash = io::File::hash_filename(name);
-        auto file = get_file(hash);
-        if(file)
-            return file;
-        else
-            return create_file(name);
+        return get_file(hash);
     }
 
     io::File* Context::get_file(u64 id) {
-        auto iter = files.find(id);
-        if(iter == files.end())
-            return nullptr;
-        return iter->second;
+        auto [file, valid] = directory.find(id);
+        if(valid) {
+            if(file->is_file()) {
+                file->load();
+                return static_cast<io::File*>(file);
+            }
+            std::clog << "[LOG]: Attempted to load a directory" << std::endl;
+        }
+        return nullptr;
     }
 
-
-    io::File* Context::create_file(const std::string& filename) {
-        io::File* file = new io::File(filename);
-        files.emplace(file->id(), file);
-        return file;
-    }
-
-	String* Context::find_or_create_string(const std::string& str) {
+	struct String* Context::find_or_create_string(const std::string& str) {
 		auto iter = stringTable.find(str);
 		if (iter != stringTable.end())
 			return iter->second;
 
 		/// creating this struct with an allocator
-		mist::String* s = new mist::String;
+		auto s = new struct mist::String;
 		s->val = str;
 		stringTable.emplace(str, s);
 		return s;
 	}
 
-    Interpreter::Interpreter(const std::vector<std::string>& args) : context(args) {
+    Interpreter::Interpreter(const std::vector<std::string>& args) : context(args), typer(new Typer(this)) {
+        init_strings();
+        init_type_table();
     }
 
     Interpreter::~Interpreter() {
@@ -91,14 +84,40 @@ namespace mist {
     void Interpreter::compile_root() {
         auto root = context.root();
 
+        if(root->is_load())
+            root->load();
+
+        if(root->value().size() == 0) {
+            report_error("given file is empty, not compiling");
+            return;
+        }
+
+
+
         auto p = get_parser();
+
+        typer->create_root();
 
         auto m = p->parse_root(root);
 
-//        std::cout << "Parsing Expression" << std::endl;
-        auto e = p->parse_test();
+        if(has_error()) {
+            std::cout << "There was an error: Exiting" << std::endl;
+            close_parser(p);
+            return;
+        }
 
-        ast::print(std::cout, e);
+
+//        auto e = p->parse_expr();
+
+        typer->resolve_module(m);
+
+//        typer->resolve(m);
+//        if(type)
+//            std::cout << type->to_string() << std::endl;
+//        else
+//            std::cout << "Resolved to null type" << std::endl;
+
+//        ast::print(std::cout, m);
 
         close_parser(p);
     }
@@ -110,7 +129,7 @@ namespace mist {
                 return x.first;
             }
         }
-        auto p = new mist::Parser(this);
+        auto p = new mist::Parser(typer, this);
         parsers.emplace_back(p, true);
         return p; 
     }
@@ -121,33 +140,78 @@ namespace mist {
                 x.second = false;
     }
 
+    void Interpreter::init_strings() {
+        context.find_or_create_string("u8");
+        context.find_or_create_string("u16");
+        context.find_or_create_string("u32");
+        context.find_or_create_string("u64");
 
-    String* Interpreter::find_string(const std::string& str) {
+        context.find_or_create_string("i8");
+        context.find_or_create_string("i16");
+        context.find_or_create_string("i32");
+        context.find_or_create_string("i64");
+
+
+        context.find_or_create_string("f32");
+        context.find_or_create_string("f64");
+
+
+        context.find_or_create_string("char");
+        context.find_or_create_string("bool");
+        context.find_or_create_string("Unit");
+    }
+
+    // I dont this doesnt make since and is complicated.
+    void Interpreter::init_type_table() {
+        type_u8   =  add_type(new PrimitiveType(PrimitiveKind::U8,  context.find_or_create_string("u8"), 1));
+        type_u16  =  add_type(new PrimitiveType(PrimitiveKind::U16, context.find_or_create_string("u16"), 2));
+        type_u32  =  add_type(new PrimitiveType(PrimitiveKind::U32, context.find_or_create_string("u32"), 4));
+        type_u64  =  add_type(new PrimitiveType(PrimitiveKind::U64, context.find_or_create_string("u64"), 8));
+        type_i8   =  add_type(new PrimitiveType(PrimitiveKind::I8,  context.find_or_create_string("i8"), 1));
+        type_i16  =  add_type(new PrimitiveType(PrimitiveKind::I16, context.find_or_create_string("i16"), 2));
+        type_i32  =  add_type(new PrimitiveType(PrimitiveKind::I32, context.find_or_create_string("i32"), 4));
+        type_i64  =  add_type(new PrimitiveType(PrimitiveKind::I64, context.find_or_create_string("i64"), 8));
+        type_f32  =  add_type(new PrimitiveType(PrimitiveKind::F32, context.find_or_create_string("f32"), 4));
+        type_f64  =  add_type(new PrimitiveType(PrimitiveKind::F64, context.find_or_create_string("f64"), 8));
+        type_char =  add_type(new PrimitiveType(PrimitiveKind::Char, context.find_or_create_string("char"), 1));
+        type_bool =  add_type(new PrimitiveType(PrimitiveKind::Bool, context.find_or_create_string("bool"), 1));
+        type_emptytuple = add_type(new TupleType(std::vector<Type*>(), 0));
+        type_unit = add_type(new UnitType());
+
+        typer->add_prelude(static_cast<PrimitiveType*>(type_u8)->name(),    type_u8, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_u16)->name(),   type_u16, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_u32)->name(),   type_u32, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_u64)->name(),   type_u64, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_i8)->name(),    type_i8, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_i16)->name(),   type_i16, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_i32)->name(),   type_i32, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_i64)->name(),   type_i64, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_f32)->name(),   type_f32, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_f64)->name(),   type_f64, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_char)->name(),  type_char, Value, Ty);
+        typer->add_prelude(static_cast<PrimitiveType*>(type_bool)->name(),  type_bool, Value, Ty);
+        typer->add_prelude(context.find_or_create_string("Unit"), type_unit, Value, Ty);
+    }
+
+
+    struct String* Interpreter::find_string(const std::string& str) {
         return context.find_or_create_string(str);
     }
 
-// //#pragma optimize("", off)
-//     void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, ...) {
-// 		va_list va;
-// 		const char* m = msg.c_str();
-// 		va_start(va, m);
-// 		report_error(pos, msg, va);
-// 		va_end(va);
-//     }
-// //#pragma optimize("", on)
+    Type* Interpreter::add_type(Type *type) {
+        types.insert(type);
+        return type;
+    }
 
-//     void Interpreter::report_error(const mist::Pos& pos, const std::string& msg, va_list va) {
-// 		auto file = context.get_file(pos.fileId);
+    Type *Interpreter::find_type(Type *type) {
+        for(auto t : types) {
+            if(typer->equivalent_type(t, type))
+                return t;
+        }
+        return nullptr;
+    }
 
-// 		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
-
-// #if _WIN32
-// 		vprintf_s(msg.c_str(), va);
-// #else
-//         vprintf(msg.c_str(), va);
-// #endif
-
-// 		std::cout << std::endl;
-// 		// print file line and location information
-//     }
+    bool Interpreter::contains_equivalent_type(Type *type) {
+        return false;
+    }
 }

@@ -24,7 +24,7 @@ namespace mist {
     TOKEN_CONSTRUCTOR_IMP(f64, floating, Tkn_FloatLiteral)
     TOKEN_CONSTRUCTOR_IMP(char, character, Tkn_CharLiteral)
     TOKEN_CONSTRUCTOR_IMP(const std::string&, str, Tkn_StringLiteral)
-    TOKEN_CONSTRUCTOR_IMP(ast::Ident*, ident, Tkn_Identifier);
+    TOKEN_CONSTRUCTOR_IMP(ast::Ident*, ident, Tkn_Identifier)
 
 
     Token::~Token() {}

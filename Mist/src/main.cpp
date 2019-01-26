@@ -11,6 +11,9 @@
 #include "frontend/parser/ast/ast_expr.hpp"
 #include "frontend/parser/ast/ast_typespec.hpp"
 
+#include "utils/directory.hpp"
+
+
 int main(int argc, const char** argv) {
     if(argc < 2)
         return 1;
@@ -21,7 +24,7 @@ int main(int argc, const char** argv) {
     for(int i = 1; i < argc; ++i)
         args.emplace_back(argv[i]);
 
-    mist::Interpreter interp(args);    
+    mist::Interpreter interp(args);
 
     interp.compile_root();
 

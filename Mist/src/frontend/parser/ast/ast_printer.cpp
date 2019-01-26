@@ -78,7 +78,9 @@ namespace ast {
 				out << "cond: {" << std::endl;
 				print(out, e->cond) << std::endl << "}," << std::endl;
 				out << "body: {" << std::endl;
-				print(out, e->body) << std::endl << "}" << std::endl;
+				print(out, e->body) << std::endl << "}," << std::endl;
+				out << "elif: {" << std::endl;
+				print(out, e->elif) << std::endl << "}" << std::endl;
 				break;
 			}
 			case While: {
@@ -230,42 +232,53 @@ namespace ast {
 		if(!decl) return out;
 		out << decl->string() << ": {" << std::endl;
 		out << "pos: { line: " << decl->pos.line << ", column: " << decl->pos.column << ", span: " << decl->pos.span << " }," << std::endl;
-		if(decl->k != MultiLocal && decl->k != OpFunction) {
+		if(decl->k != Local && decl->k != OpFunction) {
 			// self is the only time we do not set the name field.
 			out << "name: " << (decl->name ? decl->name->value->val : "self") << "," << std::endl;
 		}
 		switch(decl->k) {
 			case Local: {
 				auto d = CAST(LocalDecl, decl);
-				if(d->sp) {
-					out << "type: {" << std::endl;
-					print(out, d->sp) << std::endl << "}," << std::endl;
-				}
-				if(d->init) {
-					out << "init: {" << std::endl;
-					print(out, d->init) << std::endl << "}," << std::endl;
-				}
+                out << "name: {" << std::endl;
+                print(out, d->name);
+                out << "}," << std::endl;
+                out << "type: {" << std::endl;;
+                PRINT(d->sp)
+                out << "}," << std::endl;
+                out << "type: {" << std::endl;;
+                PRINT(d->init)
+                out << "}," << std::endl;
 				break;
 			}
-			case MultiLocal: {
-				auto d = CAST(MultiLocalDecl, decl);
-				out << "names: {" << std::endl;
-				for(auto x : d->names) {
-					out << x->value->val << "," << std::endl;
-				}
-				out << "}," << std::endl;
-				out << std::endl << "}," << std::endl;
-				if(!d->sps.empty()) {
-					out << "types: {" << std::endl;
-					PRINT(d->sps);
-					out << "}," << std::endl;
-				}
-				if(!d->inits.empty()) {
-					out << "inits: {" << std::endl;
-					PRINT(d->inits);
-					out << "}," << std::endl;
-				}
-				break;
+			case SelfField: {
+				auto d = CAST(SelfFieldDecl, decl);
+				out << "mut: " << d->mut << ',' << std::endl;
+			} break;
+			//case MultiLocal: {
+			//	auto d = CAST(MultiLocalDecl, decl);
+			//	out << "names: {" << std::endl;
+			//	for(auto x : d->names) {
+			//		out << x->value->val << "," << std::endl;
+			//	}
+			//	out << "}," << std::endl;
+			//	out << std::endl << "}," << std::endl;
+			//	if(!d->sps.empty()) {
+			//		out << "types: {" << std::endl;
+			//		PRINT(d->sps);
+			//		out << "}," << std::endl;
+			//	}
+			//	if(!d->inits.empty()) {
+			//		out << "inits: {" << std::endl;
+			//		PRINT(d->inits);
+			//		out << "}," << std::endl;
+			//	}
+			//	break;
+			//}
+			case Class: {
+				auto d = CAST(ClassDecl, decl);
+				out << "parents: [" << std::endl;
+				PRINT(d->parents);
+				out << "]," << std::endl;
 			}
 			case Struct: {
 				auto d = CAST(StructDecl, decl);
@@ -351,15 +364,15 @@ namespace ast {
 			case Generic: {
 				break;
 			}
-			case Enum: {
-				auto d = CAST(EnumDecl, decl);
+			case Variant: {
+				auto d = CAST(VariantDecl, decl);
 				out << "members: [" << std::endl;
 				PRINT(d->members);
 				out << "]," << std::endl;
 			} break;
-			case EnumMember: {
-				auto d = CAST(EnumMemberDecl, decl);
-				if (d->ekind == EnumIdent) {
+			case VariantMember: {
+				auto d = CAST(VariantMemberDecl, decl);
+				if (d->ekind == VariantIdent) {
 					if(d->init) {
 						out << "init: {" << std::endl;
 						print(out, d->init) << std::endl;
@@ -381,7 +394,7 @@ namespace ast {
 		if(!spec) return out;
 //		out << spec->name() << ": {" << std::endl;
 //		out << "pos: { line: " << spec->p.line << ", column: " << spec->p.column << ", span: " << spec->p.span << " }," << std::endl;
-		if(spec->mut == ast::Mutablity::Mutable)
+		if(spec->mut == ast::Mutability::Mutable)
 			out << "mut ";
 		switch(spec->k) {
 			case Named: {
@@ -453,11 +466,11 @@ namespace ast {
 				print(out, spec->base);
 				break;
 			}
-			case Constant: {
-				out << "const ";
-				print(out, spec->base);
-				break;
-			}
+//			case Mutable: {
+//				out << "const ";
+//				print(out, spec->base);
+//				break;
+//			}
 			case Path: {
 				const auto& p = CAST(PathSpec, spec)->path;
 				print(out, p.front());
@@ -473,6 +486,7 @@ namespace ast {
 				out << "Unit";
 			} break;
 		}
+		out << std::flush;
 		return out;
 	}
 
@@ -536,7 +550,15 @@ namespace ast {
 				print(out, p->low) << std::endl;
 				out << "high: ";
 				print(out, p->high)  << std::endl;
-			}
+			} break;
+			case ListPatKind: {
+				auto p = CAST(ListPat, pat);
+				out << "elements: [" << std::endl;
+				PRINT(p->patterns)
+				out << "]" << std::endl;
+			} break;
+			default:
+				break;
 		}
 		return out;
 	}

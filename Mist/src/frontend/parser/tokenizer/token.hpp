@@ -70,6 +70,7 @@
     TOKEN_KIND(PipeEqual, "|=") \
     TOKEN_KIND(Underscore, "_") \
     TOKEN_KIND(If, "if") \
+    TOKEN_KIND(Else, "else") \
     TOKEN_KIND(Elif, "elif") \
     TOKEN_KIND(Let, "let") \
     TOKEN_KIND(Mut, "mut") \

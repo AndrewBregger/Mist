@@ -433,7 +433,7 @@ it is a static function of that type.
 
 Type classes are similar to Haskell's. They can be thought of as interfaces to language functionality. They provide
 a way of defining similarities between functionality and behavior amongst types. TODO: Learn more about Haskell's type classes.
-## Enum
+## Variant
 
      <enum_declaration> := <ident> :: <generics> enum { <enum_member_list> }
      
@@ -442,5 +442,5 @@ a way of defining similarities between functionality and behavior amongst types.
      <enum_member> := <ident> = <const_expr>
                     | <ident> ( <type_list> )
 
-Enum are a combination of C++ enums and a tagged union. The elements can be either a name associated to a value or it can be
+Variant are a combination of C++ enums and a tagged union. The elements can be either a name associated to a value or it can be
 a union of where the name is a tag.

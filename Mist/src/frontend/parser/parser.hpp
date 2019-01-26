@@ -13,6 +13,8 @@
 #include "tokenizer/token.hpp"
 #include "tokenizer/scanner.hpp"
 
+#include "frontend/checker/typer.hpp"
+
 #define PDEBUG() PDEBUG_(__FUNCTION__)
 #define PDEBUG_(fn) std::cout << fn << " " << current() << std::endl
 
@@ -22,11 +24,18 @@ namespace mist {
 
         typedef u64 Restriction;
         const Restriction NoStructLiteral = 1 << 0;
+        /// will not report the error
         const Restriction NoError = 1 << 1;
+        // doesn't allow assignment or expression lists
+        const Restriction RhsExpression = 1 << 2;
+        // tells the parser to parse a local declaration as a 
+        // field.
+        const Restriction LocalAsField = 1 << 3;
+        const Restriction AllowBindExpressions = 1 << 4;
 
         /// Parser constructor
         /// @param interp takes the interpreter for resource management.
-        Parser(Interpreter *interp);
+        Parser(Typer* typer, Interpreter *interp);
 
         /// Parses the root file
         /// @param root the root file. This file must contain main.
@@ -37,7 +46,9 @@ namespace mist {
 
         inline ast::Pattern* parse_p() { return parse_pattern(); }
 
-        inline auto parse_test() { return parse_typespec(); }
+        inline auto parse_test() { return parse_expr(); }
+
+        Typer* get_typer();
 
     private: /// expression parsing
         /// parses and expression with an expected restriction.
@@ -65,6 +76,12 @@ namespace mist {
 
         ast::Expr* parse_lambda();
 
+        /// parses the respective control flow structures
+        ast::Expr* parse_if();
+        ast::Expr* parse_for();
+        ast::Expr* parse_while();
+        ast::Expr* parse_loop();
+
         /// consumes an identifer and checks for generics following (later).
         ast::ValueExpr* parse_value();
 
@@ -73,8 +90,11 @@ namespace mist {
         ast::ConstantType parse_literal_suffix();
 
     private: /// pattern parsing
-        /// parses a pattern, handles the parsing of all patterns
+        /// wrapper for parse pattern main which handles the parsing sequence of patterns.
         ast::Pattern* parse_pattern();
+
+        /// parses a pattern, handles the parsing of all patterns
+        ast::Pattern* parse_pattern_main();
 
         /// handles the parsing of patterns that are able to be lvalues
         /// struct, variant, identifier, and tuples
@@ -88,7 +108,9 @@ namespace mist {
 
     private: /// decl parsing
         /// parse delcaration, wraps the parsing of all types of decls.
-        ast::Decl* parse_decl();
+        /// @param is_toplevel tells the parser when we are parsing a declaration
+        ///                    that is at the top level of the file.
+        ast::Decl* parse_decl(bool is_toplevel = false);
 
         /// parse structures
         ast::Decl *parse_structure(ast::Pattern *name);
@@ -102,16 +124,25 @@ namespace mist {
         /// parses variant data types
         ast::Decl* parse_variant(ast::Pattern *name);
 
+        /// parses a member of a variant
+        ast::VariantMemberDecl* parse_variant_member();
+
         /// parses functions, this includes general functions and methods
         ast::Decl* parse_function(ast::Pattern *name);
 
         /// parses local variable declarations, locals doubles as a field
         ast::Decl* parse_local(ast::Pattern *name);
 
+        /// parses global variable declarations
+        ast::Decl* parse_global(ast::Pattern *name);
+
         ast::Decl* parse_type_decl(ast::Pattern* name);
 
         /// parses use expression. This is used to import other namespaces of other modules.
         ast::Decl* parse_use();
+
+        /// checks whether the given pattern can have a type specification
+        bool check_typespec_and_pattern(ast::Pattern* pat, const std::vector<ast::TypeSpec*>& spec, bool subPattern = false);
 
     private: /// parse typespecs
 
@@ -119,16 +150,16 @@ namespace mist {
         ast::TypeSpec* parse_typespec();
 
         /// parses a function type specification
-        ast::TypeSpec *parse_function_or_tuple(ast::Mutablity mut);
+        ast::TypeSpec *parse_function_or_tuple(ast::Mutability mut);
 
         /// parses name paths
-        ast::TypeSpec *parse_path(ast::Mutablity mut);
+        ast::TypeSpec *parse_path(ast::Mutability mut);
 
     private:
 
         /// converts an expression into a type specification if possible
         /// returns nullptr if not valid
-        ast::TypeSpec* expr_to_typespec(ast::Mutablity mut, ast::Expr *expr);
+        ast::TypeSpec* expr_to_typespec(ast::Mutability mut, ast::Expr *expr);
 
 
         /// parses a where clause
@@ -181,6 +212,9 @@ namespace mist {
         /// Checks if the current token is k. Consumes it.
         bool allow(mist::TokenKind k);
 
+
+        inline void add_restriction(Restriction res) { restriction |= res; }
+
     private:
         mist::Interpreter* interp{nullptr};    /// Interpreter pointer
         Scanner* scanner{nullptr};             /// Scanner used by the parser
@@ -189,5 +223,7 @@ namespace mist {
         bool ignore_comments{false};           /// Tells the parser to ignore
 ///                                            ///      whitespace or to process it
         Restriction restriction;               /// Current restrictions when parsing
+        Typer* typer{nullptr};                 /// this is the current typer object used
+                                               ///     used for lexical scoping.
     };
 }

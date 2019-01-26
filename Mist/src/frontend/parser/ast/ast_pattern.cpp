@@ -17,7 +17,8 @@ std::vector<std::string> pattern_strings = {
         ToString(StringLiteralPatKind),
         ToString(CharLiteralPatKind),
         ToString(BooleanPatKind),
-        ToString(RangePatKind)
+        ToString(RangePatKind),
+        ToString(ListPatKind)
 };
 
 ast::Pattern::Pattern(ast::PatternKind k, mist::Pos p) : k(k), p(p) {
@@ -66,4 +67,6 @@ ast::RangePat::RangePat(Expr *low, Expr *high, bool inclusive, mist::Pos pos) : 
                                                                                 low(low), high(high), inclusive(inclusive) {
 }
 
-
+ast::ListPat::ListPat(const std::vector<Pattern*>& patterns, mist::Pos pos) :
+    Pattern(ListPatKind, pos), patterns(patterns) {
+}

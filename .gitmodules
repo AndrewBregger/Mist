@@ -1,0 +1,3 @@
+[submodule "cmake-build-debug/VM"]
+	path = cmake-build-debug/VM
+	url = https://github.com/AndrewBregger/VM.git

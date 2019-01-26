@@ -123,6 +123,87 @@ mistc/fast:
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/build
 .PHONY : mistc/fast
 
+Mist/src/frontend/checker/scope.o: Mist/src/frontend/checker/scope.cpp.o
+
+.PHONY : Mist/src/frontend/checker/scope.o
+
+# target to build an object file
+Mist/src/frontend/checker/scope.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.o
+.PHONY : Mist/src/frontend/checker/scope.cpp.o
+
+Mist/src/frontend/checker/scope.i: Mist/src/frontend/checker/scope.cpp.i
+
+.PHONY : Mist/src/frontend/checker/scope.i
+
+# target to preprocess a source file
+Mist/src/frontend/checker/scope.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.i
+.PHONY : Mist/src/frontend/checker/scope.cpp.i
+
+Mist/src/frontend/checker/scope.s: Mist/src/frontend/checker/scope.cpp.s
+
+.PHONY : Mist/src/frontend/checker/scope.s
+
+# target to generate assembly for a file
+Mist/src/frontend/checker/scope.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.s
+.PHONY : Mist/src/frontend/checker/scope.cpp.s
+
+Mist/src/frontend/checker/typer.o: Mist/src/frontend/checker/typer.cpp.o
+
+.PHONY : Mist/src/frontend/checker/typer.o
+
+# target to build an object file
+Mist/src/frontend/checker/typer.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/typer.cpp.o
+.PHONY : Mist/src/frontend/checker/typer.cpp.o
+
+Mist/src/frontend/checker/typer.i: Mist/src/frontend/checker/typer.cpp.i
+
+.PHONY : Mist/src/frontend/checker/typer.i
+
+# target to preprocess a source file
+Mist/src/frontend/checker/typer.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/typer.cpp.i
+.PHONY : Mist/src/frontend/checker/typer.cpp.i
+
+Mist/src/frontend/checker/typer.s: Mist/src/frontend/checker/typer.cpp.s
+
+.PHONY : Mist/src/frontend/checker/typer.s
+
+# target to generate assembly for a file
+Mist/src/frontend/checker/typer.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/typer.cpp.s
+.PHONY : Mist/src/frontend/checker/typer.cpp.s
+
+Mist/src/frontend/checker/types/type.o: Mist/src/frontend/checker/types/type.cpp.o
+
+.PHONY : Mist/src/frontend/checker/types/type.o
+
+# target to build an object file
+Mist/src/frontend/checker/types/type.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.o
+.PHONY : Mist/src/frontend/checker/types/type.cpp.o
+
+Mist/src/frontend/checker/types/type.i: Mist/src/frontend/checker/types/type.cpp.i
+
+.PHONY : Mist/src/frontend/checker/types/type.i
+
+# target to preprocess a source file
+Mist/src/frontend/checker/types/type.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.i
+.PHONY : Mist/src/frontend/checker/types/type.cpp.i
+
+Mist/src/frontend/checker/types/type.s: Mist/src/frontend/checker/types/type.cpp.s
+
+.PHONY : Mist/src/frontend/checker/types/type.s
+
+# target to generate assembly for a file
+Mist/src/frontend/checker/types/type.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.s
+.PHONY : Mist/src/frontend/checker/types/type.cpp.s
+
 Mist/src/frontend/parser/ast/ast.o: Mist/src/frontend/parser/ast/ast.cpp.o
 
 .PHONY : Mist/src/frontend/parser/ast/ast.o
@@ -447,6 +528,33 @@ Mist/src/main.cpp.s:
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/main.cpp.s
 .PHONY : Mist/src/main.cpp.s
 
+Mist/src/utils/directory.o: Mist/src/utils/directory.cpp.o
+
+.PHONY : Mist/src/utils/directory.o
+
+# target to build an object file
+Mist/src/utils/directory.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.o
+.PHONY : Mist/src/utils/directory.cpp.o
+
+Mist/src/utils/directory.i: Mist/src/utils/directory.cpp.i
+
+.PHONY : Mist/src/utils/directory.i
+
+# target to preprocess a source file
+Mist/src/utils/directory.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.i
+.PHONY : Mist/src/utils/directory.cpp.i
+
+Mist/src/utils/directory.s: Mist/src/utils/directory.cpp.s
+
+.PHONY : Mist/src/utils/directory.s
+
+# target to generate assembly for a file
+Mist/src/utils/directory.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.s
+.PHONY : Mist/src/utils/directory.cpp.s
+
 Mist/src/utils/file.o: Mist/src/utils/file.cpp.o
 
 .PHONY : Mist/src/utils/file.o
@@ -474,6 +582,33 @@ Mist/src/utils/file.cpp.s:
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/utils/file.cpp.s
 .PHONY : Mist/src/utils/file.cpp.s
 
+Mist/src/utils/fileio.o: Mist/src/utils/fileio.cpp.o
+
+.PHONY : Mist/src/utils/fileio.o
+
+# target to build an object file
+Mist/src/utils/fileio.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.o
+.PHONY : Mist/src/utils/fileio.cpp.o
+
+Mist/src/utils/fileio.i: Mist/src/utils/fileio.cpp.i
+
+.PHONY : Mist/src/utils/fileio.i
+
+# target to preprocess a source file
+Mist/src/utils/fileio.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.i
+.PHONY : Mist/src/utils/fileio.cpp.i
+
+Mist/src/utils/fileio.s: Mist/src/utils/fileio.cpp.s
+
+.PHONY : Mist/src/utils/fileio.s
+
+# target to generate assembly for a file
+Mist/src/utils/fileio.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.s
+.PHONY : Mist/src/utils/fileio.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -483,6 +618,15 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... mistc"
+	@echo "... Mist/src/frontend/checker/scope.o"
+	@echo "... Mist/src/frontend/checker/scope.i"
+	@echo "... Mist/src/frontend/checker/scope.s"
+	@echo "... Mist/src/frontend/checker/typer.o"
+	@echo "... Mist/src/frontend/checker/typer.i"
+	@echo "... Mist/src/frontend/checker/typer.s"
+	@echo "... Mist/src/frontend/checker/types/type.o"
+	@echo "... Mist/src/frontend/checker/types/type.i"
+	@echo "... Mist/src/frontend/checker/types/type.s"
 	@echo "... Mist/src/frontend/parser/ast/ast.o"
 	@echo "... Mist/src/frontend/parser/ast/ast.i"
 	@echo "... Mist/src/frontend/parser/ast/ast.s"
@@ -519,9 +663,15 @@ help:
 	@echo "... Mist/src/main.o"
 	@echo "... Mist/src/main.i"
 	@echo "... Mist/src/main.s"
+	@echo "... Mist/src/utils/directory.o"
+	@echo "... Mist/src/utils/directory.i"
+	@echo "... Mist/src/utils/directory.s"
 	@echo "... Mist/src/utils/file.o"
 	@echo "... Mist/src/utils/file.i"
 	@echo "... Mist/src/utils/file.s"
+	@echo "... Mist/src/utils/fileio.o"
+	@echo "... Mist/src/utils/fileio.i"
+	@echo "... Mist/src/utils/fileio.s"
 .PHONY : help
 
 

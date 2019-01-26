@@ -2,12 +2,19 @@
 
 #include "ast_common.hpp"
 #include "../tokenizer/token.hpp"
+#include "ast_pattern.hpp"
+
+namespace mist {
+	class Scope;
+	class Type;
+}
 
 namespace ast {
-	struct Type;
+//	struct Type;
 	struct Decl;
 	struct LocalDecl;
 	struct TypeSpec;
+	struct Pattern;
 
 
 	enum ExprKind {
@@ -60,6 +67,7 @@ namespace ast {
 		CompoundLiteral
 	};
 
+
 	enum BinaryOp {
 		Plus,
 		BMinus,
@@ -80,13 +88,14 @@ namespace ast {
 		BangEqual,
 	};
 
+	const std::string & get_binary_op_string(ast::BinaryOp op);
+
 	enum UnaryOp {
 		UMinus,
-		Bang,
+		UBang,
 		Tilde,
 		UAmpersand,
-		UAstrick,
-		UBang
+		UAstrick
 	};
 
 	UnaryOp from_token(mist::TokenKind k);
@@ -108,6 +117,7 @@ namespace ast {
 	};
 
 	enum AssignmentOp {
+		Equal,
 		PlusEqual,
 		MinusEqual,
 		AstrickEqual,
@@ -123,14 +133,18 @@ namespace ast {
 
 	struct Expr {
 		ExprKind k;
-		Type* t;
+		mist::Type* t;
 		mist::Pos p;
 
 		Expr(ExprKind k, mist::Pos p);
 
 		ExprKind kind();
-		Type* type();
+		mist::Type* type();
 		mist::Pos pos();
+
+		inline virtual bool is_literal() { return false; }
+
+		mist::Scope* get_scope();
 
 		const std::string& name();
 	};
@@ -153,6 +167,8 @@ namespace ast {
 		ConstantType cty;
 
 		IntegerConstExpr(i64 val, ConstantType cty, mist::Pos pos);
+
+		inline virtual bool is_literal() override { return true; }
 	};
 
 	struct FloatConstExpr : public Expr {
@@ -160,24 +176,28 @@ namespace ast {
 		ConstantType cty;
 
 		FloatConstExpr(f64 val, ConstantType cty, mist::Pos pos);
+		inline virtual bool is_literal() override { return true; }
 	};
 
 	struct StringConstExpr : public Expr {
 		std::string value;
 
 		StringConstExpr(const std::string& val, mist::Pos pos);
+		inline virtual bool is_literal() override { return true; }
 	};
 
 	struct BooleanConstExpr : public Expr {
 		bool value;
 
 		BooleanConstExpr(bool val, mist::Pos pos);
+		inline virtual bool is_literal() override { return true; }
 	};
 
 	struct CharConstExpr : public Expr {
 		char value;
 
 		CharConstExpr(char val, mist::Pos pos);
+		inline virtual bool is_literal() override { return true; }
 	};
 
 	struct BinaryExpr : public Expr {
@@ -195,38 +215,50 @@ namespace ast {
 		UnaryExpr(UnaryOp op, Expr* expr, mist::Pos pos);
 	};
 
+	/// For, while, if, loop, and match the body
+	/// scope is only valid if the body expression
+	/// is a block.
+	///
 	struct IfExpr : public Expr {
 		Expr* cond;
 		Expr* body;
+		Expr* elif;
+		mist::Scope* ifscope;
+		mist::Scope* elscope;
 
-		IfExpr(Expr* cond, Expr* body, mist::Pos pos);
+		IfExpr(Expr *cond, Expr *body, ast::Expr *elif, mist::Pos pos);
 	};
 
 	struct WhileExpr : public Expr {
 		Expr* cond;
 		Expr* body;
+		mist::Scope* scope;
 
 		WhileExpr(Expr* cond, Expr* body, mist::Pos pos);
 	};
 
 	struct LoopExpr : public Expr {
 		Expr* body;
+		mist::Scope* scope;
 
 		LoopExpr(Expr* body, mist::Pos pos);
 	};
 
 	struct ForExpr : public Expr {
-		Expr* index;
+		Pattern* index;
 		Expr* expr;
 		Expr* body;
+		mist::Scope* scopeIndex;
+		mist::Scope* scopeBody;
 
-		ForExpr(Expr* index, Expr* expr, Expr* body, mist::Pos pos);
+		ForExpr(Pattern *pat, Expr *expr, Expr *body, mist::Pos pos);
 	};
 
 	struct MatchArm {
 		Expr* name;
 		Ident* value;
 		Expr* body;
+		mist::Scope* scope;
 
 		MatchArm(Expr* name, Ident* value, Expr* body);
 	};
@@ -234,6 +266,7 @@ namespace ast {
 	struct MatchExpr : public Expr {
 		Expr* cond;
 		std::vector<MatchArm*> arms;
+		mist::Scope* scope; /// does this need a scope?
 
 		MatchExpr(Expr* cond, const std::vector<MatchArm*>& arms, mist::Pos pos);
 	};
@@ -311,6 +344,7 @@ namespace ast {
 
 	struct BlockExpr : public Expr {
 		std::vector<Expr*> elements;
+		mist::Scope* scope;
 
 		BlockExpr(const std::vector<Expr*>& elements, mist::Pos pos);
 	};
@@ -335,12 +369,15 @@ namespace ast {
 	 	std::vector<Expr*> members;
 
 	 	StructLiteralExpr(Expr* name, const std::vector<Expr*>& members, mist::Pos pos);
+		 inline virtual bool is_literal() override { return true; }
 	 };
 
 	 struct LambdaExpr : public Expr {
 		std::vector<LocalDecl*> fields;
 		std::vector<TypeSpec*> returns;
 		Expr* body;
+		mist::Scope* scope;
+
 
 		LambdaExpr(const std::vector<LocalDecl*>& fields, const std::vector<TypeSpec*>& returns, Expr* body, mist::Pos pos);
 	 };
@@ -349,5 +386,7 @@ namespace ast {
 		std::vector<Expr*> elements;
 
 		CompoundLiteralExpr(const std::vector<Expr*>& elements, mist::Pos pos);
+
+		 inline virtual bool is_literal() override { return true; }
 	 };
 }

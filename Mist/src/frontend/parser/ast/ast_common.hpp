@@ -22,6 +22,7 @@ namespace mist {
     };
 
 	struct String;
+	class Scope;
 }
 
 namespace ast {
@@ -32,16 +33,17 @@ namespace ast {
         Private
     };
 
-    enum Mutablity {
+    enum Mutability {
         Mutable,
         Immutable
     };
 
     struct Ident {
-        mist::String* value;
+        struct mist::String* value;
         mist::Pos pos;
 
-        Ident(mist::String* value, const mist::Pos& pos);
+        Ident(struct mist::String* value, const mist::Pos& pos);
+
     };
 
     struct TypeSpec;
@@ -70,6 +72,7 @@ namespace ast {
         // file
         io::File* file;
         std::vector<Decl*> toplevelDeclarations;
+        mist::Scope* scope;
 
         Module(io::File* file);
 

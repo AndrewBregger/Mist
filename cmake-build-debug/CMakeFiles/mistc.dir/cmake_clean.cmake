@@ -12,6 +12,11 @@ file(REMOVE_RECURSE
   "CMakeFiles/mistc.dir/Mist/src/frontend/parser/parser.cpp.o"
   "CMakeFiles/mistc.dir/Mist/src/main.cpp.o"
   "CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_pattern.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/frontend/checker/typer.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.o"
   "mistc.pdb"
   "mistc"
 )

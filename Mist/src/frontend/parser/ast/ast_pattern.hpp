@@ -24,7 +24,10 @@ namespace ast {
         StringLiteralPatKind,
         CharLiteralPatKind,
         BooleanPatKind,
-        RangePatKind
+        RangePatKind,
+        ListPatKind,
+        OptionalPatKind,
+        FunctionalPatKind
     };
 
     struct Pattern {
@@ -84,9 +87,9 @@ namespace ast {
     };
 
     struct StringPat : public Pattern {
-        mist::String* value;
+        struct mist::String* value;
 
-        StringPat(mist::String* value, mist::Pos pos);
+        StringPat(struct mist::String* value, mist::Pos pos);
     };
 
     struct CharacterPat : public Pattern {
@@ -108,4 +111,11 @@ namespace ast {
         RangePat(Expr *low, Expr *high, bool inclusive, mist::Pos pos);
     };
 
+    struct ListPat : public Pattern {
+        std::vector<Pattern*> patterns;
+
+        ListPat(const std::vector<Pattern*>& paterns, mist::Pos pos);
+    };
+
+    // implement the others
 }

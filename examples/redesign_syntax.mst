@@ -163,3 +163,4 @@ foo :: [A, B, C] (x: A, y: B) -> C {
 foo :: (x, y) -> $ {
     /// the types of x, y and the return will be inferd from usage using hindly-miler (I think that is the correct name)
 }
+

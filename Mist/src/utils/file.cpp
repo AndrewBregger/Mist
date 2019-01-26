@@ -9,68 +9,33 @@
 #include <functional>
 
 namespace io {
-    
-    std::string find_end_relative(const std::string& path, char delim) {
-        u64 index = path.find_last_of(delim);
-        if(index == std::string::npos)
-            return path;
-        return path.substr(index + 1);
-    }
-    
-    File::File(const std::string& path) : uid(hash_filename(path)) {
-        filename = find_end_relative(path, '/');
-        
-        u64 index = path.find_last_of('/');
-
-        this->path = path.substr(0, index + 1);
+    File::File(const fs::path &p) : FileIO(io::IOFile, p) {
     }
 
-    bool File::load(bool force) {
-		if (loaded && !force) return true;
-
-        std::fstream ff(fullpath());
-        if(!ff) return false;
-
-        std::stringstream ss;
-        ss << ff.rdbuf();
-        content = ss.str();
-        
-        loaded = true;
-        return true;
-    }
-
-    bool File::is_loaded() {
-        return loaded;
+    File::~File() {
     }
 
     std::string File::extention() {
-		return find_end_relative(filename, '.');
+        return path().extension().string();
     }
 
+    bool File::load() {
+        // this shouldn't happen
+        if(kind() != io::IOFile)
+            return false;
 
-    u64 File::id() {
-        return uid;
+        std::ifstream iis(absolute_path().string());
+        if(iis) {
+            std::stringstream ss;
+            ss << iis.rdbuf();
+            content = ss.str();
+            return true;
+        }
+        return false;
     }
 
-    const std::string& File::dir() {
-        return path;
-    }
-
-    const std::string& File::name() {
-        return filename;
-    }
-
-    const std::string& File::value() {
+    const std::string &File::value() {
         return content;
     }
 
-    std::string File::fullpath() {
-        return path + filename;
-    }
-    
-    /// @NOTE: look for a better way for quick file lookup.
-    u64 File::hash_filename(const std::string& filename) {
-        std::hash<std::string> hasher;
-        return hasher(filename);
-    }
 }

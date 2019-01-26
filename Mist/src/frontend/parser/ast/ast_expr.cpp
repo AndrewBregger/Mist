@@ -41,6 +41,11 @@ namespace ast {
 
 	};
 
+	const std::string & get_binary_op_string(ast::BinaryOp op) {
+		auto tok = static_cast<mist::TokenKind >(op + mist::Tkn_Plus);
+		return mist::Token::get_string(tok);
+	}
+
 	UnaryOp from_token(mist::TokenKind k) {
 		switch(k) {
 			case mist::Tkn_Minus:
@@ -50,7 +55,7 @@ namespace ast {
 			case mist::Tkn_Astrick:
 				return UAstrick;
 			case mist::Tkn_Bang:
-				return Bang;
+				return UBang;
 			case mist::Tkn_Ampersand:
 				return UAmpersand;
 			default:
@@ -62,7 +67,7 @@ namespace ast {
 		switch(op) {
 			case UMinus:
 				return mist::Tkn_Minus;
-			case Bang:
+			case UBang:
 				return mist::Tkn_Bang;
 			case Tilde:
 				return mist::Tkn_Tilde;
@@ -77,7 +82,7 @@ namespace ast {
 
 	ExprKind Expr::kind() { return k; }
 	
-	Type* Expr::type() { return t; }
+	mist::Type* Expr::type() { return t; }
 	
 	mist::Pos Expr::pos() { return p; }
 
@@ -86,6 +91,37 @@ namespace ast {
 	}
 
 	Expr::Expr(ExprKind k, mist::Pos p) : k(k), p(p) {}
+
+	mist::Scope *Expr::get_scope() {
+		switch(kind()) {
+			case If: {
+			    auto expr = static_cast<IfExpr*>(this);
+				return expr->ifscope;
+			}
+			case While: {
+				auto expr = static_cast<WhileExpr*>(this);
+				return expr->scope;
+			}
+			case Loop: {
+				auto expr = static_cast<LoopExpr*>(this);
+				return expr->scope;
+			}
+			case For: {
+				auto expr = static_cast<ForExpr*>(this);
+				return expr->scopeIndex;
+			}
+			case Match: {
+				auto expr = static_cast<MatchExpr*>(this);
+				return expr->scope;
+			}
+			case DeclDecl: {
+				auto expr = static_cast<DeclExpr*>(this);
+				return expr->decl->get_scope();
+			}
+			default: break;
+		}
+		return nullptr;
+	}
 
 	ValueExpr::ValueExpr(Ident* name, const std::vector<Expr*>& generics, mist::Pos pos) : Expr(Value, pos), name(name), genericValues(generics) {}
 	
@@ -114,7 +150,8 @@ namespace ast {
 	UnaryExpr::UnaryExpr(UnaryOp op, Expr* expr, mist::Pos pos) : Expr(Unary, pos), op(op), expr(expr) {
 	}
 	
-	IfExpr::IfExpr(Expr* cond, Expr* body, mist::Pos pos) : Expr(If, pos), cond(cond), body(body) {
+	IfExpr::IfExpr(Expr *cond, Expr *body, ast::Expr *elif, mist::Pos pos) : Expr(If, pos), cond(cond), body(body),
+					elif(elif) {
 	}
 	
 	WhileExpr::WhileExpr(Expr* cond, Expr* body, mist::Pos pos) : Expr(While, pos), cond(cond), body(body) {
@@ -123,7 +160,7 @@ namespace ast {
 	LoopExpr::LoopExpr(Expr* body, mist::Pos pos) : Expr(Loop, pos), body(body) {
 	}
 	
-	ForExpr::ForExpr(Expr* index, Expr* expr, Expr* body, mist::Pos pos) : Expr(For, pos), index(index), expr(expr), body(body) {
+	ForExpr::ForExpr(Pattern *pat, Expr *expr, Expr *body, mist::Pos pos) : Expr(For, pos), index(pat), expr(expr), body(body) {
 	}
 	
 	MatchArm::MatchArm(Expr* name, Ident* value, Expr* body) : name(name), value(value), body(body) {

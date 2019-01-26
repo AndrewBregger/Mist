@@ -14,15 +14,15 @@ namespace ast {
 		ToString(Map),
 		ToString(Pointer),
 		ToString(Reference),
-		ToString(Constant),
+		ToString(MutableType),
 		ToString(Path),
 		ToString(Unit)
 	};
 
 
-	TypeSpec::TypeSpec(TypeSpecKind k, Mutablity mut, mist::Pos p) : TypeSpec(nullptr, k, mut, p) {}
+	TypeSpec::TypeSpec(TypeSpecKind k, Mutability mut, mist::Pos p) : TypeSpec(nullptr, k, mut, p) {}
 
-	TypeSpec::TypeSpec(TypeSpec *base, TypeSpecKind k, Mutablity mut, mist::Pos p)
+	TypeSpec::TypeSpec(TypeSpec *base, TypeSpecKind k, Mutability mut, mist::Pos p)
 			: k(k), p(p), mut(mut), base(base) { }
 
 	const std::string& TypeSpec::name() {
@@ -32,12 +32,12 @@ namespace ast {
 	GenericParameters::GenericParameters(const std::vector<Expr*>& expr) : exprs(expr) {
 	}
 
-	NamedSpec::NamedSpec(Ident *name, GenericParameters *params, Mutablity mut, mist::Pos pos) :
+	NamedSpec::NamedSpec(Ident *name, GenericParameters *params, Mutability mut, mist::Pos pos) :
 			TypeSpec(Named, mut, pos), name(name), params(params) {
 
 	}
 
-	TupleSpec::TupleSpec(const std::vector<TypeSpec *> &types, Mutablity mut, mist::Pos pos) :
+	TupleSpec::TupleSpec(const std::vector<TypeSpec *> &types, Mutability mut, mist::Pos pos) :
 			TypeSpec(TupleType, mut, pos), types(types) {
 	}
 
@@ -48,26 +48,26 @@ namespace ast {
 	TypeClassSpec::TypeClassSpec(NamedSpec* name, mist::Pos pos) : TypeSpec(TypeClassType, Immutable, pos), name(name) {
 	}
 
-	ArraySpec::ArraySpec(TypeSpec *element, Expr *size, Mutablity mut, mist::Pos pos) : TypeSpec(element, Array, mut,
+	ArraySpec::ArraySpec(TypeSpec *element, Expr *size, Mutability mut, mist::Pos pos) : TypeSpec(element, Array, mut,
 																								 pos), size(size) {
 	}
 
-//	DynamicArraySpec::DynamicArraySpec(TypeSpec* element, mist::Pos pos) : TypeSpec(element, DynamicArray, Mutable, pos) {
+//	DynamicArraySpec::DynamicArraySpec(TypeSpec* element, mist::Pos pos) : TypeSpec(element, DynamicArray, MutableType, pos) {
 //	}
 
-	MapSpec::MapSpec(TypeSpec *key, TypeSpec *value, Mutablity mut, mist::Pos pos) : TypeSpec(Map, mut, pos), key(key), value(value) {
+	MapSpec::MapSpec(TypeSpec *key, TypeSpec *value, Mutability mut, mist::Pos pos) : TypeSpec(Map, mut, pos), key(key), value(value) {
 	}
 
-	PointerSpec::PointerSpec(TypeSpec *base, Mutablity mut, mist::Pos pos) : TypeSpec(base, Pointer, mut, pos) {
+	PointerSpec::PointerSpec(TypeSpec *base, Mutability mut, mist::Pos pos) : TypeSpec(base, Pointer, mut, pos) {
 	}
 
-	ReferenceSpec::ReferenceSpec(TypeSpec *base, Mutablity mut, mist::Pos pos) : TypeSpec(base, Reference, mut, pos) {
+	ReferenceSpec::ReferenceSpec(TypeSpec *base, Mutability mut, mist::Pos pos) : TypeSpec(base, Reference, mut, pos) {
 	}
 
-	ConstantSpec::ConstantSpec(TypeSpec* base, mist::Pos pos) : TypeSpec(base, Constant, Immutable, pos) {
-	}
+//	MutableSpec::MutableSpec(TypeSpec* base, mist::Pos pos) : TypeSpec(base, MutableType, Immutable, pos) {
+//	}
 
-	PathSpec::PathSpec(const std::vector<NamedSpec *> &path, Mutablity mut, mist::Pos pos) : TypeSpec(Path, mut, pos), path(path) {
+	PathSpec::PathSpec(const std::vector<NamedSpec *> &path, Mutability mut, mist::Pos pos) : TypeSpec(Path, mut, pos), path(path) {
 	    for(auto x : this->path)
 	    	x->mut = mut;
 	}
