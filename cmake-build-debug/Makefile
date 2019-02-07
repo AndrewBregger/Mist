@@ -56,6 +56,52 @@ CMAKE_BINARY_DIR = /Users/andy/Documents/Mist/cmake-build-debug
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
+	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
+	/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"VMLIB\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+
+.PHONY : list_install_components/fast
+
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
@@ -122,6 +168,59 @@ mistc: cmake_check_build_system
 mistc/fast:
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/build
 .PHONY : mistc/fast
+
+#=============================================================================
+# Target rules for targets named vm-test
+
+# Build rule for target.
+vm-test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 vm-test
+.PHONY : vm-test
+
+# fast build rule for target.
+vm-test/fast:
+	$(MAKE) -f VM/CMakeFiles/vm-test.dir/build.make VM/CMakeFiles/vm-test.dir/build
+.PHONY : vm-test/fast
+
+#=============================================================================
+# Target rules for targets named vmlib
+
+# Build rule for target.
+vmlib: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 vmlib
+.PHONY : vmlib
+
+# fast build rule for target.
+vmlib/fast:
+	$(MAKE) -f VM/CMakeFiles/vmlib.dir/build.make VM/CMakeFiles/vmlib.dir/build
+.PHONY : vmlib/fast
+
+Mist/src/frontend/checker/desurgar/desurgur.o: Mist/src/frontend/checker/desurgar/desurgur.cpp.o
+
+.PHONY : Mist/src/frontend/checker/desurgar/desurgur.o
+
+# target to build an object file
+Mist/src/frontend/checker/desurgar/desurgur.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o
+.PHONY : Mist/src/frontend/checker/desurgar/desurgur.cpp.o
+
+Mist/src/frontend/checker/desurgar/desurgur.i: Mist/src/frontend/checker/desurgar/desurgur.cpp.i
+
+.PHONY : Mist/src/frontend/checker/desurgar/desurgur.i
+
+# target to preprocess a source file
+Mist/src/frontend/checker/desurgar/desurgur.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.i
+.PHONY : Mist/src/frontend/checker/desurgar/desurgur.cpp.i
+
+Mist/src/frontend/checker/desurgar/desurgur.s: Mist/src/frontend/checker/desurgar/desurgur.cpp.s
+
+.PHONY : Mist/src/frontend/checker/desurgar/desurgur.s
+
+# target to generate assembly for a file
+Mist/src/frontend/checker/desurgar/desurgur.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.s
+.PHONY : Mist/src/frontend/checker/desurgar/desurgur.cpp.s
 
 Mist/src/frontend/checker/scope.o: Mist/src/frontend/checker/scope.cpp.o
 
@@ -203,6 +302,33 @@ Mist/src/frontend/checker/types/type.s: Mist/src/frontend/checker/types/type.cpp
 Mist/src/frontend/checker/types/type.cpp.s:
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.s
 .PHONY : Mist/src/frontend/checker/types/type.cpp.s
+
+Mist/src/frontend/checker/value.o: Mist/src/frontend/checker/value.cpp.o
+
+.PHONY : Mist/src/frontend/checker/value.o
+
+# target to build an object file
+Mist/src/frontend/checker/value.cpp.o:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o
+.PHONY : Mist/src/frontend/checker/value.cpp.o
+
+Mist/src/frontend/checker/value.i: Mist/src/frontend/checker/value.cpp.i
+
+.PHONY : Mist/src/frontend/checker/value.i
+
+# target to preprocess a source file
+Mist/src/frontend/checker/value.cpp.i:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.i
+.PHONY : Mist/src/frontend/checker/value.cpp.i
+
+Mist/src/frontend/checker/value.s: Mist/src/frontend/checker/value.cpp.s
+
+.PHONY : Mist/src/frontend/checker/value.s
+
+# target to generate assembly for a file
+Mist/src/frontend/checker/value.cpp.s:
+	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.s
+.PHONY : Mist/src/frontend/checker/value.cpp.s
 
 Mist/src/frontend/parser/ast/ast.o: Mist/src/frontend/parser/ast/ast.cpp.o
 
@@ -615,9 +741,18 @@ help:
 	@echo "... all (the default if no target is provided)"
 	@echo "... clean"
 	@echo "... depend"
+	@echo "... install/local"
+	@echo "... install/strip"
+	@echo "... mistc"
+	@echo "... install"
+	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
-	@echo "... mistc"
+	@echo "... vm-test"
+	@echo "... vmlib"
+	@echo "... Mist/src/frontend/checker/desurgar/desurgur.o"
+	@echo "... Mist/src/frontend/checker/desurgar/desurgur.i"
+	@echo "... Mist/src/frontend/checker/desurgar/desurgur.s"
 	@echo "... Mist/src/frontend/checker/scope.o"
 	@echo "... Mist/src/frontend/checker/scope.i"
 	@echo "... Mist/src/frontend/checker/scope.s"
@@ -627,6 +762,9 @@ help:
 	@echo "... Mist/src/frontend/checker/types/type.o"
 	@echo "... Mist/src/frontend/checker/types/type.i"
 	@echo "... Mist/src/frontend/checker/types/type.s"
+	@echo "... Mist/src/frontend/checker/value.o"
+	@echo "... Mist/src/frontend/checker/value.i"
+	@echo "... Mist/src/frontend/checker/value.s"
 	@echo "... Mist/src/frontend/parser/ast/ast.o"
 	@echo "... Mist/src/frontend/parser/ast/ast.i"
 	@echo "... Mist/src/frontend/parser/ast/ast.s"

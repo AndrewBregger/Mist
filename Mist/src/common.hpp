@@ -22,3 +22,10 @@ typedef double f64;
 // for unicode support
 typedef u32 rune;
 
+#ifndef CAST_PTR
+    #define CAST_PTR(Type, expr) static_cast<Type*>(expr)
+#endif
+
+#ifndef CAST
+    #define CAST(Type, expr) static_cast<Type>(expr)
+#endif

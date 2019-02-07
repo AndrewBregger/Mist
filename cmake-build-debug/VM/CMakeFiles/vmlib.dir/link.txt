@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../../VM/lib/libvmlib.a  CMakeFiles/vmlib.dir/vm.cpp.o CMakeFiles/vmlib.dir/src/instruction.cpp.o CMakeFiles/vmlib.dir/src/chunk.cpp.o CMakeFiles/vmlib.dir/src/value.cpp.o CMakeFiles/vmlib.dir/src/opcode.cpp.o CMakeFiles/vmlib.dir/src/object.cpp.o
+/usr/bin/ranlib ../../VM/lib/libvmlib.a

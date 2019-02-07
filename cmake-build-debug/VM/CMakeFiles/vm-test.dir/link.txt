@@ -1,0 +1,1 @@
+/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7  -g -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/vm-test.dir/main.cpp.o  -o vm-test  -L/Users/andy/Documents/Mist/VM/lib -Wl,-rpath,/Users/andy/Documents/Mist/VM/lib ../../VM/lib/libvmlib.a 

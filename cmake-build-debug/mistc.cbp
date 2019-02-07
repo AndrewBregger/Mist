@@ -5,13 +5,103 @@
 		<Option title="mistc"/>
 		<Option makefile_is_custom="1"/>
 		<Option compiler="gcc"/>
-		<Option virtualFolders="CMake Files\;"/>
+		<Option virtualFolders="CMake Files\;CMake Files\VM\;"/>
 		<Build>
 			<Target title="all">
 				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="mistc">
+				<Option output="/Users/andy/Documents/Mist/cmake-build-debug/mistc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/andy/Documents/Mist/Mist/src"/>
+					<Add directory="/Users/andy/Documents/Mist/VM"/>
+					<Add directory="/Users/andy/Documents/Mist/VM/lib"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include-fixed"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 mistc"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="mistc/fast">
+				<Option output="/Users/andy/Documents/Mist/cmake-build-debug/mistc" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/andy/Documents/Mist/Mist/src"/>
+					<Add directory="/Users/andy/Documents/Mist/VM"/>
+					<Add directory="/Users/andy/Documents/Mist/VM/lib"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include-fixed"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 mistc/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 list_install_components"/>
 					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
@@ -37,14 +127,13 @@
 					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="mistc">
-				<Option output="/Users/andy/Documents/Mist/cmake-build-debug/mistc" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+			<Target title="vm-test">
+				<Option output="/Users/andy/Documents/Mist/cmake-build-debug/VM/vm-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug/VM"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/Users/andy/Documents/Mist/Mist/src"/>
 					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
 					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
 					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
@@ -54,20 +143,19 @@
 					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 mistc"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 vm-test"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="mistc/fast">
-				<Option output="/Users/andy/Documents/Mist/cmake-build-debug/mistc" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug"/>
+			<Target title="vm-test/fast">
+				<Option output="/Users/andy/Documents/Mist/cmake-build-debug/VM/vm-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug/VM"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
 				<Option compiler="gcc"/>
 				<Compiler>
-					<Add directory="/Users/andy/Documents/Mist/Mist/src"/>
 					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
 					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
 					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
@@ -77,13 +165,63 @@
 					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 mistc/fast"/>
-					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 vm-test/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="vmlib">
+				<Option output="/Users/andy/Documents/Mist/VM/lib/libvmlib.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug/VM"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include-fixed"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 vmlib"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="vmlib/fast">
+				<Option output="/Users/andy/Documents/Mist/VM/lib/libvmlib.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/andy/Documents/Mist/cmake-build-debug/VM"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/x86_64-apple-darwin18.0.0"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/../../../../../../include/c++/7.3.0/backward"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include"/>
+					<Add directory="/usr/local/Cellar/gcc@7/7.3.0/lib/gcc/7/gcc/x86_64-apple-darwin18.0.0/7.3.0/include-fixed"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 vmlib/fast"/>
+					<CompileFile command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j4 -f &quot;/Users/andy/Documents/Mist/cmake-build-debug/VM/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/desurgar/desurgur.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/desurgar/desurgur.hpp">
+			<Option target="mistc"/>
+		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/scope.cpp">
 			<Option target="mistc"/>
 		</Unit>
@@ -100,6 +238,12 @@
 			<Option target="mistc"/>
 		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/types/type.hpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/value.cpp">
+			<Option target="mistc"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/checker/value.hpp">
 			<Option target="mistc"/>
 		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast.cpp">
@@ -189,8 +333,50 @@
 		<Unit filename="/Users/andy/Documents/Mist/Mist/src/utils/fileio.hpp">
 			<Option target="mistc"/>
 		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/main.cpp">
+			<Option target="vm-test"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/chunk.cpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/chunk.hpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/instruction.cpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/instruction.hpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/object.cpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/object.hpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/opcode.cpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/opcode.hpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/value.cpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/src/value.hpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/vm.cpp">
+			<Option target="vmlib"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/vm.hpp">
+			<Option target="vmlib"/>
+		</Unit>
 		<Unit filename="/Users/andy/Documents/Mist/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/andy/Documents/Mist/VM/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\VM\"/>
 		</Unit>
 	</Project>
 </CodeBlocks_project_file>

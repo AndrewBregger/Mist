@@ -68,10 +68,10 @@ CMAKE_BINARY_DIR = /Users/andy/Documents/Mist/cmake-build-debug
 # Target rules for target CMakeFiles/mistc.dir
 
 # All Build rule for target.
-CMakeFiles/mistc.dir/all:
+CMakeFiles/mistc.dir/all: VM/CMakeFiles/vmlib.dir/all
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/depend
 	$(MAKE) -f CMakeFiles/mistc.dir/build.make CMakeFiles/mistc.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19 "Built target mistc"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 "Built target mistc"
 .PHONY : CMakeFiles/mistc.dir/all
 
 # Include target in all.
@@ -81,7 +81,7 @@ all: CMakeFiles/mistc.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/mistc.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles 19
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles 28
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/mistc.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles 0
 .PHONY : CMakeFiles/mistc.dir/rule
@@ -98,6 +98,100 @@ CMakeFiles/mistc.dir/clean:
 
 # clean rule for target.
 clean: CMakeFiles/mistc.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Directory level rules for directory VM
+
+# Convenience name for "all" pass in the directory.
+VM/all: VM/CMakeFiles/vm-test.dir/all
+VM/all: VM/CMakeFiles/vmlib.dir/all
+
+.PHONY : VM/all
+
+# Convenience name for "clean" pass in the directory.
+VM/clean: VM/CMakeFiles/vm-test.dir/clean
+VM/clean: VM/CMakeFiles/vmlib.dir/clean
+
+.PHONY : VM/clean
+
+# Convenience name for "preinstall" pass in the directory.
+VM/preinstall:
+
+.PHONY : VM/preinstall
+
+#=============================================================================
+# Target rules for target VM/CMakeFiles/vm-test.dir
+
+# All Build rule for target.
+VM/CMakeFiles/vm-test.dir/all: VM/CMakeFiles/vmlib.dir/all
+	$(MAKE) -f VM/CMakeFiles/vm-test.dir/build.make VM/CMakeFiles/vm-test.dir/depend
+	$(MAKE) -f VM/CMakeFiles/vm-test.dir/build.make VM/CMakeFiles/vm-test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=22,23 "Built target vm-test"
+.PHONY : VM/CMakeFiles/vm-test.dir/all
+
+# Include target in all.
+all: VM/CMakeFiles/vm-test.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+VM/CMakeFiles/vm-test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles 9
+	$(MAKE) -f CMakeFiles/Makefile2 VM/CMakeFiles/vm-test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles 0
+.PHONY : VM/CMakeFiles/vm-test.dir/rule
+
+# Convenience name for target.
+vm-test: VM/CMakeFiles/vm-test.dir/rule
+
+.PHONY : vm-test
+
+# clean rule for target.
+VM/CMakeFiles/vm-test.dir/clean:
+	$(MAKE) -f VM/CMakeFiles/vm-test.dir/build.make VM/CMakeFiles/vm-test.dir/clean
+.PHONY : VM/CMakeFiles/vm-test.dir/clean
+
+# clean rule for target.
+clean: VM/CMakeFiles/vm-test.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target VM/CMakeFiles/vmlib.dir
+
+# All Build rule for target.
+VM/CMakeFiles/vmlib.dir/all:
+	$(MAKE) -f VM/CMakeFiles/vmlib.dir/build.make VM/CMakeFiles/vmlib.dir/depend
+	$(MAKE) -f VM/CMakeFiles/vmlib.dir/build.make VM/CMakeFiles/vmlib.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=24,25,26,27,28,29,30 "Built target vmlib"
+.PHONY : VM/CMakeFiles/vmlib.dir/all
+
+# Include target in all.
+all: VM/CMakeFiles/vmlib.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+VM/CMakeFiles/vmlib.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles 7
+	$(MAKE) -f CMakeFiles/Makefile2 VM/CMakeFiles/vmlib.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles 0
+.PHONY : VM/CMakeFiles/vmlib.dir/rule
+
+# Convenience name for target.
+vmlib: VM/CMakeFiles/vmlib.dir/rule
+
+.PHONY : vmlib
+
+# clean rule for target.
+VM/CMakeFiles/vmlib.dir/clean:
+	$(MAKE) -f VM/CMakeFiles/vmlib.dir/build.make VM/CMakeFiles/vmlib.dir/clean
+.PHONY : VM/CMakeFiles/vmlib.dir/clean
+
+# clean rule for target.
+clean: VM/CMakeFiles/vmlib.dir/clean
 
 .PHONY : clean
 

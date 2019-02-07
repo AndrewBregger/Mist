@@ -15,8 +15,10 @@
 
 #include "frontend/checker/typer.hpp"
 
-#define PDEBUG() PDEBUG_(__FUNCTION__)
+//#define PDEBUG() PDEBUG_(__FUNCTION__)
 #define PDEBUG_(fn) std::cout << fn << " " << current() << std::endl
+
+#define PDEBUG()
 
 namespace mist {
     class Parser {
@@ -32,6 +34,8 @@ namespace mist {
         // field.
         const Restriction LocalAsField = 1 << 3;
         const Restriction AllowBindExpressions = 1 << 4;
+        const Restriction StopAtComma = 1 << 5;
+        const Restriction ListExpression = 1 << 6;
 
         /// Parser constructor
         /// @param interp takes the interpreter for resource management.

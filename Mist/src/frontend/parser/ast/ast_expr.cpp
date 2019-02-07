@@ -37,7 +37,8 @@ namespace ast {
 		ToString(UnitLit),
 		ToString(SelfLit),
 		ToString(Lambda),
-		ToString(CompoundLiteral)
+		ToString(CompoundLiteral),
+		ToString(List)
 
 	};
 
@@ -223,5 +224,9 @@ namespace ast {
     }
 
 	CompoundLiteralExpr::CompoundLiteralExpr(const std::vector<Expr *> &elements, mist::Pos pos) : Expr(CompoundLiteral, pos), elements(elements) {
+	}
+
+	ListExpr::ListExpr(const std::vector<Expr *> subexpr, mist::Pos pos) : Expr(List, pos), subexpr(subexpr) {
+
 	}
 }

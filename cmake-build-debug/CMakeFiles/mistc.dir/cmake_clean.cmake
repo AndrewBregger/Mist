@@ -17,6 +17,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.o"
   "CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.o"
   "CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o"
+  "CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o"
   "mistc.pdb"
   "mistc"
 )

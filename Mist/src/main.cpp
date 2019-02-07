@@ -12,6 +12,7 @@
 #include "frontend/parser/ast/ast_typespec.hpp"
 
 #include "utils/directory.hpp"
+#include "vm.hpp"
 
 
 int main(int argc, const char** argv) {

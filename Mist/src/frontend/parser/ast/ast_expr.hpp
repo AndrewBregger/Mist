@@ -64,7 +64,8 @@ namespace ast {
 		SelfLit,
 
 		Lambda,
-		CompoundLiteral
+		CompoundLiteral,
+		List
 	};
 
 
@@ -388,5 +389,11 @@ namespace ast {
 		CompoundLiteralExpr(const std::vector<Expr*>& elements, mist::Pos pos);
 
 		 inline virtual bool is_literal() override { return true; }
+	 };
+
+	 struct ListExpr : public Expr {
+	 	std::vector<Expr*> subexpr;
+
+	 	ListExpr(const std::vector<Expr*> subexpr, mist::Pos pos);
 	 };
 }

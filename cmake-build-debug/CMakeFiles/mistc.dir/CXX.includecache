@@ -16,6 +16,10 @@ map
 string
 -
 
+../Mist/src/frontend/checker/value.hpp
+common.hpp
+../Mist/src/frontend/checker/common.hpp
+
 ../Mist/src/frontend/parser/ast/ast.hpp
 common.hpp
 ../Mist/src/frontend/parser/ast/common.hpp
@@ -129,8 +133,12 @@ frontend/parser/ast/ast_printer.hpp
 /Users/andy/Documents/Mist/Mist/src/frontend/checker/frontend/parser/ast/ast_printer.hpp
 
 /Users/andy/Documents/Mist/Mist/src/frontend/checker/typer.hpp
+tuple
+-
 scope.hpp
 /Users/andy/Documents/Mist/Mist/src/frontend/checker/scope.hpp
+frontend/checker/value.hpp
+/Users/andy/Documents/Mist/Mist/src/frontend/checker/frontend/checker/value.hpp
 frontend/parser/ast/ast.hpp
 /Users/andy/Documents/Mist/Mist/src/frontend/checker/frontend/parser/ast/ast.hpp
 frontend/parser/ast/ast_common.hpp
@@ -145,6 +153,8 @@ frontend/parser/ast/ast_pattern.hpp
 /Users/andy/Documents/Mist/Mist/src/frontend/checker/frontend/parser/ast/ast_pattern.hpp
 types/type.hpp
 /Users/andy/Documents/Mist/Mist/src/frontend/checker/types/type.hpp
+frontend/checker/value.hpp
+/Users/andy/Documents/Mist/Mist/src/frontend/checker/frontend/checker/value.hpp
 
 /Users/andy/Documents/Mist/Mist/src/frontend/checker/types/type.hpp
 common.hpp

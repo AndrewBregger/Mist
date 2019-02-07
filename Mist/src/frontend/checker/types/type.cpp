@@ -19,8 +19,8 @@ mist::PrimitiveType::PrimitiveType(mist::PrimitiveKind t, struct mist::String *s
 
 
 
-mist::StructType::StructType(struct String *n, const std::unordered_map<struct String *, Type *> &m, u64 sz) :
-        Type(Struct, sz), n(n), m(m) {
+mist::StructType::StructType(struct String *n, const std::unordered_map<struct String *, Type *> &m, DeclInfo* info, u64 sz) :
+        Type(Struct, sz), n(n), m(m), info(info) {
 
 }
 
@@ -33,7 +33,7 @@ mist::Type *mist::StructType::member(u32 index) {
 }
 
 mist::ClassType::ClassType(struct String *n, const std::unordered_map<struct String *, Type *> &m,
-                           const std::unordered_map<struct String *, Type *> &mf, u64 sz) : StructType(n, m, sz), mf(mf) {
+                           const std::unordered_map<struct String *, Type *> &mf, DeclInfo* info, u64 sz) : StructType(n, m, info, sz), mf(mf) {
 }
 
 //std::vector<mist::DeclInfo *> mist::ClassType::methods() {
@@ -91,7 +91,7 @@ u32 mist::FunctionType::num_returns() {
 }
 
 
-std::string mist::VariantType::to_string() {
+std::string mist::VariantType::to_string(bool) {
     return Type::to_string();
 }
 
@@ -131,55 +131,79 @@ mist::UnitType::UnitType() : Type(Unit, 0) {
 
 }
 
+mist::ListType::ListType(const std::vector<mist::Type *> &subtypes, u64 sz) : Type(List, sz), subtypes(subtypes) {
 
-std::string mist::PrimitiveType::to_string() {
+}
+
+
+std::string mist::PrimitiveType::to_string(bool) {
     return name()->value();
 }
 
 
-std::string mist::StructType::to_string() {
+std::string mist::StructType::to_string(bool) {
     return name()->value();
 }
 
-std::string mist::ClassType::to_string() {
+std::string mist::ClassType::to_string(bool) {
     return StructType::to_string();
 }
 
 
-std::string mist::TupleType::to_string() {
+std::string mist::TupleType::to_string(bool variant) {
     std::stringstream ss;
-    ss << "(";
-    for(auto& t : this->elements) {
-        ss << t->to_string();
-        ss << ", ";
+    if(!variant)
+        ss << "(";
+
+    if(!elements.empty()) {
+        for (auto iter = this->elements.begin(); iter < this->elements.end() - 1; ++iter) {
+            ss << (*iter)->to_string(variant);
+            ss << ", ";
+        }
+
+        ss << (*(this->elements.end() - 1))->to_string(variant);
     }
 
-    u32 pos = (u32) ss.tellp();
-    ss.seekp(pos - 2);
-    ss << ")";
+    if(!variant) {
+        ss << ")";
+    }
 
     return ss.str();
 }
 
-std::string mist::ReferenceType::to_string() {
+std::string mist::ReferenceType::to_string(bool) {
     return "ref " + base()->to_string();
 }
 
-std::string mist::FunctionType::to_string() {
+std::string mist::FunctionType::to_string(bool) {
     std::stringstream ss;
     ss << p->to_string() << " -> " << r->to_string();
     return ss.str();
 }
 
-std::string mist::MutableType::to_string() {
+std::string mist::MutableType::to_string(bool) {
     return "mut " + base()->to_string();
 }
 
-std::string mist::ArrayType::to_string() {
+std::string mist::ArrayType::to_string(bool) {
     return "[" + std::to_string(l) + "]" + base()->to_string();
 }
 
-std::string mist::PointerType::to_string() {
+std::string mist::PointerType::to_string(bool) {
     return "*" + base()->to_string();
 }
 
+std::string mist::ListType::to_string(bool) {
+    std::stringstream ss;
+    ss << "[";
+    for(auto t : subtypes)
+        ss << t->to_string() << ", ";
+    u32 pos = (u32) ss.tellp();
+    ss.seekp(pos - 2);
+    ss << "]";
+    return ss.str();
+}
+
+std::string mist::UnitType::to_string(bool) {
+    return "Unit";
+}

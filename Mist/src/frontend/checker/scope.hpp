@@ -26,6 +26,7 @@ namespace mist {
         TypeScope,
         BlockScope,
         ParamScope,
+        MemberScope
     };
 
     class Scope {

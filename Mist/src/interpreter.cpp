@@ -106,7 +106,6 @@ namespace mist {
             return;
         }
 
-
 //        auto e = p->parse_expr();
 
         typer->resolve_module(m);
@@ -204,6 +203,8 @@ namespace mist {
     }
 
     Type *Interpreter::find_type(Type *type) {
+        if(!type)
+            return nullptr;
         for(auto t : types) {
             if(typer->equivalent_type(t, type))
                 return t;
@@ -212,6 +213,18 @@ namespace mist {
     }
 
     bool Interpreter::contains_equivalent_type(Type *type) {
-        return false;
+        return find_type(type) != nullptr;
+    }
+
+    void Interpreter::print_line(Pos pos) {
+        auto file = context.get_file(pos.fileId);
+
+        auto line = file->get_line(pos.line);
+
+        std::cout << ">\t" << line << std::endl;
+
+
+        std::string l(pos.column - 1, '-');
+        std::cout << ">\t" << l << "^" << std::endl;
     }
 }

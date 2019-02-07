@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "scope.hpp"
 
+#include "frontend/checker/value.hpp"
 #include "frontend/parser/ast/ast.hpp"
 #include "frontend/parser/ast/ast_common.hpp"
 #include "frontend/parser/ast/ast_expr.hpp"
@@ -14,6 +17,7 @@
 #include "frontend/parser/ast/ast_pattern.hpp"
 
 #include "types/type.hpp"
+#include "frontend/checker/value.hpp"
 
 extern mist::Type* type_u8;
 extern mist::Type* type_u16;
@@ -116,13 +120,17 @@ namespace mist {
 
         /// Resolves an expression to its type
         /// @return the type of the declaration
-        Type* resolve_expr(ast::Expr* expr);
+        Val resolve_expr(ast::Expr* expr);
+
+        /// Resolves an expression to its type
+        /// @return the type of the declaration
+        Val  resolve_constant_expr(ast::Expr* expr);
 
         /// Resolves integral literal (char, integers, and floats)
         /// if a type suffix follows, check the type
         /// @note: transforms the literal node if the base type is changed i.g. integer -> float 1f32
         /// @return the type of the literal
-        Type* check_integral_literal_and_type_suffix(ast::Expr *expr);
+        Val check_integral_literal_and_type_suffix(ast::Expr *expr);
 
         /// @return the type of the declaration
         Type* resolve_typespec(ast::TypeSpec* spec);
@@ -136,19 +144,45 @@ namespace mist {
         /// Resolves unary expression
         /// @param expr expression
         /// @return the type of the expression
-        Type* resolve_unary_expr(ast::UnaryExpr* expr);
+        Val resolve_unary_expr(ast::UnaryExpr* expr);
+
+        /// Performs a binary operation on a constant val
+        /// @param op the unary operator to apply to val
+        /// @param val the value being operated on.
+        /// @param expected_type the type expected following the operation
+        /// @return the transformed type.
+        Val perform_binary_expr(ast::BinaryOp op, Val lhs, Val rhs, Type* expected_type);
 
         /// Resolves binary expression
         /// @param expr expression
         /// @return the type of the expression
-        Type* resolve_binary_expr(ast::BinaryExpr* expr);
+        Val resolve_binary_expr(ast::BinaryExpr* expr);
 
-        Type* resolve_value(ast::ValueExpr* expr);
+        /// Performs a unary operation on a constant val
+        /// @param op the binary operator to apply to val
+        /// @param lhs the value being operated on the lhs
+        /// @param rhs the value being operated on the rhs
+        /// @param expected_type the type expected following the operation
+        /// @return the transformed type.
+        Val perform_unary_expr(ast::UnaryOp op, Val val, Type* expected_type);
+
+        Val resolve_value(ast::ValueExpr* expr);
 
         /// Resolves a block expression to the resulting expression
         /// @param block the block containing the list of expressions
         ///              to resolve
-        Type* resolve_block(ast::BlockExpr* block);
+        Val resolve_block(ast::BlockExpr* block);
+
+        /// Resolves an assignment expression
+        /// @param assign the assignment expression with variables and expressions
+        /// @return unit
+        Val resolve_assignment_expr(ast::AssignmentExpr* assign);
+
+        /// Resolves an expression to a Declaration Info
+        ///     returns null if it isn't a valid expression
+        /// @param name the epression to resolve
+        /// @return the delcaration information or null
+        DeclInfo* resolve_name_to_declinfo(ast::Expr* name);
 
         /// Resolves the name to the declaration information.
         /// @param name the name of the declaration
@@ -210,6 +244,22 @@ namespace mist {
 
         Addressing addressing_from_type(Type* type);
 
+        void check_types(Type* t1, Type* t2, Pos pos);
+
+        /// Creates the appropriate type val from the type.
+        /// @param type the type of the value
+        /// @param i an integer value for the value to be created from
+        /// @param f a float value for the value to be created from
+        /// @return value
+        Val create_value(Type* type, i64 i = -1, f64 f = -1);
+
+        /// Casts a value to a new type. It will convert the constant if
+        /// it exists.
+        /// @param val the original value
+        /// @param type the new type
+        /// @return the casted value
+        Val cast_value(Val val, Type* type);
+
     private: // internal state
 
         Interpreter* interp{nullptr};
@@ -217,5 +267,9 @@ namespace mist {
         Scope* root; // scope of the root of the currentmodule
         Scope* prelude; // the prelude scope, the scope of the built in functions and types.
         Scope* current;
+
+
+        // local state for to help printing error messages.
+        bool tuples_as_lists{false};
     };
 }

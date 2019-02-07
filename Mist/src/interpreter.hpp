@@ -99,11 +99,15 @@ namespace mist {
 
             inline bool has_error() { return errors != 0; }
 
+            void print_line(Pos pos);
+
             template <typename... Args>
             void report_error(const Pos& pos, const std::string& msg, Args... args) {
         		auto file = context.get_file(pos.fileId);
         		std::cout << file->name() << ":" << pos.line << ":" << pos.column << "\t";
         		report_error(msg, args...);
+
+        		print_line(pos);
             }
 
             template <typename... Args>

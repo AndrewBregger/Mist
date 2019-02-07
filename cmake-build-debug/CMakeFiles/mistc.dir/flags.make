@@ -6,5 +6,5 @@ CXX_FLAGS =  -pedantic -Wextra -DDEBUG -g   -std=c++1z
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/Users/andy/Documents/Mist/Mist/src 
+CXX_INCLUDES = -I/Users/andy/Documents/Mist/Mist/src -I/Users/andy/Documents/Mist/VM -I/Users/andy/Documents/Mist/VM/lib 
 

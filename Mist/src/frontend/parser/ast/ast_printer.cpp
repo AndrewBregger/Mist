@@ -221,6 +221,15 @@ namespace ast {
 				out << "}" << std::endl;
 				break;
 			}
+			case List: {
+				auto e = CAST(ListExpr, expr);
+				out << "subexpr: [" << std::endl;
+				for(auto elem : e->subexpr) {
+					print(out, elem) << std::endl;
+				}
+				out << ']' << std::endl;
+				break;
+			}
 			case UnitLit: break;
 			case SelfLit: break;
 		}

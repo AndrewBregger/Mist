@@ -29,6 +29,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.13/Modules/Platform/UnixPaths.cmake"
   "/Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.13/Modules/ProcessorCount.cmake"
   "../CMakeLists.txt"
+  "../VM/CMakeLists.txt"
   "CMakeFiles/3.13.2/CMakeCCompiler.cmake"
   "CMakeFiles/3.13.2/CMakeCXXCompiler.cmake"
   "CMakeFiles/3.13.2/CMakeSystem.cmake"
@@ -43,9 +44,12 @@ set(CMAKE_MAKEFILE_OUTPUTS
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
+  "VM/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/mistc.dir/DependInfo.cmake"
+  "VM/CMakeFiles/vm-test.dir/DependInfo.cmake"
+  "VM/CMakeFiles/vmlib.dir/DependInfo.cmake"
   )

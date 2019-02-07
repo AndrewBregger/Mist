@@ -291,6 +291,32 @@ CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.s"
 	/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/andy/Documents/Mist/Mist/src/utils/fileio.cpp -o CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.s
 
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o: CMakeFiles/mistc.dir/flags.make
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o: ../Mist/src/frontend/checker/desurgar/desurgur.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o"
+	/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o -c /Users/andy/Documents/Mist/Mist/src/frontend/checker/desurgar/desurgur.cpp
+
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.i"
+	/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/andy/Documents/Mist/Mist/src/frontend/checker/desurgar/desurgur.cpp > CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.i
+
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.s"
+	/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/andy/Documents/Mist/Mist/src/frontend/checker/desurgar/desurgur.cpp -o CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.s
+
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o: CMakeFiles/mistc.dir/flags.make
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o: ../Mist/src/frontend/checker/value.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o"
+	/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o -c /Users/andy/Documents/Mist/Mist/src/frontend/checker/value.cpp
+
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.i"
+	/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/andy/Documents/Mist/Mist/src/frontend/checker/value.cpp > CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.i
+
+CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.s"
+	/usr/local/Cellar/gcc@7/7.3.0/bin/g++-7 $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/andy/Documents/Mist/Mist/src/frontend/checker/value.cpp -o CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.s
+
 # Object files for target mistc
 mistc_OBJECTS = \
 "CMakeFiles/mistc.dir/Mist/src/interpreter.cpp.o" \
@@ -310,7 +336,9 @@ mistc_OBJECTS = \
 "CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.o" \
 "CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.o" \
 "CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.o" \
-"CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.o"
+"CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.o" \
+"CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o" \
+"CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o"
 
 # External object files for target mistc
 mistc_EXTERNAL_OBJECTS =
@@ -333,9 +361,12 @@ mistc: CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.o
 mistc: CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.o
 mistc: CMakeFiles/mistc.dir/Mist/src/utils/directory.cpp.o
 mistc: CMakeFiles/mistc.dir/Mist/src/utils/fileio.cpp.o
+mistc: CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o
+mistc: CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o
 mistc: CMakeFiles/mistc.dir/build.make
+mistc: ../VM/lib/libvmlib.a
 mistc: CMakeFiles/mistc.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking CXX executable mistc"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Linking CXX executable mistc"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/mistc.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

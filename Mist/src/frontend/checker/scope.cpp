@@ -44,13 +44,14 @@ bool mist::Scope::contains(struct mist::String *name) {
 
 mist::DeclInfo *mist::Scope::find(struct mist::String *name) {
     Scope* current = this;
+    DeclInfo* info = nullptr;
     while(current) {
-        auto info = current->local_find(name);
+        info = current->local_find(name);
         if(info)
-            return info;
+            break;
         current = current->parent;
     }
-    return nullptr;
+    return info;
 }
 
 bool mist::Scope::local_contains(struct mist::String *name) {

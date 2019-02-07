@@ -4,9 +4,11 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/Users/andy/Documents/Mist/Mist/src/frontend/checker/desurgar/desurgur.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/desurgar/desurgur.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/checker/scope.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/scope.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/checker/typer.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/typer.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/checker/types/type.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/types/type.cpp.o"
+  "/Users/andy/Documents/Mist/Mist/src/frontend/checker/value.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/checker/value.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_common.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_common.cpp.o"
   "/Users/andy/Documents/Mist/Mist/src/frontend/parser/ast/ast_decl.cpp" "/Users/andy/Documents/Mist/cmake-build-debug/CMakeFiles/mistc.dir/Mist/src/frontend/parser/ast/ast_decl.cpp.o"
@@ -28,10 +30,13 @@ set(CMAKE_CXX_COMPILER_ID "GNU")
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "../Mist/src"
+  "../VM"
+  "../VM/lib"
   )
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
+  "/Users/andy/Documents/Mist/cmake-build-debug/VM/CMakeFiles/vmlib.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

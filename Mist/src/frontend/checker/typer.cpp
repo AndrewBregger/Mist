@@ -6,8 +6,6 @@
 
 #include "frontend/parser/ast/ast_printer.hpp"
 
-#define CAST_PTR(Type, expr) static_cast<Type*>(expr)
-#define CAST(Type, expr) static_cast<Type>(expr)
 
 mist::DeclInfo::DeclInfo(struct String *name, i32 index, mist::Scope *scope, ast::Decl *decl)
         : state(Unresovled), decl(decl), decl_index(index),
@@ -22,7 +20,7 @@ bool mist::DeclInfo::is_type() {
 }
 
 bool mist::DeclInfo::is_local() {
-    return k == Ty;
+    return k == Variable;
 }
 
 bool mist::DeclInfo::is_variable() {
@@ -141,34 +139,34 @@ void mist::Typer::pop_scope() {
     current = current->parent;
 }
 
-mist::Type *mist::Typer::resolve_expr(ast::Expr *expr) {
+mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
     if(!expr) {
         std::clog << "[LOG]" << "null expression" << std::endl;
-        return nullptr;
+        return Val();
     }
-    Type* type = nullptr;
+    Val val;
     switch(expr->kind()) {
         case ast::UnitLit:
-            return type_unit;
+            return Val(type_unit);
         case ast::StringConst:
             interp->report_error(expr->pos(), "Strings are not implemented at this time");
-            return nullptr;
+            return Val();
         case ast::IntegerConst:
         case ast::CharConst:
         case ast::FloatConst:
-            type = check_integral_literal_and_type_suffix(expr);
+            val = check_integral_literal_and_type_suffix(expr);
             break;
         case ast::BooleanConst:
-            type = type_bool;
+            val = Val(type_bool);
             break;
         case ast::Unary:
-            type = resolve_unary_expr(CAST_PTR(ast::UnaryExpr, expr));
+            val = resolve_unary_expr(CAST_PTR(ast::UnaryExpr, expr));
             break;
         case ast::Binary:
-            type = resolve_binary_expr(CAST_PTR(ast::BinaryExpr, expr));
+            val = resolve_binary_expr(CAST_PTR(ast::BinaryExpr, expr));
             break;
         case ast::Value:
-            type = resolve_value(CAST_PTR(ast::ValueExpr, expr));
+            val = resolve_value(CAST_PTR(ast::ValueExpr, expr));
             break;
         case ast::Tuple: {
             auto tup = CAST_PTR(ast::TupleExpr, expr);
@@ -176,36 +174,138 @@ mist::Type *mist::Typer::resolve_expr(ast::Expr *expr) {
             u64 size = 0;
             for(auto elems : tup->values) {
                 auto t = resolve_expr(elems);
-                if(!t)
+                if(!t.type)
                     break;
-                elements.push_back(t);
-                size += t->size();
+                elements.push_back(t.type);
+                size += t.type->size();
             }
             Type* tupletype = new TupleType(elements, size);
-            type = interp->find_type(tupletype);
-            if(type)
+            val.type = interp->find_type(tupletype);
+            if(val.type)
                 delete tupletype;
             else {
-                type = interp->add_type(tupletype);
+                val.type = interp->add_type(tupletype);
             }
             break;
         }
         case ast::Block:
-            return resolve_block(CAST_PTR(ast::BlockExpr, expr));
+            val = resolve_block(CAST_PTR(ast::BlockExpr, expr));
+            break;
         case ast::DeclDecl: {
             auto decl = CAST_PTR(ast::DeclExpr, expr);
             resolve_decl(decl->decl);
-            return type_unit;
-        }
+            auto val = Val(type_unit);
+            val.expr = expr;
+            return val;
+        } break;
+        case ast::Assignment: {
+            val = resolve_assignment_expr(CAST_PTR(ast::AssignmentExpr, expr));
+        } break;
+        case ast::List: {
+            auto e = CAST_PTR(ast::ListExpr, expr);
+            std::vector<Type*> subexprs;
+            u64 sz = 0;
+//            subexprs.reserve(e->subexpr.size());
+            for(auto x : e->subexpr) {
+                auto st = resolve_expr(x);
+                if(st.type) {
+                    subexprs.push_back(st.type);
+                    sz += st.type->size();
+                }
+                else break;
+            }
+            val.type = new TupleType(subexprs, sz);
+        } break;
         case ast::Parenthesis:
-        case ast::Selector:
+        case ast::Selector: {
+            auto selector = CAST_PTR(ast::SelectorExpr, expr);
+            auto operandType = resolve_expr(selector->operand);
+            if(!operandType.type) {
+                val = Val();
+                break;
+            }
+            if(operandType.type->is_named_type()) {
+                if(operandType.type->kind() == Struct) {
+                    auto st = CAST_PTR(StructType, operandType.type);
+                    auto info = st->info;
+
+                    DeclInfo* selected = resolve_name(info->scope, selector->element->name, true);
+                    if(selected) {
+                        std::cout << selected->name->value() << std::endl;
+                        std::cout << selected->type->to_string() << std::endl;
+                        val.type = selected->type;
+                        break;
+                    }
+                    else {
+                        interp->report_error(selector->element->pos(),
+                                "operand of type: '%s' does not have field: '%s'",
+                                st->to_string(tuples_as_lists).c_str(),
+                                selector->element->name->value->val.c_str());
+                        val.type = nullptr;
+                        break;
+                    }
+                }
+            }
+            interp->report_error(selector->operand->pos(),
+                    "operand of type: '%s' does not contain any fields",
+                    operandType.type->to_string(tuples_as_lists).c_str());
+            val = Val();
+        } break;
+        case ast::TupleIndex: {
+            auto index = CAST_PTR(ast::TupleIndexExpr, expr);
+            auto operandType = resolve_expr(index->operand);
+
+            if(!operandType.type) {
+                val = Val();
+                break;
+            }
+
+            if(operandType.type->is_tuple()) {
+                auto tupleType = CAST_PTR(TupleType, operandType.type);
+                u32 tupleIndex = tupleType->num();
+                u32 indx = index->index;
+
+                if(indx >= tupleIndex) {
+                    interp->report_error(index->pos(),
+                            "tuple index out of bounds: tuple size '%u' attempted index '%u'",
+                            tupleIndex, indx);
+                    val = Val();
+                    break;
+                }
+
+                val.type = tupleType->get(indx);
+            }
+            else {
+                interp->report_error(index->operand->pos(),
+                        "attempting to tuple index non tuple type: found type: '%s'",
+                        operandType.type->to_string(false).c_str());
+                val = Val();
+                break;
+            }
+        } break;
         default:
             break;
 
     }
 
-    expr->t = type;
-    return type;
+    // checks whether the resulting type already exists if
+    auto t = interp->find_type(val.type);
+
+    // if one was found and they are not the same.
+    if(t && t != val.type) {
+        delete val.type;
+        val.type = t;
+    }
+    expr->t = val.type;
+    std::cout << "Resolved Expression: " << expr->pos().line << " " << expr->pos().column << ": ";
+    if(val.type) {
+        std::cout << val.type->to_string(tuples_as_lists);
+        std::cout << " Val: " << val;
+    }
+    else
+        std::cout <<  "Failed";
+    std::cout << std::endl;
+    return val;
 }
 
 mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
@@ -226,18 +326,58 @@ mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
                 if(info->scope->kind() == ModuleScope)
                     return resolve_toplevel_decl(info);
                 else {
-                    interp->report_error("Cyclic reference, I think");
+                    interp->report_error("[LOG]: Cyclic reference, I think");
                 }
             }
         } break;
         case ast::TupleType: {
             auto name = CAST_PTR(ast::TupleSpec, spec);
             std::vector<Type*> specs;
-
+            u32 size = 0;
+            for(auto spec : name->types) {
+                Type* t = resolve_typespec(spec);
+                specs.push_back(t);
+                size = t->size();
+            }
+            return new TupleType(specs, size);
         } break;
         case ast::FunctionType: {
-            auto name = CAST_PTR(ast::FunctionSpec, spec);
+            auto fn = CAST_PTR(ast::FunctionSpec, spec);
+            TupleType* paramType = nullptr;
+            u64 paramSize = 0;
+            TupleType* returnType = nullptr;
+            u64 returnSize = 0;
 
+            std::vector<Type*> params;
+            for(auto p : fn->parameters) {
+                auto ty = resolve_typespec(p);
+                if(p) {
+                    params.push_back(ty);
+                    paramSize += ty->size();
+                }
+                else
+                    return nullptr;
+            }
+
+            std::vector<Type*> returns;
+            for(auto p : fn->returns) {
+                auto ty = resolve_typespec(p);
+                if(p) {
+                    returns.push_back(ty);
+                    returnSize += ty->size();
+                }
+                else
+                    return nullptr;
+            }
+
+            if(returns.empty()) {
+                returns.push_back(type_unit);
+            }
+
+            paramType = new TupleType(params, paramSize);
+            returnType = new TupleType(returns, returnSize);
+
+            type = new FunctionType(paramType, returnType);
         } break;
         case ast::TypeClassType: {
             auto name = CAST_PTR(ast::TypeClassSpec, spec);
@@ -246,6 +386,43 @@ mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
         case ast::Array: {
             auto name = CAST_PTR(ast::ArraySpec, spec);
 
+            Type* base = resolve_typespec(name->base);
+
+            auto val = resolve_expr(name->size);
+
+            if(val.is_constant) {
+                if(val.type->is_primative()) {
+                    auto prim = CAST_PTR(PrimitiveType, val.type);
+                    if(!prim->is_integer()) {
+                        interp->report_error(name->size->pos(), "Array size must be an integer type, found: '%s'", prim->to_string(false).c_str());
+                        return nullptr;
+                    }
+
+                    switch(prim->pkind()) {
+                        case U64:
+                            type = new ArrayType(base, val._U64);
+                            break;
+                        case I64:
+                            type = new ArrayType(base, (u64) val._I64);
+                            break;
+                        default:
+                            // if it is any other integer type, the u32 is still valid.
+                            type = new ArrayType(base, (u64) val._U32);
+                    }
+
+                }
+            }
+            else {
+                // @TODO: Later add support for run time array length.
+                //      This would require a rework of the array type.
+                //
+                // foo :: (n: i32) {
+                //      bar: [n]f32;
+                // }
+                //
+                interp->report_error(name->size->pos(), "Array size must be a constant");
+                return nullptr;
+            }
         } break;
 //        case ast::DynamicArray: {
 //            auto name = CAST_PTR(ast::DySpec, spec);
@@ -253,15 +430,16 @@ mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
 //        }
         case ast::Map: {
             auto name = CAST_PTR(ast::MapSpec, spec);
-
         } break;
         case ast::Pointer: {
-            auto name = CAST_PTR(ast::PointerSpec, spec);
-
+            auto ptr = CAST_PTR(ast::PointerSpec, spec);
+            auto base = resolve_typespec(ptr->base);
+            type = new PointerType(base);
         } break;
         case ast::Reference: {
-            auto name = CAST_PTR(ast::ReferenceSpec, spec);
-
+            auto ref = CAST_PTR(ast::ReferenceSpec, spec);
+            auto base = resolve_typespec(ref->base);
+            type = new ReferenceType(base);
         } break;
 //        case ast::TypeSpecKind::MutableType: {
 //            auto name = CAST_PTR(ast::MutableSpec, spec);
@@ -278,12 +456,29 @@ mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
                 interp->report_error("Type paths are unimplmented");
                 return nullptr;
             }
-        } break;
+        }
         case ast::Unit: {
             return type_unit;
-        } break;
+        }
     }
-    return nullptr;
+    auto ntype = interp->find_type(type);
+
+    if(ntype && ntype != type) {
+        delete type;
+        type = ntype;
+    }
+    else {
+        interp->add_type(type);
+    }
+    return type;
+}
+
+mist::Val mist::Typer::resolve_assignment_expr(ast::AssignmentExpr *assign) {
+
+
+
+    // always returns unit returns null if failed
+    return Val(type_unit);
 }
 
 
@@ -328,69 +523,6 @@ mist::DeclInfo *mist::Typer::resolve_name(mist::Scope *scope, ast::Ident *name, 
     return info;
 }
 
-//bool mist::Typer::resolve_local_pattern(ast::Pattern *pattern, mist::DeclInfo *info, mist::Type *expectedType,
-//                                    mist::Type *exprType) {
-//
-//    switch(pattern->kind()) {
-//        case ast::IdentPatKind: {
-//            auto pat = static_cast<ast::IdentPat*>(pattern);
-//        }
-//        case ast::TuplePatKind: {
-//            auto pat = static_cast<ast::TuplePat*>(pattern);
-//
-//        } break;
-//        case ast::StructurePatKind: {
-//            auto pat = static_cast<ast::StructPat*>(pattern);
-//
-//        } break;
-//        case ast::VariantPatKind: {
-//            auto pat = static_cast<ast::VariantPat*>(pattern);
-//
-//        } break;
-//        case ast::ListPatKind: {
-//            auto pat = static_cast<ast::ListPat*>(pattern);
-//        } break;
-//        case ast::UnderscorePatKind:
-//            break;
-//        default:
-//            break;
-//    }
-//    return false;
-//}
-//
-//bool mist::Typer::resolve_expected_types_and_initialization(ast::Pattern *pattern,
-//                                                        const std::vector<mist::DeclInfo *> &info,
-//                                                        const std::vector<mist::Type *> &expectedTypes,
-//                                                        const std::vector<mist::Type *> &exprTypes) {
-//    switch(pattern->kind()) {
-//        case ast::IdentPatKind: {
-//            auto pat = static_cast<ast::IdentPat*>(pattern);
-//            // if the pattern is simply an identifier then the rhs must be a single
-//            // expression
-//
-//        }
-//        case ast::TuplePatKind: {
-//            auto pat = static_cast<ast::TuplePat*>(pattern);
-//
-//        } break;
-//        case ast::StructurePatKind: {
-//            auto pat = static_cast<ast::StructPat*>(pattern);
-//
-//        } break;
-//        case ast::VariantPatKind: {
-//            auto pat = static_cast<ast::VariantPat*>(pattern);
-//
-//        } break;
-//        case ast::ListPatKind: {
-//            auto pat = static_cast<ast::ListPat*>(pattern);
-//        } break;
-//        case ast::UnderscorePatKind:
-//            break;
-//        default:
-//            break;
-//    }
-//    return false;
-//}
 
 void mist::Typer::resolve_module(ast::Module *module) {
     /// Add all of the top level symbols to the symbol table.
@@ -415,6 +547,23 @@ void mist::Typer::resolve_module(ast::Module *module) {
         resolve_toplevel_decl(info);
     }
 }
+
+//mist::DeclInfo* mist::Typer::resolve_name_to_declinfo(ast::Expr *name) {
+//    switch(name->kind()) {
+//        case ast::Value: {
+//            auto e = CAST_PTR(ast::ValueExpr, name);
+//            return resolve_name(e->name);
+//        } break;
+//        case ast::Selector: {
+//
+//        } break;
+//    }
+//}
+
+mist::Val mist::Typer::resolve_constant_expr(ast::Expr *expr) {
+    return Val();
+}
+
 
 mist::Type *mist::Typer::resolve_toplevel_decl(mist::DeclInfo *info) {
     switch(info->decl->kind()) {
@@ -450,15 +599,15 @@ mist::Type *mist::Typer::resolve_global_decl(ast::GlobalDecl *decl, mist::DeclIn
     auto typespec = decl->tp;
     auto init = decl->init;
 
-    Type* type = nullptr,* init_type = nullptr;
+    Val type, init_type;
 
     if(typespec)
-        type = resolve_typespec(typespec);
+        type.type = resolve_typespec(typespec);
 
     if(init)
         init_type = resolve_expr(init);
 
-    if(!init_type && !type) {
+    if(!init_type.type && !type.type) {
        // this should have been caught when parsing.
        interp->report_error(decl->pos, "declaration must be given a type or initialization expression,"
                                        "this declaration has neither");
@@ -468,50 +617,78 @@ mist::Type *mist::Typer::resolve_global_decl(ast::GlobalDecl *decl, mist::DeclIn
     }
 
 
-    Type* res = nullptr;
+    Val res;
     // if both are given, then check if they are compatable, otherwise
-    if(init_type && type) {
+    if(init_type.type && type.type) {
 #ifdef DEBUG
-            std::cout << "\tinit_type: " << init_type->to_string() << std::endl
-                      << "\ttype: " << type->to_string() << std::endl;
+            std::cout << "\tinit_type: " << init_type.type->to_string() << std::endl
+                      << "\ttype: " << type.type->to_string() << std::endl;
 #endif
 
-        if(equivalent_type(init_type, type)) {
-            res =  init_type;
+        if(equivalent_type(init_type.type, type.type)) {
+            res = init_type;
         }
         else {
-            interp->report_error(init->pos(), "incompatable types: found '%s', expecting: '%s'", init_type->to_string().c_str(), type->to_string().c_str());
+            interp->report_error(init->pos(), "incompatable types: found '%s', expecting: '%s'", init_type.type->to_string(tuples_as_lists).c_str(), type.type->to_string(tuples_as_lists).c_str());
             return nullptr;
         }
     }
-    else if(type)
+    else if(type.type)
         res = type;
-    else if(init_type)
+    else if(init_type.type)
         res = init_type;
 
-    Addressing addr = addressing_from_type(res);
-    info->resolve(res, addr, Variable);
+    Addressing addr = addressing_from_type(res.type);
+    info->resolve(res.type, addr, Variable);
 
 #ifdef DEBUG
-    std::cout << "Result Type; " << res->to_string() << " addressing: "  << addr << std::endl;
+    std::cout << "Result Type; " << res.type->to_string(tuples_as_lists) << " addressing: "  << addr << std::endl;
 #endif
 
-    info->type = res;
+    info->type = res.type;
 //    decl->t = res;
 
-    return res;
+    return res.type;
 }
 
 
 /// Assumes the name has already been added to the namespace
 mist::Type *mist::Typer::resolve_struct_decl(ast::StructDecl *decl, mist::DeclInfo *info) {
+
     // this resolves the name of the decl to make sure it can be
     // declared. It also adds it to the scope.
-    if(add_name(decl->name, info)) {
-        for(auto field : decl->fields) {
-        }
+
+    std::unordered_map<struct String*, Type*> members;
+    std::vector<DeclInfo*> infos;
+
+
+    // creates a new scope for the structure.
+    push_scope(MemberScope);
+    info->scope = current;
+
+    u64 sz = 0;
+    for(auto field : decl->fields) {
+        // gets the name of the field
+        struct String* name = CAST_PTR(ast::IdentPat, field->name)->name->value;
+
+
+        auto info = resolve_local_decl(field);
+
+        if(!info)
+            break;
+
+        infos.push_back(info);
+        members.emplace(name, info->type);
+
+        sz += info->type->size();
     }
-    return nullptr;
+    pop_scope();
+
+    // the offsets need to be figured out at here i guess.
+    Type* type = new StructType(info->name,  members, info, sz);
+
+    info->resolve(type, Value, Ty);
+    return type;
 }
 
 /// Assumes the name has already been added to the namespace
@@ -534,8 +711,8 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
     push_scope(ParamScope);
     for(auto param : decl->parameters) {
         auto pinfo = resolve_local_decl(param);
-        params.push_back(info->type);
-        paramsSize += info->type->size();
+        params.push_back(pinfo->type);
+        paramsSize += pinfo->type->size();
     }
 
     for(auto ret : decl->returns) {
@@ -544,7 +721,7 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
         returnsSize += type->size();
     }
 
-    if(decl->returns.size() == 0) {
+    if(decl->returns.empty()) {
         returns.push_back(type_unit);
     }
 
@@ -560,23 +737,57 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
 
     functionType = new FunctionType(paramType, returnType);
 
+
+    std::cout << "Params: " << paramType->to_string() << std::endl;
+    std::cout << "Returns: " << returnType->to_string() << std::endl;
+
+    ast::Expr* returnExpr = nullptr;
+
+    if(decl->body->kind() != ast::Block) {
+        push_scope(BlockScope);
+        returnExpr = decl->body;
+    }
+    else {
+        auto block = CAST_PTR(ast::BlockExpr, decl->body);
+        // there is always a unit expression
+        returnExpr = block->elements.back();
+    }
+
+
+
     auto body_result = resolve_expr(decl->body);
+
+    std::cout << "Body Result: " << body_result.type->to_string() << std::endl;
+
+
+
+    if(decl->body->kind() != ast::Block)
+        pop_scope();
 
     pop_scope();
 
-    if(!equivalent_type(type_unit, body_result)) {
-        interp->report_error(decl->pos, "incompatable return type");
-        return nullptr;
+    // if there are only 1 element in the tuple, we know this
+    // isnt an actual tuple.
+    if(returnType->num() == 1) {
+        check_types(returnType->get(0), body_result.type, returnExpr->pos());
+    }
+    else {
+        bool old = tuples_as_lists;
+        tuples_as_lists = true;
+        check_types(returnType, body_result.type, returnExpr->pos());
+        tuples_as_lists = old;
     }
 
     auto found_type = interp->find_type(functionType);
-    if(found_type) {
+    if(found_type && functionType != found_type) {
         delete functionType;
         functionType = found_type;
     }
     else {
         interp->add_type(functionType);
     }
+
+
 
     info->type = functionType;
     info->resolve(functionType, Address, Func);
@@ -622,8 +833,8 @@ mist::DeclInfo * mist::Typer::resolve_local_decl(ast::LocalDecl *decl) {
     std::vector<Type*> initTypes;
     for(auto expr : decl->init) {
         auto type = resolve_expr(expr);
-        if(type)
-            initTypes.push_back(type);
+        if(type.type)
+            initTypes.push_back(type.type);
         else
             return nullptr;
     }
@@ -631,6 +842,7 @@ mist::DeclInfo * mist::Typer::resolve_local_decl(ast::LocalDecl *decl) {
     std::vector<Type*> annoTypes;
     for(auto spec : decl->sp) {
         auto type = resolve_typespec(spec);
+        std::cout << "Resolved type: " << type->to_string(false) << std::endl;
         if(type)
             annoTypes.push_back(type);
         else
@@ -683,7 +895,7 @@ mist::DeclInfo * mist::Typer::resolve_local_decl(ast::LocalDecl *decl) {
                    return info;
                }
                else {
-                   interp->report_error(decl->sp.front()->pos(), "expecting type: '%s', found type: '%s'", expected->to_string().c_str(), init->to_string().c_str());
+                   interp->report_error(decl->sp.front()->pos(), "expecting type: '%s', found type: '%s'", expected->to_string(tuples_as_lists).c_str(), init->to_string(tuples_as_lists).c_str());
                }
             }
         }
@@ -786,10 +998,25 @@ bool mist::Typer::equivalent_type(mist::Type *type1, mist::Type *type2, bool ign
 
                return equivalent_type(p1->base(), p2->base());
            }
-           case Mutable:
+           case Mutable: {
                auto p1 = CAST_PTR(MutableType, type1);
                auto p2 = CAST_PTR(MutableType, type2);
                return equivalent_type(p1->base(), p2->base());
+           }
+           case List: {
+               auto p1 = CAST_PTR(ListType, type1);
+               auto p2 = CAST_PTR(ListType, type2);
+
+               if(p1->num() != p2->num())
+                   return false;
+
+               for(u32 i = 0; i < p1->num(); ++i) {
+                   if(!equivalent_type(p1->get(i), p2->get(i)))
+                       return false;
+               }
+
+               return true;
+           }
        }
     }
 }
@@ -811,43 +1038,51 @@ mist::Addressing mist::Typer::addressing_from_type(mist::Type *type) {
     return Value;
 }
 
-mist::Type *mist::Typer::check_integral_literal_and_type_suffix(ast::Expr *expr) {
-                                                                             Type* literal_type = nullptr;
-                                                                             auto suffix_type = ast::ConstantType::None;
+mist::Val mist::Typer::check_integral_literal_and_type_suffix(ast::Expr *expr) {
+    Type* literal_type = nullptr;
+    auto suffix_type = ast::ConstantType::None;
+    Val val;
+    // we are creates contants from literals, they can not be negative.
+    i64 integer = -1;
+    f64 floating = -1;
+    char character;
 
-                                                                             switch(expr->kind()) {
-                                                                             case ast::IntegerConst: {
-                                                                             auto lit = CAST_PTR(ast::IntegerConstExpr, expr);
-                                                                             suffix_type = lit->cty;
-                                                                             /// the default type for literals integer is i32
-                                                                             literal_type = type_i32;
-                                                                             } break;
-                                                                             case ast::CharConst: {
-                                                                             /// I thought i added the a type suffix to character literals. - Andrew B
-                                                                             auto lit = CAST_PTR(ast::CharConstExpr, expr);
-                                                                             //            suffix_type = lit->
-                                                                             literal_type = type_char;
-                                                                             return literal_type;
-                                                                             } break;
-                                                                             case ast::FloatConst: {
-                                                                             auto lit = CAST_PTR(ast::FloatConstExpr, expr);
-                                                                             suffix_type = lit->cty;
-                                                                             literal_type = type_f32;
-                                                                             } break;
-                                                                             default:
-                                                                             interp->report_error(expr->pos(), "Compiler Error: Trying to check a not literal as a literal");
-                                                                             return nullptr;
-                                                                             }
+    switch(expr->kind()) {
+        case ast::IntegerConst: {
+            auto lit = CAST_PTR(ast::IntegerConstExpr, expr);
+            suffix_type = lit->cty;
+            /// the default type for literals integer is i32
+            literal_type = type_i32;
+            integer = lit->value;
+        } break;
+        case ast::CharConst: {
+            /// I thought i added the a type suffix to character literals. - Andrew B
+            auto lit = CAST_PTR(ast::CharConstExpr, expr);
+            //            suffix_type = lit->
+//            literal_type = type_char;
+            character = lit->value;
+            return Val(character);
+        } break;
+        case ast::FloatConst: {
+            auto lit = CAST_PTR(ast::FloatConstExpr, expr);
+            suffix_type = lit->cty;
+            literal_type = type_f32;
+            floating = lit->value;
+        } break;
+        default:
+            interp->report_error(expr->pos(), "Compiler Error: Trying to check a not literal as a literal");
+            return Val();
+    }
 
-                                                                             auto cty_type = get_type_from_suffix_type(suffix_type);
-                                                                             if(cty_type) {
-                                                                             /// or move this to the switch statement above (that is allot of duplicate code though)
-                                                                             // check_literal_sizes(expr, cty_type)
+    auto cty_type = get_type_from_suffix_type(suffix_type);
+    if(cty_type) {
+    /// or move this to the switch statement above (that is allot of duplicate code though)
+    // check_literal_sizes(expr, cty_type)
+       literal_type = cty_type;
+    }
 
-                                                                             return cty_type;
-                                                                             }
-                                                                             return literal_type;
-                                                                             }
+    return create_value(literal_type, integer, floating);
+}
 
 mist::Type *mist::Typer::get_type_from_suffix_type(ast::ConstantType cty) {
     switch(cty) {
@@ -866,10 +1101,12 @@ mist::Type *mist::Typer::get_type_from_suffix_type(ast::ConstantType cty) {
     }
 }
 
-mist::Type *mist::Typer::resolve_unary_expr(ast::UnaryExpr *expr) {
-    auto type = resolve_expr(expr->expr);
+mist::Val mist::Typer::resolve_unary_expr(ast::UnaryExpr *expr) {
+    auto val = resolve_expr(expr->expr);
+    auto type = val.type;
+
     if(!type)
-        return nullptr;
+        return Val();
 
     if(type->is_primative()) {
         auto ptype = CAST_PTR(PrimitiveType, type);
@@ -877,31 +1114,38 @@ mist::Type *mist::Typer::resolve_unary_expr(ast::UnaryExpr *expr) {
         switch(expr->op) {
             case ast::UMinus: {
                 // for all types this is the same type
-                return type;
+                auto v = perform_unary_expr(expr->op, val, val.type);
+                v.expr = expr;
+                return v;
             }
             case ast::UBang: {
-                if(ptype->is_integer() || ptype->is_boolean())
-                    return type_bool;
-                else {
-                    interp->report_error(expr->pos(), "negation operator can only be applied to integers and booleans: type found: '%s'", ptype->to_string().c_str());
+                if(ptype->is_integer() || ptype->is_boolean()) {
+                    auto v = perform_unary_expr(expr->op, val, val.type);
+                    v.expr = expr;
+                    return v;
                 }
-                return nullptr;
+                else {
+                    interp->report_error(expr->pos(), "negation operator can only be applied to integers and booleans: type found: '%s'", ptype->to_string(tuples_as_lists).c_str());
+                }
+                return Val();
             }
             case ast::Tilde: {
                 if(ptype->is_integer()) {
-                    return ptype;
+                    auto v = perform_unary_expr(expr->op, val, val.type);
+                    v.expr = expr;
+                    return v;
                 }
                 else {
-                    interp->report_error(expr->pos(), "unable to apply bitwise negation to a non-integer expression: type found: '%s'", ptype->to_string().c_str());
+                    interp->report_error(expr->pos(), "unable to apply bitwise negation to a non-integer expression: type found: '%s'", ptype->to_string(tuples_as_lists).c_str());
                 }
-                return nullptr;
+                return Val();
             }
             case ast::UAmpersand: {
                 // pointer type
 
                 if(expr->expr->is_literal()) {
                     interp->report_error(expr->pos(), "unable to take address of literal");
-                    return nullptr;
+                    return Val();
                 }
 
                 auto type = new PointerType(ptype);
@@ -910,18 +1154,22 @@ mist::Type *mist::Typer::resolve_unary_expr(ast::UnaryExpr *expr) {
                 Type* found_type = interp->find_type(type);
 
                 // if it does then use that type
-                if(found_type) {
+                if(found_type && found_type != type) {
                     delete type;
-                    return found_type;
+                    auto v = Val(found_type);
+                    v.expr = expr;
+                    return v;
                 }
                 else {
                     // it doesnt, so add it and return it.
-                    return interp->add_type(type);
+                    Val v = Val(interp->add_type(type));
+                    v.expr = expr;
+                    return v;
                 }
             }
             case ast::UAstrick: {
-                interp->report_error(expr->pos(), "de-referencing a non pointer type: found type: '%s'", ptype->to_string().c_str());
-                return nullptr;
+                interp->report_error(expr->pos(), "de-referencing a non pointer type: found type: '%s'", ptype->to_string(tuples_as_lists).c_str());
+                return Val();
             }
             default:
                break;
@@ -930,16 +1178,18 @@ mist::Type *mist::Typer::resolve_unary_expr(ast::UnaryExpr *expr) {
     else if(type->is_named_type()) {
         interp->report_error(expr->expr->pos(), "[LOG] Overloading unary operator is not implemented");
     }
-    return nullptr;
+    return Val();
 }
 
-mist::Type *mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
-    auto lhsType = resolve_expr(expr->lhs);
-    auto rhsType = resolve_expr(expr->rhs);
+mist::Val mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
+    auto lhs = resolve_expr(expr->lhs);
+    auto rhs = resolve_expr(expr->rhs);
+    auto lhsType = lhs.type;
+    auto rhsType = rhs.type;
 
     if(lhsType->is_named_type()) {
         interp->report_error(expr->lhs->pos(), "operator overloading is not implemented");
-        return nullptr;
+        return Val();
     }
 
     if((lhsType->is_primative() && rhsType->is_primative())) {
@@ -955,7 +1205,7 @@ mist::Type *mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
             case ast::BinaryOp::BAstrick:
             case ast::BinaryOp::Percent:
             case ast::BinaryOp::AstrickAstrick: {
-
+                Type* type = nullptr;
                 if(lhsPType->is_boolean() || rhsPType->is_boolean())
                     break;
                 else if(lhsPType->is_character() || rhsPType->is_character())
@@ -966,30 +1216,37 @@ mist::Type *mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
 
                 // if they are the same type, then use that type.
                 if(lhsType == rhsType)
-                    return lhsType;
+                     type = lhsType;
 
 
                 if(lhsPType->is_integer() && rhsPType->is_integer())
-                    return max_type_size(lhsType, rhsType);
+                    type = max_type_size(lhsType, rhsType);
 
                 // if they are both float point values but with different sizes then use the large of the two
                 if(lhsPType->is_floating() && rhsPType->is_floating())
-                    return max_type_size(lhsType, rhsType);
+                    type = max_type_size(lhsType, rhsType);
 
                 // at this point one of them add to float
                 // return the float
                 if(lhsPType->is_floating())
-                    return lhsPType;
+                    type = lhsPType;
                 else
-                    return rhsPType;
+                    type = rhsPType;
+                auto val = perform_binary_expr(expr->op, lhs, rhs, type);
+                val.expr = expr;
+                return val;
             }
             case ast::BinaryOp::BAmpersand:
             case ast::BinaryOp::LessLess:
             case ast::BinaryOp::GreaterGreater:
             case ast::BinaryOp::Pipe:
             case ast::BinaryOp::Carrot: {
-                if(lhsPType->is_integer() && rhsPType->is_integer())
-                    return max_type_size(lhsType, rhsType);
+                if(lhsPType->is_integer() && rhsPType->is_integer()) {
+                    auto expected = max_type_size(lhsType, rhsType);
+                    Val v = perform_binary_expr(expr->op, lhs, rhs, expected);
+                    v.expr = expr;
+                    return v;
+                }
                 break;
             }
 
@@ -1013,20 +1270,27 @@ mist::Type *mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
                 }
 
                 // if they are primatives the this should will work for any combination of
-                return type_bool;
+                Val v = perform_binary_expr(expr->op, lhs, rhs, type_bool);
+                v.expr = expr;
+                return v;
             }
 
             // all of the primatives are comparable with eachother
             case ast::BinaryOp::EqualEqual:
             case ast::BinaryOp::BangEqual: {
                 if (lhsPType->is_boolean() || rhsPType->is_boolean()) {
-                    if (lhsPType->is_boolean() && rhsPType->is_boolean())
-                        return type_bool;
+                    if (lhsPType->is_boolean() && rhsPType->is_boolean()) {
+                        Val v = Val(type_bool);
+                        v.expr = expr;
+                        return v;
+                    }
                     else {
                         break;
                     }
                 }
-                return type_bool;
+                Val v = Val(type_bool);
+                v.expr = expr;
+                return v;
             }
         }
     }
@@ -1037,14 +1301,18 @@ mist::Type *mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
                     if(rhsType->is_primative()) {
                         auto rhsPType = CAST_PTR(PrimitiveType, rhsType);
                         if(rhsPType->is_integer()) {
-                            return lhsType;
+                            auto v = Val(lhsType);
+                            v.expr = expr;
+                            return v;
                         }
                     }
                 } else {
                     if(lhsType->is_primative()) {
                         auto lhsPType = CAST_PTR(PrimitiveType, rhsType);
                         if(lhsPType->is_integer()) {
-                            return rhsType;
+                            auto v = Val(rhsType);
+                            v.expr = expr;
+                            return v;
                         }
                     }
                 }
@@ -1055,7 +1323,9 @@ mist::Type *mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
                     if(rhsType->is_primative()) {
                         auto rhsPType = CAST_PTR(PrimitiveType, rhsType);
                         if(rhsPType->is_integer()) {
-                            return lhsType;
+                            Val v = Val(lhsType);
+                            v.expr = expr;
+                            return v;
                         }
                     }
                 }
@@ -1068,26 +1338,459 @@ mist::Type *mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
     }
     interp->report_error(expr->pos(), "unable to apply '%s' to operands of type: '%s' and '%s'",
             ast::get_binary_op_string(expr->op).c_str(),
-            lhsType->to_string().c_str(),
-            rhsType->to_string().c_str());
-    return nullptr;
+            lhsType->to_string(tuples_as_lists).c_str(),
+            rhsType->to_string(tuples_as_lists).c_str());
+    return Val();
 }
 
-mist::Type *mist::Typer::resolve_value(ast::ValueExpr *expr) {
+mist::Val mist::Typer::resolve_value(ast::ValueExpr *expr) {
     DeclInfo* info = resolve_name(expr->name);
-    if(info->is_variable()) {
-        return info->type;
+    if(!info) {
+        return Val();
+    }
+    if(info->is_variable() || info->is_function()) {
+        Val val = Val(info->type);
+        val.expr = expr;
+        return val;
     }
     else
-        interp->report_error(expr->pos(), "'%s' does not name a variable", expr->name->value->val);
-    return nullptr;
+        interp->report_error(expr->pos(), "'%s' does not name a variable or function", expr->name->value->val.c_str());
+    return Val();
 }
 
-mist::Type *mist::Typer::resolve_block(ast::BlockExpr *block) {
-    auto type = type_unit;
+mist::Val mist::Typer::resolve_block(ast::BlockExpr *block) {
+    Val val;
     push_scope(BlockScope);
     for(auto expr : block->elements)
-        type = resolve_expr(expr);
+        val = resolve_expr(expr);
     pop_scope();
-    return type;
+    val.expr = block;
+    return val;
 }
+
+void mist::Typer::check_types(mist::Type *t1, mist::Type *t2, Pos pos) {
+    if(!equivalent_type(t1, t2)) {
+        interp->report_error(pos, "expecting type: '%s', found: '%s'", t1->to_string(tuples_as_lists).c_str(),
+                t2->to_string(tuples_as_lists).c_str());
+    }
+}
+
+mist::Val mist::Typer::create_value(mist::Type *type, i64 i, f64 f) {
+    if(!type)
+        return Val();
+
+    if(type->is_primative()) {
+        auto prim = CAST_PTR(PrimitiveType, type);
+        switch(prim->pkind()) {
+            case I8:
+                if(i != -1)
+                    return Val((i8) i);
+                else
+                    return Val((i8) f);
+            case I16:
+                if(i != -1)
+                    return Val((i16)i);
+                else
+                    return Val((i16) f);
+            case I32:
+                if(i != -1)
+                    return Val((i32)i);
+                else
+                    return Val((i32) f);
+            case I64:
+                if(i != -1)
+                    return Val((i64)i);
+                else
+                    return Val((i64) f);
+            case U8:
+                if(i != -1)
+                    return Val((u8)i);
+                else
+                    return Val((u8) f);
+            case U16:
+                if(i != -1)
+                    return Val((u16)i);
+                else
+                    return Val((u16) f);
+            case U32:
+                if(i != -1)
+                    return Val((u32)i);
+                else
+                    return Val((u32) f);
+            case U64:
+                if(i != -1)
+                    return Val((u64)i);
+                else
+                    return Val((u64) f);
+            case F32:
+                if(i != -1)
+                    return Val((f32)i);
+                else
+                    return Val((f32) f);
+            case F64:
+                if(i != -1)
+                    return Val((f64)i);
+                else
+                    return Val((f64) f);
+            case Char:
+                if(i != -1)
+                    return Val((char) i);
+            case Bool:
+                if(i != -1)
+                    return Val(i != 0);
+                else
+                    return Val(f != 0.0);
+        }
+    }
+    else {
+        return Val(type);
+    }
+}
+
+mist::Val mist::Typer::cast_value(mist::Val val, mist::Type *type) {
+
+#define CAST_VAL(ty, t, val) {\
+    PrimitiveType* pType = CAST_PTR(PrimitiveType, val.type); \
+    Val nval; \
+    switch(pType->pkind()) { \
+        case I8: \
+        case I16: \
+        case I32: \
+            nval = Val((ty) val._I32); \
+            break; \
+        case I64: \
+            nval = Val((ty) val._I64); \
+            break; \
+        case U8: \
+        case U16: \
+        case U32: \
+            nval = Val((ty) val._U32); \
+            break; \
+        case U64: \
+            nval = Val((ty) val._U64); \
+            break; \
+        case F32: \
+            nval = Val((ty) val._F32); \
+            break; \
+        case F64: \
+            nval = Val((ty) val._F64); \
+            break; \
+        case Char: \
+            nval = Val((ty) val._Char); \
+            break; \
+        case Bool: \
+            nval = Val((ty) val._Bool); \
+            break; \
+    } \
+    nval.type = t; \
+    nval.expr = val.expr; \
+    return nval; \
+}
+
+    if(val.type == nullptr) {
+        return Val(type);
+    }
+    else {
+        if(val.is_constant) {
+            if(val.type->is_primative()) {
+                if(type->is_primative()) {
+                    PrimitiveType* nType = CAST_PTR(PrimitiveType, type);
+                    switch(nType->pkind()) {
+                        case I8:
+                            CAST_VAL(i8, nType, val);
+                        case I16:
+                            CAST_VAL(i16, nType, val);
+                        case I32:
+                            CAST_VAL(i32, nType, val);
+                        case I64:
+                            CAST_VAL(i64, nType, val);
+                        case U8:
+                            CAST_VAL(u8, nType, val);
+                        case U16:
+                            CAST_VAL(u16, nType, val);
+                        case U32:
+                            CAST_VAL(u32, nType, val);
+                        case U64:
+                            CAST_VAL(u64, nType, val);
+                        case F32:
+                            CAST_VAL(f32, nType, val);
+                        case F64:
+                            CAST_VAL(f64, nType, val);
+                        case Char:
+                            CAST_VAL(char, nType, val);
+                        case Bool:
+                            CAST_VAL(bool, nType, val);
+                    }
+                    interp->report_error(val.expr->pos(), "Failed to cast value");
+                    return Val();
+                }
+            }
+            else {
+                interp->report_error(val.expr->pos(), "Attempting to cast a non primative constant");
+            }
+        }
+        else
+            return Val(type);
+    }
+#undef CAST_VAL
+    return mist::Val();
+}
+
+#define UOPERATOR(op, v, t) { \
+    PrimitiveType* pType = CAST_PTR(PrimitiveType, t); \
+    Val nval; \
+    switch(pType->pkind()) { \
+        case I8: \
+            nval = Val(op v._I8); \
+            break; \
+        case I16: \
+            nval = Val(op v._I16); \
+            break; \
+        case I32: \
+            nval = Val(op v._I32); \
+            break; \
+        case I64: \
+            nval = Val(op v._I64); \
+            break; \
+        case U8: \
+            nval = Val(op v._U8); \
+            break; \
+        case U16: \
+            nval = Val(op v._U16); \
+            break; \
+        case U32: \
+            nval = Val(op v._U32); \
+            break; \
+        case U64: \
+            nval = Val(op v._U64); \
+            break; \
+        case F32: \
+            nval = Val(op v._F32); \
+            break; \
+        case F64: \
+            nval = Val(op v._F64); \
+            break; \
+        case Char: \
+            nval = Val(op v._Char); \
+            break; \
+        case Bool: \
+            break; \
+    } \
+    val = nval; \
+    val.type = t; \
+}
+
+#define UOPERATOR_WITHOUTFLOAT(op, v, t) { \
+    PrimitiveType* pType = CAST_PTR(PrimitiveType, t); \
+    Val nval; \
+    switch(pType->pkind()) { \
+        case I8: \
+            nval = Val(op v._I8); \
+            break; \
+        case I16: \
+            nval = Val(op v._I16); \
+            break; \
+        case I32: \
+            nval = Val(op v._I32); \
+            break; \
+        case I64: \
+            nval = Val(op v._I64); \
+            break; \
+        case U8: \
+            nval = Val(op v._U8); \
+            break; \
+        case U16: \
+            nval = Val(op v._U16); \
+            break; \
+        case U32: \
+            nval = Val(op v._U32); \
+            break; \
+        case U64: \
+            nval = Val(op v._U64); \
+            break; \
+        case Char: \
+            nval = Val(op v._Char); \
+            break; \
+        case Bool: \
+            break; \
+    } \
+    val = nval; \
+    nval.type = t; \
+}
+
+#define BOPERATOR(op, lhs, rhs, t) { \
+    PrimitiveType* pType = CAST_PTR(PrimitiveType, t); \
+    Val nval; \
+    switch(pType->pkind()) { \
+        case I8: \
+            nval = Val(lhs._I8 op rhs._I8); \
+            break; \
+        case I16: \
+            nval = Val(lhs._I16 op rhs._I16); \
+            break; \
+        case I32: \
+            nval = Val(lhs._I32 op rhs._I32); \
+            break; \
+        case I64: \
+            nval = Val(lhs._I64 op rhs._I64); \
+            break; \
+        case U8: \
+            nval = Val(lhs._U8 op rhs._U8); \
+            break; \
+        case U16: \
+            nval = Val(lhs._U16 op rhs._U16); \
+            break; \
+        case U32: \
+            nval = Val(lhs._U32 op rhs._U32); \
+            break; \
+        case U64: \
+            nval = Val(lhs._U64 op rhs._U64); \
+            break; \
+        case F32: \
+            nval = Val(lhs._F32 op rhs._F32); \
+            break; \
+        case F64: \
+            nval = Val(lhs._F64 op rhs._F64); \
+            break; \
+        case Char: \
+            nval = Val(lhs._Char op rhs._Char); \
+            break; \
+        case Bool: \
+            break; \
+    } \
+    val = nval; \
+    val.type = t; \
+}
+
+#define BOPERATOR_WITHOUTFLOAT(op, lhs, rhs, t) { \
+    PrimitiveType* pType = CAST_PTR(PrimitiveType, t); \
+    Val nval; \
+    switch(pType->pkind()) { \
+        case I8: \
+            nval = Val(lhs._I8 op rhs._I8); \
+            break; \
+        case I16: \
+            nval = Val(lhs._I16 op rhs._I16); \
+            break; \
+        case I32: \
+            nval = Val(lhs._I32 op rhs._I32); \
+            break; \
+        case I64: \
+            nval = Val(lhs._I64 op rhs._I64); \
+            break; \
+        case U8: \
+            nval = Val(lhs._U8 op rhs._U8); \
+            break; \
+        case U16: \
+            nval = Val(lhs._U16 op rhs._U16); \
+            break; \
+        case U32: \
+            nval = Val(lhs._U32 op rhs._U32); \
+            break; \
+        case U64: \
+            nval = Val(lhs._U64 op rhs._U64); \
+            break; \
+        case Char: \
+            nval = Val(lhs._Char op rhs._Char); \
+            break; \
+        case Bool: \
+            break; \
+    } \
+    nval.type = t; \
+    val = nval; \
+}
+
+mist::Val mist::Typer::perform_binary_expr(ast::BinaryOp op, mist::Val lhs, mist::Val rhs, mist::Type *expected_type) {
+    if(!lhs.is_constant && !rhs.is_constant)
+        return Val(expected_type);
+
+    Val val;
+
+    Val castLhs = cast_value(lhs, expected_type);
+    Val castRhs = cast_value(rhs, expected_type);
+
+    switch(op) {
+        case ast::Plus:
+            BOPERATOR(+, castLhs, castRhs, expected_type)
+            break;
+        case ast::BMinus:
+            BOPERATOR(-, castLhs, castRhs, expected_type)
+            break;
+        case ast::Slash:
+            BOPERATOR(/, castLhs, castRhs, expected_type)
+            break;
+        case ast::Percent:
+            BOPERATOR_WITHOUTFLOAT(%, castLhs, castRhs, expected_type)
+            break;
+        case ast::BAstrick:
+            BOPERATOR(*, castLhs, castRhs, expected_type)
+            break;
+        case ast::AstrickAstrick:
+//            BOPERATOR(, castLhs, castRhs, expected_type)
+            interp->report_error(lhs.expr->pos(), "constant '**' operator is not implemented at this time");
+            break;
+        case ast::BAmpersand:
+
+            BOPERATOR_WITHOUTFLOAT(&, castLhs, castRhs, expected_type)
+            break;
+        case ast::LessLess:
+            BOPERATOR_WITHOUTFLOAT(<<, castLhs, castRhs, expected_type)
+            break;
+        case ast::GreaterGreater:
+            BOPERATOR_WITHOUTFLOAT(>>, castLhs, castRhs, expected_type)
+            break;
+        case ast::Pipe:
+            BOPERATOR_WITHOUTFLOAT(|, castLhs, castRhs, expected_type)
+            break;
+        case ast::Carrot:
+            BOPERATOR_WITHOUTFLOAT(^, castLhs, castRhs, expected_type)
+            break;
+        case ast::Less:
+            BOPERATOR(<, castLhs, castRhs, expected_type)
+            break;
+        case ast::Greater:
+            BOPERATOR(>, castLhs, castRhs, expected_type)
+            break;
+        case ast::LessEqual:
+            BOPERATOR(<=, castLhs, castRhs, expected_type)
+            break;
+        case ast::GreaterEqual:
+            BOPERATOR(>=, castLhs, castRhs, expected_type)
+            break;
+        case ast::EqualEqual:
+            BOPERATOR(==, castLhs, castRhs, expected_type)
+            break;
+        case ast::BangEqual:
+            BOPERATOR(!=, castLhs, castRhs, expected_type)
+            break;
+    }
+    return val;
+}
+
+mist::Val mist::Typer::perform_unary_expr(ast::UnaryOp op, mist::Val v, mist::Type *expected_type) {
+    if(!v.is_constant)
+        return Val(expected_type);
+
+    Val val;
+
+    Val castVal = cast_value(v, expected_type);
+
+    switch(op) {
+        case ast::UMinus:
+            UOPERATOR(-, castVal, expected_type)
+            break;
+        case ast::UBang:
+            UOPERATOR(!, castVal, expected_type)
+            break;
+        case ast::Tilde:
+            UOPERATOR_WITHOUTFLOAT(~, castVal, expected_type)
+            break;
+        case ast::UAmpersand:
+        case ast::UAstrick:
+            interp->report_error(v.expr->pos(), "Compiler Error: Attempting to evaluator '&' or '*' on a constant value");
+            return Val(expected_type);
+    }
+
+    return val;
+}
+

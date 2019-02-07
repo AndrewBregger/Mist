@@ -55,6 +55,24 @@ ast::Expr *mist::Parser::parse_expr_with_res(mist::Parser::Restriction res) {
     auto old = restriction;
     add_restriction(res);
     auto expr = parse_assoc_expr(1);
+    if(current().kind() == Tkn_Comma) {
+        if(restriction & ListExpression) {
+            restriction ^= ListExpression;
+
+            std::vector<ast::Expr*> elements = {expr};
+
+            auto pos = elements.front()->pos();
+            advance();
+            auto elems = many<ast::Expr>([this]() {
+                return this->parse_expr_with_res(StopAtComma);
+            }, Tkn_Comma);
+            for(auto x : elems) {
+                elements.push_back(x);
+                pos = pos + x->pos();
+            }
+            return new ast::ListExpr(elements, pos);
+        }
+    }
     restriction = old;
     return expr;
 }
@@ -67,10 +85,11 @@ ast::Expr *mist::Parser::parse_assoc_expr(int min_prec) {
 
     // if we are parsing the lhs of an expression then do not continue if a comma is found.
 
+
     auto old = restriction;
     add_restriction(RhsExpression);
 
-    while(current().prec() >= min_prec) {
+    while(current().prec() >= min_prec || current().kind() == Tkn_Comma) {
         auto token = current();
 
         auto curr_prec = token.prec();
@@ -302,6 +321,9 @@ ast::Expr *mist::Parser::parse_bottom() {
             return new ast::UnitExpr(token.pos());
         case Tkn_OpenParen: {
             advance();
+            auto old = restriction;
+            add_restriction(StopAtComma);
+
             // tuple, or (<expr>)
             auto elements = many<ast::Expr>([this]() {
                 return this->parse_expr();
@@ -313,6 +335,9 @@ ast::Expr *mist::Parser::parse_bottom() {
 
             pos = pos + current().pos();
             expect(Tkn_CloseParen);
+
+            restriction = old;
+
             if (elements.size() == 1)
                 return elements.front();
             else {
@@ -507,7 +532,7 @@ ast::ValueExpr *mist::Parser::parse_value() {
 ast::Pattern *mist::Parser::parse_pattern() {
     auto pattern = parse_pattern_main();
 
-    if(restriction & LocalAsField) {
+    if(restriction & LocalAsField || restriction & ListExpression) {
         return pattern;
     }
 
@@ -940,22 +965,13 @@ ast::Decl *mist::Parser::parse_function(ast::Pattern *name) {
             rets.push_back(new ast::UnitSpec(mist::Pos()));
 
         if(!allow(Tkn_Equal)) {
-            expect(Tkn_OpenParen);
+            if(!check(Tkn_OpenBracket)) {
+                interp->report_error(current().pos(), "expecting '{' or '=' following function signiture: found: '%s'", current().get_string().c_str());
+                return nullptr;
+            }
         }
-        auto body = parse_expr();
-
-
-
-//        auto bodyscope = body->get_scope();
-
-
-        auto fdecl = new ast::FunctionDecl(static_cast<ast::IdentPat*>(name)->name, fields, rets, body, nullptr, pos);
-//        fdecl->paramScope = paramscope;
-//        fdecl->bodyScope = bodyscope;
-
-//        typer->pop_scope(); // this will pop the parameters scope off.
-//        typer->add_pattern(name, fdecl);
-        return fdecl;
+        auto body = parse_expr_with_res(StopAtComma | ListExpression);
+        return new ast::FunctionDecl(static_cast<ast::IdentPat*>(name)->name, fields, rets, body, nullptr, pos);
     }
     return nullptr;
 }
@@ -990,7 +1006,7 @@ ast::Decl *mist::Parser::parse_local(ast::Pattern *name) {
     std::vector<ast::Expr*> init;
 
 
-    if(restriction & LocalAsField) {
+    if(restriction & LocalAsField || restriction & ListExpression) {
         ast::Mutability mut = ast::Immutable;
         if(allow(Tkn_Mut))
             mut = ast::Mutable;
@@ -1011,7 +1027,7 @@ ast::Decl *mist::Parser::parse_local(ast::Pattern *name) {
 
     auto pos = name->pos();
     if(allow(Tkn_Colon)) {
-        if(!(restriction & LocalAsField))
+        if(!(restriction & LocalAsField || restriction & ListExpression))
             spec = many<ast::TypeSpec>([this]() {
                 return this->parse_typespec();
             }, Tkn_Comma);
@@ -1027,7 +1043,7 @@ ast::Decl *mist::Parser::parse_local(ast::Pattern *name) {
         check_typespec_and_pattern(name, spec);
 
         if(allow(Tkn_Equal)) {
-            if(!(restriction & LocalAsField))
+            if(!(restriction & LocalAsField || restriction & ListExpression))
                 init = many<ast::Expr>([this] () {
                     return this->parse_expr_with_res(RhsExpression);
                 }, Tkn_Comma);
@@ -1038,7 +1054,7 @@ ast::Decl *mist::Parser::parse_local(ast::Pattern *name) {
                 pos = pos + s->pos();
         }
     }
-    else if(!(restriction & LocalAsField)) {
+    else if(!(restriction & LocalAsField|| restriction & ListExpression)) {
         interp->report_error(current().pos(), "expecting ':' in local declaration");
         return nullptr;
     }
