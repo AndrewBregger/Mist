@@ -17,12 +17,13 @@ ast::Module *mist::Parser::parse_root(io::File *root) {
         return nullptr;
 
     scanner->advance();
-    advance_impl();
+    advance();
 
     auto module = new ast::Module(root);
 //    module->scope = typer->get_current();
 
     while(!check(Tkn_Eof)) {
+        restriction = 0;
         auto decl = parse_decl(true);
         if(decl) {
             if (decl->kind() == ast::Local) {
@@ -55,24 +56,24 @@ ast::Expr *mist::Parser::parse_expr_with_res(mist::Parser::Restriction res) {
     auto old = restriction;
     add_restriction(res);
     auto expr = parse_assoc_expr(1);
-    if(current().kind() == Tkn_Comma) {
-        if(restriction & ListExpression) {
-            restriction ^= ListExpression;
-
-            std::vector<ast::Expr*> elements = {expr};
-
-            auto pos = elements.front()->pos();
-            advance();
-            auto elems = many<ast::Expr>([this]() {
-                return this->parse_expr_with_res(StopAtComma);
-            }, Tkn_Comma);
-            for(auto x : elems) {
-                elements.push_back(x);
-                pos = pos + x->pos();
-            }
-            return new ast::ListExpr(elements, pos);
-        }
-    }
+//    if(current().kind() == Tkn_Comma) {
+//        if(restriction & ListExpression) {
+//            restriction ^= ListExpression;
+//
+//            std::vector<ast::Expr*> elements = {expr};
+//
+//            auto pos = elements.front()->pos();
+//            advance();
+//            auto elems = many<ast::Expr>([this]() {
+//                return this->parse_expr_with_res(StopAtComma);
+//            }, Tkn_Comma, true);
+//            for(auto x : elems) {
+//                elements.push_back(x);
+//                pos = pos + x->pos();
+//            }
+//            return new ast::ListExpr(elements, pos);
+//        }
+//    }
     restriction = old;
     return expr;
 }
@@ -87,10 +88,15 @@ ast::Expr *mist::Parser::parse_assoc_expr(int min_prec) {
 
 
     auto old = restriction;
-    add_restriction(RhsExpression);
+    add_restriction(RhsExpression | StopAtComma | NoLocals);
+    if(restriction & ListExpression)
+        restriction ^= ListExpression;
 
     while(current().prec() >= min_prec || current().kind() == Tkn_Comma) {
         auto token = current();
+
+        if(token.is_assignment() && (restriction & InListExpression))
+            break;
 
         auto curr_prec = token.prec();
 
@@ -98,10 +104,16 @@ ast::Expr *mist::Parser::parse_assoc_expr(int min_prec) {
             break;
 
         advance();
+
+
         auto rhs = parse_assoc_expr(curr_prec + 1);
         if(!rhs) {
             interp->report_error(current().pos(), "expecting primary expression");
             return expr;
+        }
+
+        if(rhs->kind() == ast::List) {
+            std::cout << "Found list as rhs of binary operator" << std::endl;
         }
 
         auto pos = expr->pos() + token.pos() + rhs->pos();
@@ -119,7 +131,45 @@ ast::Expr *mist::Parser::parse_assoc_expr(int min_prec) {
             expr = new ast::AssignmentExpr(op, {expr}, rhs, pos);
         }
     }
+
     restriction = old;
+
+    if(current().kind() == Tkn_Comma && !(this->restriction & InListExpression)) {
+        if(restriction & ListExpression) {
+            restriction ^= ListExpression;
+
+            std::vector<ast::Expr*> elements = {expr};
+
+            auto pos = elements.front()->pos();
+            advance();
+
+//            auto old = restriction;
+//            add_restriction(InListExpression);
+            auto elems = many<ast::Expr>([this]() {
+                return this->parse_expr_with_res(StopAtComma | InListExpression);
+            }, Tkn_Comma);
+//            restriction = old;
+
+            for(auto x : elems) {
+                elements.push_back(x);
+                pos = pos + x->pos();
+            }
+            if(current().is_assignment() && !(restriction & InListExpression)) {
+               auto token = current();
+               advance();
+                auto rhs = parse_expr();
+
+                auto op = (ast::AssignmentOp) (token.kind() - mist::Tkn_Equal);
+                expr = new ast::AssignmentExpr(op, elements, rhs, pos);
+
+            }
+            else {
+                expr = new ast::ListExpr(elements, pos);
+            }
+
+        }
+    }
+
 
     return expr;
 }
@@ -217,10 +267,22 @@ ast::Expr *mist::Parser::parse_primary(ast::Expr *operand) {
                         interp->report_error(current().pos(), "structure literal is invalid here");
                     return operand;
                 }
+
+                auto name = expr_to_typespec(ast::Immutable, operand);
+
+                if(!name) {
+                    interp->report_error(operand->pos(), "name or path must preceed '{' in struct literal");
+                }
+
                 advance();
                 auto pos = operand->pos();
                 auto old = restriction;
-                add_restriction(AllowBindExpressions);
+                add_restriction(AllowBindExpressions | NoLocals | StopAtComma);
+
+
+                if(restriction & ListExpression)
+                    restriction ^= ListExpression;
+
                 auto members = many<ast::Expr>([this]() {
                     return this->parse_expr();
                 }, Tkn_Comma, true);
@@ -230,7 +292,7 @@ ast::Expr *mist::Parser::parse_primary(ast::Expr *operand) {
                 for(auto x : members)
                     pos = pos + x->pos();
 
-                operand = new ast::StructLiteralExpr(operand,
+                operand = new ast::StructLiteralExpr(name,
                         members, pos);
             } continue;
             case Tkn_Period:
@@ -256,27 +318,26 @@ ast::Expr *mist::Parser::parse_bottom() {
             return new ast::DeclExpr(parse_decl());
         case Tkn_Use:
             return new ast::DeclExpr(parse_decl());
-        case Tkn_Identifier:
-            if(peak() == Tkn_Comma) {
-                if(!(restriction & RhsExpression)) {
+        case Tkn_Identifier: {
+            if (peak() == Tkn_Comma) {
+                if (!((restriction & RhsExpression) || !(restriction & NoLocals))) {
+                    auto decl = parse_decl();
+                    return new ast::DeclExpr(decl);
+                }
+            } else if (peak() == Tkn_Colon || peak() == Tkn_ColonColon) {
+                // we found a decl.
+                if (!(restriction & NoLocals)) {
                     auto decl = parse_decl();
                     return new ast::DeclExpr(decl);
                 }
             }
-            else if(peak() == Tkn_Colon || peak() == Tkn_ColonColon) {
-                // we found a decl.
-                auto decl = parse_decl();
-                return new ast::DeclExpr(decl);
-            }
-
             return parse_value();
+        }
         case Tkn_IntLiteral: {
             advance();
             auto suf = parse_literal_suffix();
-
             if (suf != ast::ConstantType::None)
                 advance();
-
             return new ast::IntegerConstExpr(token.integer, suf,
                                              (suf == ast::ConstantType::None ? token.pos() :
                                               const_cast<mist::Pos &>(token.pos()) + current().pos()));
@@ -310,9 +371,12 @@ ast::Expr *mist::Parser::parse_bottom() {
         case Tkn_Continue:
             advance();
             return new ast::ContinueExpr(token.pos());
-        case Tkn_Defer:
-            interp->report_error(current().pos(), "defer expressions are not implemented at the momented");
-            break;
+        case Tkn_Defer: {
+            advance();
+            auto expr = parse_expr_with_res(NoLocals);
+            return new ast::DeferExpr(expr, token.position + expr->pos());
+//            interp->report_error(current().pos(), "defer expressions are not implemented at the momented");
+        } break;
         case Tkn_SelfLit:
             advance();
             return new ast::SelfExpr(token.pos());
@@ -323,6 +387,9 @@ ast::Expr *mist::Parser::parse_bottom() {
             advance();
             auto old = restriction;
             add_restriction(StopAtComma);
+
+            if(restriction & ListExpression)
+                restriction ^= ListExpression;
 
             // tuple, or (<expr>)
             auto elements = many<ast::Expr>([this]() {
@@ -391,7 +458,7 @@ ast::Expr *mist::Parser::parse_bottom() {
             // a semicolon is used to seperate expressions. However, if
             // there is a trailing semicolon at the end of the list, an unit expression
             // is append at the end so that the expressions returns the unit value.
-            if(prev.kind() == Tkn_Semicolon)
+            if(prev.kind() == Tkn_Semicolon || elements.empty())
                 elements.push_back(new ast::UnitExpr(prev.pos()));
 
             pos = pos + current().pos();
@@ -441,7 +508,13 @@ ast::Expr *mist::Parser::parse_call(ast::Expr *operand) {
     expect(Tkn_OpenParen);
     auto pos = operand->pos();
     auto old = restriction;
-    add_restriction(AllowBindExpressions);
+
+    // if this is called when parsing a function body
+    // then the list expression needs to be removed.
+    if(restriction & ListExpression)
+        restriction ^= ListExpression;
+
+    add_restriction(AllowBindExpressions | NoLocals | StopAtComma);
     auto params = many<ast::Expr>([this] () {
             return this->parse_expr();
         }, Tkn_Comma);
@@ -469,9 +542,9 @@ ast::Expr *mist::Parser::parse_lambda() {
 ast::Expr *mist::Parser::parse_if() {
     auto pos = prev.pos();
 
-    auto cond = parse_expr_with_res(RhsExpression);
+    auto cond = parse_expr_with_res(RhsExpression | NoStructLiteral | NoError);
 
-    auto expr = parse_expr();
+    auto expr = parse_expr_with_res(RhsExpression | ListExpression);
 
     if(!expr) {
         interp->report_error(current().pos(), "expecting expression in if body");
@@ -497,7 +570,7 @@ ast::Expr *mist::Parser::parse_for() {
 
     auto pat = parse_pattern();
 
-    auto con = parse_expr_with_res(RhsExpression);
+    auto con = parse_expr_with_res(RhsExpression | NoStructLiteral | NoError);
 
     auto expr = parse_expr();
     pos = pos + pat->pos() + con->pos() + expr->pos();
@@ -507,7 +580,7 @@ ast::Expr *mist::Parser::parse_for() {
 ast::Expr *mist::Parser::parse_while() {
     auto pos = prev.pos();
 
-    auto cond = parse_expr_with_res(RhsExpression);
+    auto cond = parse_expr_with_res(RhsExpression | NoStructLiteral | NoError);
     auto expr = parse_expr();
     pos = pos + cond->pos() + expr->pos();
     auto wexpr = new ast::WhileExpr(cond, expr, pos);
@@ -721,7 +794,7 @@ ast::Decl *mist::Parser::parse_decl(bool toplevel_decls) {
     }
     else {
         auto pat = parse_pattern();
-        if(check(Tkn_Colon)) {
+        if(check(Tkn_Colon) && !(restriction & NoLocals)) {
             if(toplevel_decls) {
                 decl = parse_global(pat);
             }

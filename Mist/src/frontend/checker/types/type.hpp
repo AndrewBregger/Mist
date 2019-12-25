@@ -75,7 +75,7 @@ namespace mist {
 
         virtual Type* base_type() { return this; }
 
-
+        virtual bool is_array() { return false; }
         virtual bool is_primative() { return false; }
 
         virtual bool is_named_type() { return false; }
@@ -91,6 +91,8 @@ namespace mist {
         virtual bool is_pointer() { return false; }
 
         virtual bool is_reference() { return false; }
+
+        virtual bool is_list() { return false; }
 
         virtual std::string to_string(bool variant = false) { return ""; }
     };
@@ -135,9 +137,11 @@ namespace mist {
 
         inline struct String* name() { return n; }
 
-        const std::vector<DeclInfo *> & members();
+        const std::vector<DeclInfo *> & members() { return memberInfos; }
 
         Type* member(u32 index);
+
+        void set_infos(const std::vector<DeclInfo*>& infos);
 
         virtual std::string to_string(bool = false) override;
 
@@ -152,9 +156,9 @@ namespace mist {
         ClassType(struct String *n, const std::unordered_map<struct String *, Type *> &m,
                   const std::unordered_map<struct String *, Type *> &mf, DeclInfo* info, u64 sz);
 
-        const std::vector<DeclInfo*>& methods();
+        const std::vector<DeclInfo*>& methods() { return StructType::members(); }
 
-        const DeclInfo* method(u32 index);
+//        const DeclInfo* method(u32 index);
 
         virtual std::string to_string(bool) override;
     };
@@ -177,20 +181,19 @@ namespace mist {
 
     class FunctionType : public Type {
         TupleType* p;
-        TupleType* r;
+        Type* r;
 
+        DeclInfo* info{nullptr}; // this can be null if representing a pure type.
 
     public:
 
-        FunctionType(TupleType* p, TupleType* r);
+        FunctionType(TupleType *p, Type *r, DeclInfo *info = nullptr);
 
         Type* param(u32 index);
 
-        Type* returns(u32 index);
+        Type* returns();
 
         TupleType* params();
-
-        TupleType* returnss();
 
         u32 num_params();
 
@@ -199,6 +202,8 @@ namespace mist {
         virtual std::string to_string(bool = false) override;
 
         virtual bool is_function() override { return true; }
+
+        inline DeclInfo* get_info() { return info; }
     };
 
     class TupleType : public Type {
@@ -242,6 +247,8 @@ namespace mist {
         u64 length();
 
         virtual std::string to_string(bool = false) override;
+
+        virtual bool is_array() override { return true; }
     };
 
     class ReferenceType : public Type {
@@ -301,6 +308,8 @@ namespace mist {
         inline Type* get(u32 i) { return subtypes[i]; }
 
         virtual std::string to_string(bool = false) override;
+
+        virtual inline bool is_list() { return true; }
     private:
         std::vector<Type*> subtypes;
     };

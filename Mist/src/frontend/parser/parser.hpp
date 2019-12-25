@@ -34,8 +34,10 @@ namespace mist {
         // field.
         const Restriction LocalAsField = 1 << 3;
         const Restriction AllowBindExpressions = 1 << 4;
-        const Restriction StopAtComma = 1 << 5;
-        const Restriction ListExpression = 1 << 6;
+        const Restriction NoLocals = 1 << 5;
+        const Restriction StopAtComma = 1 << 6;
+        const Restriction ListExpression = 1 << 7;
+        const Restriction InListExpression = 1 << 8;
 
         /// Parser constructor
         /// @param interp takes the interpreter for resource management.

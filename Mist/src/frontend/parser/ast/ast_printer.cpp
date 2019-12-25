@@ -230,6 +230,13 @@ namespace ast {
 				out << ']' << std::endl;
 				break;
 			}
+			case Defer: {
+				auto e = CAST(DeferExpr, expr);
+				out << "expr: {\n";
+				print(out, e->expr);
+				out << "{" << std::endl;
+				break;
+			}
 			case UnitLit: break;
 			case SelfLit: break;
 		}

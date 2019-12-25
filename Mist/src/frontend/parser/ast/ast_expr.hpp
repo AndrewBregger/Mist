@@ -65,7 +65,8 @@ namespace ast {
 
 		Lambda,
 		CompoundLiteral,
-		List
+		List,
+		Defer
 	};
 
 
@@ -366,10 +367,10 @@ namespace ast {
 	};
 
 	 struct StructLiteralExpr : public Expr {
-	 	Expr* name;
+	 	TypeSpec* name;
 	 	std::vector<Expr*> members;
 
-	 	StructLiteralExpr(Expr* name, const std::vector<Expr*>& members, mist::Pos pos);
+	 	StructLiteralExpr(TypeSpec *name, const std::vector<Expr *> &members, mist::Pos pos);
 		 inline virtual bool is_literal() override { return true; }
 	 };
 
@@ -395,5 +396,11 @@ namespace ast {
 	 	std::vector<Expr*> subexpr;
 
 	 	ListExpr(const std::vector<Expr*> subexpr, mist::Pos pos);
+	 };
+
+	 struct DeferExpr : public Expr {
+	 	Expr* expr;
+
+	 	DeferExpr(Expr* expr, mist::Pos pos);
 	 };
 }

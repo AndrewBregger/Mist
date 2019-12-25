@@ -16,9 +16,6 @@
 
 
 int main(int argc, const char** argv) {
-    if(argc < 2)
-        return 1;
-
 	auto start = std::chrono::high_resolution_clock::now();
 
     std::vector<std::string> args;
@@ -27,7 +24,7 @@ int main(int argc, const char** argv) {
 
     mist::Interpreter interp(args);
 
-    interp.compile_root();
+    interp.run_context();
 
 	auto end = std::chrono::high_resolution_clock::now();
 

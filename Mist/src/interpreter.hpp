@@ -42,6 +42,11 @@ namespace mist {
             /// if it doesnt find one it creates it and returns it.
             /// if it does then it just returns that one.
             struct String* find_or_create_string(const std::string& str);
+
+
+
+            /// determine if the arguments given where with a root file.
+            bool has_root();
             
 		private:
             /// creates a file of the given filename
@@ -91,9 +96,21 @@ namespace mist {
             Type* add_type(Type* type);
 
             /// Check if the type already exists
-            /// @param type a
+            /// @param type the type to find
+            /// @return an equivalent type or null
             Type* find_type(Type* type);
 
+            /// Searches for a file by name
+            /// @param name the name of the file
+            /// @return the file or null
+            io::File* find_file(const std::string& name);
+
+
+            /// Starts a repl loop
+            void start_repl();
+
+            /// exectution wrapper
+            void run_context();
 
             bool contains_equivalent_type(Type* type);
 

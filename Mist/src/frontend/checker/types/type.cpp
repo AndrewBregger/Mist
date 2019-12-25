@@ -32,6 +32,10 @@ mist::Type *mist::StructType::member(u32 index) {
     return nullptr;
 }
 
+void mist::StructType::set_infos(const std::vector<mist::DeclInfo *>& infos) {
+    memberInfos = infos;
+}
+
 mist::ClassType::ClassType(struct String *n, const std::unordered_map<struct String *, Type *> &m,
                            const std::unordered_map<struct String *, Type *> &mf, DeclInfo* info, u64 sz) : StructType(n, m, info, sz), mf(mf) {
 }
@@ -63,32 +67,28 @@ struct mist::String *mist::VariantType::name() {
     return n;
 }
 
-mist::FunctionType::FunctionType(mist::TupleType *p, mist::TupleType *r) : Type(Function, 8), p(p), r(r) {
+mist::FunctionType::FunctionType(TupleType *p, Type *r, DeclInfo *info) : Type(Function, 8), p(p), r(r), info(info) {
 }
 
 mist::Type *mist::FunctionType::param(u32 index) {
     return p->get(index);
 }
 
-mist::Type *mist::FunctionType::returns(u32 index) {
-    return r->get(index);
+mist::Type *mist::FunctionType::returns() {
+    return r;
 }
 
 mist::TupleType *mist::FunctionType::params() {
     return p;
 }
 
-mist::TupleType *mist::FunctionType::returnss() {
-    return r;
-}
-
 u32 mist::FunctionType::num_params() {
     return p->num();
 }
 
-u32 mist::FunctionType::num_returns() {
-    return r->num();
-}
+//u32 mist::FunctionType::num_returns() {
+//    return r->num();
+//}
 
 
 std::string mist::VariantType::to_string(bool) {
@@ -132,7 +132,9 @@ mist::UnitType::UnitType() : Type(Unit, 0) {
 }
 
 mist::ListType::ListType(const std::vector<mist::Type *> &subtypes, u64 sz) : Type(List, sz), subtypes(subtypes) {
-
+    if(subtypes.size() < 2) {
+        throw std::runtime_error("invalid number of list subtypes");
+    }
 }
 
 
@@ -195,12 +197,9 @@ std::string mist::PointerType::to_string(bool) {
 
 std::string mist::ListType::to_string(bool) {
     std::stringstream ss;
-    ss << "[";
-    for(auto t : subtypes)
-        ss << t->to_string() << ", ";
-    u32 pos = (u32) ss.tellp();
-    ss.seekp(pos - 2);
-    ss << "]";
+    for(u32 i = 0; i < subtypes.size() - 1; ++i)
+        ss << subtypes[i]->to_string() << ", ";
+    ss << subtypes.back()->to_string();
     return ss.str();
 }
 

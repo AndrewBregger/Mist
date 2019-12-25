@@ -1,10 +1,12 @@
-    //
+//
 // Created by Andrew Bregger on 2018-12-29.
 //
 
+#include <algorithm>
 #include "typer.hpp"
-
 #include "frontend/parser/ast/ast_printer.hpp"
+
+#include <cassert>
 
 
 mist::DeclInfo::DeclInfo(struct String *name, i32 index, mist::Scope *scope, ast::Decl *decl)
@@ -51,9 +53,6 @@ bool mist::DeclInfo::resolving() {
     return state == Resolving;
 }
 
-mist::Typer::Typer(mist::Interpreter *interp) : interp(interp), prelude(new Scope(nullptr, PreludeScope, interp)) {
-}
-
 void mist::DeclInfo::resolve(mist::Type *type, mist::Addressing addr, DeclInfoKind k) {
     this->type = type;
     this->addressing = addr;
@@ -61,59 +60,16 @@ void mist::DeclInfo::resolve(mist::Type *type, mist::Addressing addr, DeclInfoKi
     this->k = k;
 }
 
-    void mist::Typer::create_root() {
+ist::Typer::Typer(mist::Interpreter *interp) : interp(interp), prelude(new Scope(nullptr, PreludeScope, interp)) {
+}
+
+void mist::Typer::create_root() {
     root = new Scope(prelude, ModuleScope, interp);
     current = root;
 }
 
 std::vector<mist::DeclInfo *> mist::Typer::add_pattern(ast::Pattern *pattern, ast::Decl *decl, i32 index) {
     return std::vector<DeclInfo*>();
-//    std::vector<mist::DeclInfo *> infos;
-//    switch(pattern->kind()) {
-//        case ast::IdentPatKind: {
-//            auto pat = static_cast<ast::IdentPat*>(pattern);
-//            auto info = new DeclInfo(pat->name->value, index, current, decl);
-//            if(add_name(pat->name, info))
-//               infos.push_back(info);
-//        }
-//        case ast::TuplePatKind: {
-//            auto pat = static_cast<ast::TuplePat*>(pattern);
-//            for(int i = 0; i < pat->elements.size(); ++i) {
-//                if(add_pattern(pat->elements[i], decl, i))
-//                    infos.push_back(info);
-//            }
-//
-//        } break;
-//        case ast::StructurePatKind: {
-//            auto pat = static_cast<ast::StructPat*>(pattern);
-//            for(int i = 0; i < pat->members.size(); ++i) {
-//                if(!add_pattern(pat->members[i], decl, i))
-//                    return false;
-//            }
-//
-//        } break;
-//        case ast::VariantPatKind: {
-//            auto pat = static_cast<ast::VariantPat*>(pattern);
-//            for(int i = 0; i < pat->members.size(); ++i) {
-//                if(!add_pattern(pat->members[i], decl, i))
-//                    return false;
-//            }
-//
-//        } break;
-//        case ast::ListPatKind: {
-//            auto pat = static_cast<ast::ListPat*>(pattern);
-//            for(int i = 0; i < pat->patterns.size(); ++i) {
-//                if(!add_pattern(pat->patterns[i], decl, i))
-//                    return false;
-//            }
-//        } break;
-//        case ast::UnderscorePatKind:
-//            break;
-//        default:
-//            interp->report_error(pattern->pos(), "invalid pattern being added to scope");
-//            break;
-//    }
-//    return false;
 }
 
 bool mist::Typer::add_name(ast::Ident *name, mist::DeclInfo *info) {
@@ -139,6 +95,25 @@ void mist::Typer::pop_scope() {
     current = current->parent;
 }
 
+mist::Val mist::Typer::resolve_expected_expr(ast::Expr *expr, mist::Type *expected) {
+    Val val = resolve_expr(expr);
+
+    if(!val.type) {
+        // we have bigger problems
+        return Val();
+    }
+    else if(compatible_type(expected, val.type, true)) {
+        return val;
+    }
+
+    interp->report_error(expr->pos(),
+            "incompatible types expected: '%s', found: '%s'",
+            expected->to_string(tuples_as_lists).c_str(),
+            val.type->to_string(tuples_as_lists).c_str());
+    return mist::Val();
+}
+
+/// Add a resolve_expr_expected which allows for given an expected type when resolving the epxression.
 mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
     if(!expr) {
         std::clog << "[LOG]" << "null expression" << std::endl;
@@ -147,7 +122,8 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
     Val val;
     switch(expr->kind()) {
         case ast::UnitLit:
-            return Val(type_unit);
+            val = Val(type_unit);
+            break;
         case ast::StringConst:
             interp->report_error(expr->pos(), "Strings are not implemented at this time");
             return Val();
@@ -156,9 +132,11 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
         case ast::FloatConst:
             val = check_integral_literal_and_type_suffix(expr);
             break;
-        case ast::BooleanConst:
-            val = Val(type_bool);
+        case ast::BooleanConst: {
+            auto boolean = CAST_PTR(ast::BooleanConstExpr, expr);
+            val = Val(boolean->value);
             break;
+        }
         case ast::Unary:
             val = resolve_unary_expr(CAST_PTR(ast::UnaryExpr, expr));
             break;
@@ -214,9 +192,11 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
                 }
                 else break;
             }
-            val.type = new TupleType(subexprs, sz);
+            val.type = new ListType(subexprs, sz);
         } break;
         case ast::Parenthesis:
+            val = resolve_call_or_index(CAST_PTR(ast::ParenthesisExpr, expr));
+            break;
         case ast::Selector: {
             auto selector = CAST_PTR(ast::SelectorExpr, expr);
             auto operandType = resolve_expr(selector->operand);
@@ -246,6 +226,39 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
                     }
                 }
             }
+//            else {
+//                auto name = selector->element->name;
+//                DeclInfo* info = resolve_name(name);
+//
+//                if(info->is_function()) {
+//                    auto numParams = info->fieldParams.size();
+//                    auto type = CAST_PTR(FunctionType, info->type);
+//
+//                    if(type->num_params() == 0) {
+//                        interp->report_error(selector->element->pos(), "attempting to call a function inline which take 0 parameters");
+//                        val = Val();
+//                        break;
+//                    }
+//
+//                    auto param = type->param(0);
+//                    if(compatible_type(param, operandType.type, false)) {
+//                        val = Val(type->returns());
+//                        break;
+//                    }
+//                    else {
+//                        interp->report_error(selector->element->pos(),
+//                                             "unable to find valid function with parameter: '%s' and name: '%s'",
+//                                             operandType.type->to_string().c_str(),
+//                                             name->value->value().c_str());
+//                        val = Val();
+//                        break;
+//                    }
+//
+////                       else {
+////                           interp->report_error(selector->element->pos(), "attempting to call a function expecting more than")
+////                       }
+//                }
+//            }
             interp->report_error(selector->operand->pos(),
                     "operand of type: '%s' does not contain any fields",
                     operandType.type->to_string(tuples_as_lists).c_str());
@@ -263,7 +276,7 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
             if(operandType.type->is_tuple()) {
                 auto tupleType = CAST_PTR(TupleType, operandType.type);
                 u32 tupleIndex = tupleType->num();
-                u32 indx = index->index;
+                u32 indx = (u32) index->index;
 
                 if(indx >= tupleIndex) {
                     interp->report_error(index->pos(),
@@ -283,9 +296,49 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
                 break;
             }
         } break;
+        case ast::StructLiteral: {
+            val = resolve_struct_literal(CAST_PTR(ast::StructLiteralExpr, expr));
+        } break;
+        case ast::Defer: {
+            // I am not sure what else should happen here.
+            if(state & BlockBody) {
+                auto e = CAST_PTR(ast::DeferExpr, expr);
+                // we do not need the actual output of this expression
+                if(resolve_expr(e->expr).type == nullptr)
+                    val = Val();
+                else
+                    val = Val(type_unit);
+            }
+            else {
+                interp->report_error(expr->pos(), "defer must be in a block");
+            }
+        } break;
+        case ast::If:
+            val = resolve_if(CAST_PTR(ast::IfExpr, expr));
+            break;
+        case ast::While:
+            val = resolve_while(CAST_PTR(ast::WhileExpr, expr));
+            break;
+        case ast::Break: {
+            if(!(state & LoopBody)) {
+                interp->report_error(expr->pos(), "break not in the scope of a loop");
+                val = Val();
+                break;
+            }
+            val = Val(type_unit);
+        } break;
+        case ast::Continue: {
+            if(!(state & LoopBody)) {
+                interp->report_error(expr->pos(), "continue not in the scope of a loop");
+                val = Val();
+                break;
+            }
+            val =  Val(type_unit);
+        } break;
+        case ast::Loop:
+        case ast::For:
         default:
             break;
-
     }
 
     // checks whether the resulting type already exists if
@@ -297,6 +350,7 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
         val.type = t;
     }
     expr->t = val.type;
+    val.expr = expr;
     std::cout << "Resolved Expression: " << expr->pos().line << " " << expr->pos().column << ": ";
     if(val.type) {
         std::cout << val.type->to_string(tuples_as_lists);
@@ -308,26 +362,90 @@ mist::Val mist::Typer::resolve_expr(ast::Expr *expr) {
     return val;
 }
 
+mist::Val mist::Typer::resolve_struct_literal(ast::StructLiteralExpr *expr) {
+//    Val name = resolve_expr(expr->name);
+    Type* name = resolve_typespec(expr->name);
+
+    if(name->is_named_type()) {
+       // it is a class, struct, or enum
+       if(name->kind() == Struct) {
+           auto s = CAST_PTR(StructType, name);
+           std::vector<Val> values(s->members().size(), Val());
+           u32 indx = 0;
+           bool error = false;
+           for(auto member : expr->members) {
+               if(member->kind() == ast::Binding) {
+                   auto [val, ident] = resolve_binding(CAST_PTR(ast::BindingExpr, member), s->info->localScope);
+
+                   if(!val.type) {
+                       interp->report_error(member->pos(), "type '%s' does not have field '%s'", s->name()->value().c_str(), ident->value->value().c_str());
+                       error = true;
+                       continue;
+                   }
+
+                   i32 local = -1;
+
+                   for(i32 i = 0; i < s->info->fieldParams.size(); ++i) {
+                       if(s->info->fieldParams[i].name == ident->value) {
+                           local = i;
+                       }
+                   }
+
+                   if(values[local].type) {
+                       interp->report_error(member->pos(), "attempting to rebind member: '%s'", ident->value->value().c_str());
+                       return Val();
+                   }
+                   values[local] = val;
+               }
+               else {
+                   auto val = resolve_expr(member);
+                   values[indx++] = val;
+               }
+           }
+
+           if(error) {
+               return Val();
+           }
+
+           // check for defaults
+           for(u32 i = 0; i < s->info->fieldParams.size(); ++i) {
+               if(!values[i].type) {
+                   if(s->info->fieldParams[i].def) {
+                       std::cout << "Using a default value of struct member: " << s->info->fieldParams[i].name->val << std::endl;
+                       values[i] = resolve_expr(s->info->fieldParams[i].def);
+                   }
+                   else {
+                       interp->report_error(expr->pos(), "failed to initialize field: '%s'", s->info->fieldParams[i].name->val.c_str());
+                       error = true;
+                       continue;
+                   }
+               }
+
+               check_types(s->info->fieldParams[i].type, values[i].type, values[i].expr->pos());
+           }
+
+           if(error) {
+               return Val();
+           }
+
+           return Val(name);
+       }
+    }
+    interp->report_error(expr->name->pos(), "constructing a non struct type as a struct: found type: '%s'", name->to_string().c_str());
+    return Val();
+}
+
 mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
     Type* type = nullptr;
     switch(spec->k) {
         case ast::Named: {
             auto name = CAST_PTR(ast::NamedSpec, spec);
             DeclInfo* info = resolve_name(name->name);
-            if(info->is_resolved()) {
-                if(info->is_type()) {
-                    return info->type;
-                }
-                else {
-                    interp->report_error(spec->pos(), "'%s' does not refer to a type", name->name->value->val.c_str());
-                }
+            if(info->is_type()) {
+                type = info->type;
             }
             else {
-                if(info->scope->kind() == ModuleScope)
-                    return resolve_toplevel_decl(info);
-                else {
-                    interp->report_error("[LOG]: Cyclic reference, I think");
-                }
+                interp->report_error(spec->pos(), "'%s' does not refer to a type", name->name->value->val.c_str());
             }
         } break;
         case ast::TupleType: {
@@ -339,13 +457,13 @@ mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
                 specs.push_back(t);
                 size = t->size();
             }
-            return new TupleType(specs, size);
+            type = new TupleType(specs, size);
         } break;
         case ast::FunctionType: {
             auto fn = CAST_PTR(ast::FunctionSpec, spec);
             TupleType* paramType = nullptr;
             u64 paramSize = 0;
-            TupleType* returnType = nullptr;
+            Type* returnType = nullptr;
             u64 returnSize = 0;
 
             std::vector<Type*> params;
@@ -375,7 +493,22 @@ mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
             }
 
             paramType = new TupleType(params, paramSize);
-            returnType = new TupleType(returns, returnSize);
+
+            if(returns.size() == 1) {
+                returnType = returns.front();
+            }
+            else {
+                returnType = new ListType(returns, returnSize);
+            }
+
+            auto t = interp->find_type(returnType);
+            if(t && t != returnType) {
+                delete returnType;
+                returnType = t;
+            }
+            else {
+                interp->add_type(returnType);
+            }
 
             type = new FunctionType(paramType, returnType);
         } break;
@@ -470,41 +603,321 @@ mist::Type *mist::Typer::resolve_typespec(ast::TypeSpec *spec) {
     else {
         interp->add_type(type);
     }
+
+    if(spec->mut == ast::Mutable)
+        return new MutableType(type);
     return type;
 }
 
 mist::Val mist::Typer::resolve_assignment_expr(ast::AssignmentExpr *assign) {
 
+    if(assign->op != ast::AssignmentOp::Equal) {
+        interp->report_error(assign->pos(), "only assignment is allowed");
+        return Val();
+    }
 
+    // maybe this could be expected if the lvalues are resolved first.
+    add_state(ResolvingAssignment);
+
+    Val val = resolve_expr(assign->expr);
+
+    remove_state(ResolvingAssignment);
+
+    std::vector<Val> lvalues;
+
+    for(auto l : assign->lvalues) {
+        Val v = resolve_expr(l);
+        if(v.type->is_reference() || v.is_constant) {
+            interp->report_error(l->pos(), "invalid lvalue in assignment expression");
+            return Val();
+        }
+        lvalues.push_back(v);
+    }
+
+    if(lvalues.size() > 1) {
+        if(!val.type) {
+            return Val();
+        }
+
+        if(!val.type->is_list()) {
+            interp->report_error(assign->pos(),
+                    "too many lvalues in assignment: rhs result: '%s'",
+                    val.type->to_string().c_str());
+            return Val();
+        }
+        else {
+            auto list = CAST_PTR(ListType, val.type);
+            if(list->num() != lvalues.size()) {
+                interp->report_error(assign->expr->pos(), "expecting %u lvalues, found %u", list->num(), lvalues.size());
+            }
+            for(u32 i = 0; i < lvalues.size(); ++i) {
+                if(!lvalues[i].type->is_mutable()) {
+                    interp->report_error(lvalues[i].expr->pos(), "attempting to assign to a constant value");
+                    return Val();
+                }
+
+                if(!compatible_type(list->get(i), lvalues[i].type, true)) {
+                    interp->report_error(lvalues[i].expr->pos(),
+                            "assigning incomptatable type: expecting: '%s' found: '%s'",
+                            lvalues[i].type->to_string().c_str(),
+                            list->get(i)->to_string().c_str());
+                    return Val();
+                }
+            }
+        }
+    }
+    else {
+
+        Val lhs = lvalues.front();
+
+        if(val.type->is_list()) {
+            interp->report_error(lhs.expr->pos(), "unable to bind a multi-value expression with a single value");
+            return Val();
+        }
+
+        if(!lhs.type->is_mutable()) {
+            interp->report_error(lhs.expr->pos(), "attempting to assign to a constant value");
+            return Val();
+        }
+
+        if(!compatible_type(val.type, lhs.type, true)) {
+            interp->report_error(lhs.expr->pos(),
+                                 "assigning incomptatable type: expecting: '%s' found: '%s'",
+                                 lhs.type->to_string().c_str(),
+                                 val.type->to_string().c_str());
+            return Val();
+        }
+    }
 
     // always returns unit returns null if failed
     return Val(type_unit);
 }
 
+mist::Val mist::Typer::resolve_call_or_index(ast::ParenthesisExpr *expr) {
+    Val callee = resolve_expr(expr->operand);
 
-//std::vector<mist::DeclInfo *> mist::Typer::resolve_local(ast::LocalDecl *local) {
-////    std::vector<Type*> expected_types;
-////    for(auto t : local->sp) {
-////        auto ty = resolve_typespec(t);
-////        expected_types.push_back(ty);
-////    }
-////
-////    std::vector<Type*> expr_types;
-////    for(auto expr : local->expr()) {
-////        auto type = resolve_expr(expr);
-////        expr_types.push_back(type);
-////    }
-////
-////    auto declInfo = add_pattern(local->name, local, 0);
-////
-////
-////    if(resolve_expected_types_and_initialization(local->name, declInfo, expected_types, expr_types))
-////        return declInfo;
-////    else
-////        return std::vector<DeclInfo*>();
-//}
+    if(!callee.type) {
+        return Val();
+    }
+
+    Val res;
+
+    if(callee.type->is_function()) {
+        res = resolve_call(callee, expr->params)
+                ;
+    }
+    else if(callee.type->is_array()){
 
 
+        res = Val(callee.type->base_type());
+    }
+
+    res.expr = expr;
+    return res;
+}
+
+mist::Val mist::Typer::resolve_call(mist::Val callee, const std::vector<ast::Expr *> &actuals) {
+    auto function = CAST_PTR(FunctionType, callee.type);
+
+    // this to resolve bindings and defaults
+    // and eventually overloads
+    /// @NOTE: It may be benificial for the declaration infos to keep track
+    ///        of shadowing. I.E if a name shadows a name in an ancestors scope
+    ///        then the Declaration Info should have a pointer to that info.
+    ///        This would be useful when resolving overloading across multiple scopes
+    ///        and Universal function syntax (this might be hard with how I have .
+    ///        some data structured).
+    DeclInfo* info = function->get_info();
+    /// @TODO: Add checking for default parameters, for now it is assumed every parameter is given.
+    if(function->num_params() != actuals.size()) {
+        interp->report_error(callee.expr->pos(), "expecting %u parameters found %u", function->num_params(), actuals.size());
+        return Val();
+    }
+
+    std::vector<Val> actualTypes(function->num_params(), Val());
+
+    u32 index = 0;
+    for(auto actual : actuals) {
+        Val val;
+        if(actual->kind() == ast::Binding) {
+            // the scope given is th scope of the parameters not the body.
+            auto [value, ident] =  resolve_binding(CAST_PTR(ast::BindingExpr, actual), info->localScope);
+
+            if(value.type == nullptr) {
+                interp->report_error(actual->pos(), "unable to bind name '%s' to a parameter of '%s'", ident->value->val.c_str(), info->name->val.c_str());
+                return Val();
+            }
+
+            val = value;
+            i32 found = -1;
+            for(u32 i = 0; i < info->fieldParams.size(); ++i)
+                if(info->fieldParams[i].name == ident->value) {
+                    // it will be found
+                    found = i;
+                    break;
+                }
+
+            if(found == -1) {
+                interp->report_error("Compiler Error: unable to find an existing parameter");
+                return Val();
+            }
+
+            if(actualTypes[found].type != nullptr) {
+                interp->report_error(actual->pos(), "attempting to bind a value to a parameter already bound: '%s'", ident->value->val.c_str());
+                return Val();
+            }
+            actualTypes[found] = val;
+        }
+        else {
+            val = resolve_expr(actual);
+            actualTypes[index++] = val;
+        }
+    }
+
+    bool valid = true;
+    for(auto& x : actualTypes) {
+        valid = valid && (bool) x.type;
+    }
+
+    if(valid) {
+        auto params = function->params();
+        for(u32 i = 0; i < actualTypes.size(); ++i) {
+            if(actualTypes[i].type == type_unit) {
+                interp->report_error(actualTypes[i].expr->pos(), "unable to parameter of type unit");
+                return Val();
+            }
+
+            if(!equivalent_type(params->get(i), actualTypes[i].type)) {
+                interp->report_error(actualTypes[i].expr->pos(),
+                        "invalid parameter type expecting: '%s', found: '%s'",
+                        params->get(i)->to_string(tuples_as_lists).c_str(),
+                        actualTypes[i].type->to_string(tuples_as_lists).c_str());
+                return Val();
+            }
+        }
+        return Val(function->returns());
+        // the invalid type should be reported else where.
+    }
+    return Val();
+}
+
+std::tuple<mist::Val, ast::Ident*> mist::Typer::resolve_binding(ast::BindingExpr *binding, mist::Scope *local) {
+    auto name = binding->name;
+    if(name->kind() == Value) {
+        auto value = CAST_PTR(ast::ValueExpr, name);
+        auto ident = value->name;
+
+        DeclInfo* info = resolve_name(local, ident);
+
+        if(info) {
+            Val val = resolve_expr(binding->expr);
+            return std::make_tuple(val, ident);
+        }
+        else {
+            return std::make_tuple(Val(), ident);
+        }
+    }
+    else {
+
+    }
+    return std::make_tuple(Val(), nullptr);
+}
+
+mist::Val mist::Typer::resolve_if(ast::IfExpr *expr) {
+//    Val cond = resolve_expr(expr->cond);
+//
+//    Type* condType = cond.type->base_type();
+//
+//    if(cond.type != type_bool) {
+//        interp->report_error(cond.expr->pos(), "if condition must be a boolean, found: '%s'", cond.type->to_string().c_str());
+//        return Val();
+//    }
+//
+//    std::cout << "Condition Type: " << condType->to_string() << std::endl;
+
+//    auto ifBodyRes = resolve_expr(expr->body);
+
+    // linearize the expression
+    std::vector<ast::Expr*> expressions;
+    ast::Expr* temp = expr;
+    while(temp) {
+        expressions.push_back(temp);
+        if(temp->kind() == ast::If)
+            temp = CAST_PTR(ast::IfExpr, temp)->elif;
+        else
+            break;
+    }
+
+    std::vector<Val> exprRes;
+    bool else_present = false;
+    for(auto e : expressions) {
+        // by the contruction of the original if expression,
+        // only when there is an else expression present will there
+        if(e->kind() == ast::If) {
+            auto eif = CAST_PTR(ast::IfExpr, e);
+            Val cond = resolve_expr(eif->cond);
+
+            Type* condType = cond.type->base_type();
+
+            if(cond.type != type_bool) {
+                interp->report_error(cond.expr->pos(), "if condition must be a boolean, found: '%s'", cond.type->to_string().c_str());
+                return Val();
+            }
+
+            std::cout << "Condition Type: " << condType->to_string() << std::endl;
+
+            auto ifBodyRes = resolve_expr(eif->body);
+            exprRes.push_back(ifBodyRes);
+        }
+        else {
+            else_present = true;
+            auto val = resolve_expr(e);
+            exprRes.push_back(val);
+        }
+    }
+
+    Type* result = nullptr;
+
+    // if we are resolving an assigment, then we use the result of the first if
+    // to determine the expected type of the expression. Otherwise the resulting type
+    // must be unit.
+    if(state & ResolvingAssignment) result = exprRes.front().type;
+    else result = type_unit;
+
+
+    for(auto& res : exprRes) {
+        if(!compatible_type(result, res.type, true)) {
+            interp->report_error(res.expr->pos(),
+                    "conditional branch has incompatible type, expected: '%s', found: '%s'",
+                    result->to_string().c_str(),
+                    res.type->to_string().c_str());
+            return Val();
+        }
+    }
+
+    return Val(result);
+}
+
+mist::Val mist::Typer::resolve_while(ast::WhileExpr *expr) {
+    auto cond = resolve_expr(expr->cond);
+
+    // propagate the error.
+    if(!cond.type)
+        return Val();
+
+    if(cond.type != type_bool) {
+        interp->report_error(cond.expr->pos(),
+                "while condition must be a bool: found: '%s'",
+                cond.type->to_string().c_str());
+        return Val();
+    }
+
+    add_state(LoopBody);
+    auto body = resolve_expr(expr->body);
+    remove_state(LoopBody);
+
+    return Val(body.type);
+}
 
 mist::DeclInfo *mist::Typer::resolve_name(ast::Ident *name) {
     return resolve_name(current, name, false);
@@ -520,9 +933,24 @@ mist::DeclInfo *mist::Typer::resolve_name(mist::Scope *scope, ast::Ident *name, 
     else
         info = scope->find(name->value);
 
-    return info;
-}
+    if(!info)
+        return nullptr;
+    else if(info->is_resolved()) {
+        return info;
+    }
 
+    else {
+        if(info->scope->kind() == ModuleScope) {
+            info->type = resolve_toplevel_decl(info);
+            assert(info->state == Resolved);
+            return info;
+        }
+        else {
+            interp->report_error("[LOG]: Cyclic reference, I think");
+            return nullptr;
+        }
+    }
+}
 
 void mist::Typer::resolve_module(ast::Module *module) {
     /// Add all of the top level symbols to the symbol table.
@@ -543,29 +971,25 @@ void mist::Typer::resolve_module(ast::Module *module) {
         declinfos.push_back(info);
     }
 
+    state = FileBody;
+
     for(auto info : declinfos) {
         resolve_toplevel_decl(info);
+        if(interp->has_error())
+            break;
     }
-}
 
-//mist::DeclInfo* mist::Typer::resolve_name_to_declinfo(ast::Expr *name) {
-//    switch(name->kind()) {
-//        case ast::Value: {
-//            auto e = CAST_PTR(ast::ValueExpr, name);
-//            return resolve_name(e->name);
-//        } break;
-//        case ast::Selector: {
-//
-//        } break;
-//    }
-//}
+    state = 0;
+}
 
 mist::Val mist::Typer::resolve_constant_expr(ast::Expr *expr) {
     return Val();
 }
 
-
 mist::Type *mist::Typer::resolve_toplevel_decl(mist::DeclInfo *info) {
+    if(info->is_resolved())
+        return info->type;
+
     switch(info->decl->kind()) {
         case ast::Global:
             return resolve_global_decl(CAST_PTR(ast::GlobalDecl, info->decl), info);
@@ -579,9 +1003,9 @@ mist::Type *mist::Typer::resolve_toplevel_decl(mist::DeclInfo *info) {
         case ast::OpFunction:
         case ast::Use:
         case ast::Impl:
-        case ast::Generic:
+//        case ast::Generic:
         case ast::Variant:
-        case ast::VariantMember:
+//        case ast::VariantMember:
         case ast::Alias:
         case ast::Prelude:
             interp->report_error("Compiler Error: Attempting to resolve a prelude declaration");
@@ -601,11 +1025,21 @@ mist::Type *mist::Typer::resolve_global_decl(ast::GlobalDecl *decl, mist::DeclIn
 
     Val type, init_type;
 
+    if(!(state & FileBody)) {
+        interp->report_error(decl->pos, "Compiler Error: Global not found in file scope");
+        return nullptr;
+    }
+
     if(typespec)
         type.type = resolve_typespec(typespec);
 
-    if(init)
+    if(init) {
         init_type = resolve_expr(init);
+
+        if(init_type.type == type_unit) {
+            interp->report_error(init_type.expr->pos(), "unable to bind unit to variable: '%s'", info->name->value().c_str());
+        }
+    }
 
     if(!init_type.type && !type.type) {
        // this should have been caught when parsing.
@@ -615,7 +1049,6 @@ mist::Type *mist::Typer::resolve_global_decl(ast::GlobalDecl *decl, mist::DeclIn
        info->state = Invalid;
        return nullptr;
     }
-
 
     Val res;
     // if both are given, then check if they are compatable, otherwise
@@ -651,7 +1084,6 @@ mist::Type *mist::Typer::resolve_global_decl(ast::GlobalDecl *decl, mist::DeclIn
     return res.type;
 }
 
-
 /// Assumes the name has already been added to the namespace
 mist::Type *mist::Typer::resolve_struct_decl(ast::StructDecl *decl, mist::DeclInfo *info) {
 
@@ -661,10 +1093,11 @@ mist::Type *mist::Typer::resolve_struct_decl(ast::StructDecl *decl, mist::DeclIn
     std::unordered_map<struct String*, Type*> members;
     std::vector<DeclInfo*> infos;
 
+    info->scope = current;
 
     // creates a new scope for the structure.
     push_scope(MemberScope);
-    info->scope = current;
+    info->localScope = current;
 
     u64 sz = 0;
     for(auto field : decl->fields) {
@@ -672,20 +1105,45 @@ mist::Type *mist::Typer::resolve_struct_decl(ast::StructDecl *decl, mist::DeclIn
         struct String* name = CAST_PTR(ast::IdentPat, field->name)->name->value;
 
 
-        auto info = resolve_local_decl(field);
+        auto finfo = resolve_local_decl(field);
 
-        if(!info)
+        if(!info) {
+#ifdef DEBUG
+            std::cout << "Failed to resolve a struct field" << std::endl;
+            exit(1);
+#endif
             break;
+        }
 
-        infos.push_back(info);
-        members.emplace(name, info->type);
+        infos.push_back(finfo);
+        members.emplace(name, finfo->type);
 
-        sz += info->type->size();
+        ast::Expr* init = nullptr;
+        if(field->init.size() == 1)
+            init = field->init.front();
+
+        info->fieldParams.push_back(DeclInfo::FieldInfo {
+            finfo->type,
+            name,
+            init
+        });
+
+        sz += finfo->type->size();
     }
     pop_scope();
 
     // the offsets need to be figured out at here i guess.
-    Type* type = new StructType(info->name,  members, info, sz);
+     auto type = new StructType(info->name,  members, info, sz);
+
+     type->set_infos(infos);
+
+#ifdef DEBUG
+    std::cout << "Struct Info: " << info->name->value() << std::endl;
+    for(auto f : members) {
+        std::cout << "\t" << f.first->value() << " = " << f.second->to_string() << std::endl;
+    }
+    std::cout << "\tDeclInfos: " << infos.size() << std::endl;
+#endif
 
     info->resolve(type, Value, Ty);
     return type;
@@ -698,9 +1156,11 @@ mist::Type *mist::Typer::resolve_class_decl(ast::ClassDecl *decl, mist::DeclInfo
 
 /// Assumes the name has already been added to the namespace
 mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::DeclInfo *info) {
+    for(auto x : decl->returns) ast::print(std::cout, x) << std::endl;
+
     Type* functionType = nullptr;
     TupleType* paramType = nullptr;
-    TupleType* returnType = nullptr;
+    Type* returnType = nullptr;
 
     //for now I am assuming there are no parameters and the function returns Unit
     std::vector<Type*> params;
@@ -709,8 +1169,14 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
     u64 returnsSize = 0;
 
     push_scope(ParamScope);
+    info->localScope = current;
+
     for(auto param : decl->parameters) {
         auto pinfo = resolve_local_decl(param);
+        ast::Expr* init = nullptr;
+        if(!param->init.empty())
+            init = param->init.front();
+        info->fieldParams.push_back(DeclInfo::FieldInfo {pinfo->type, pinfo->name, init});
         params.push_back(pinfo->type);
         paramsSize += pinfo->type->size();
     }
@@ -732,10 +1198,12 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
 
     if(returns.empty())
         returnType = CAST_PTR(TupleType, type_emptytuple);
+    else if(returns.size() == 1)
+        returnType = returns.front();
     else
-        returnType =  new TupleType(returns, returnsSize);
+        returnType = new ListType(returns, returnsSize);
 
-    functionType = new FunctionType(paramType, returnType);
+    functionType = new FunctionType(paramType, returnType, info);
 
 
     std::cout << "Params: " << paramType->to_string() << std::endl;
@@ -749,15 +1217,22 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
     }
     else {
         auto block = CAST_PTR(ast::BlockExpr, decl->body);
+        std::cout << block->elements.size() << std::endl;
         // there is always a unit expression
         returnExpr = block->elements.back();
     }
 
+    add_state(FunctionBody);
 
+    ast::print(std::cout, decl->body);
 
     auto body_result = resolve_expr(decl->body);
 
-    std::cout << "Body Result: " << body_result.type->to_string() << std::endl;
+    remove_state(FunctionBody);
+    if(body_result.type)
+        std::cout << "Body Result: " << body_result.type->to_string() << std::endl;
+    else
+        return nullptr;
 
 
 
@@ -766,17 +1241,28 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
 
     pop_scope();
 
-    // if there are only 1 element in the tuple, we know this
-    // isnt an actual tuple.
-    if(returnType->num() == 1) {
-        check_types(returnType->get(0), body_result.type, returnExpr->pos());
+    if(body_result.type->kind() == List && returnType->kind() == List) {
+        auto body = CAST_PTR(ListType, body_result.type);
+        auto ret = CAST_PTR(ListType, returnType);
+
+        if(body->num() != ret->num()) {
+            interp->report_error(returnExpr->pos(),
+                    "invalid number of returns for multi-return function: expected %u, found %u",
+                    ret->num(), body->num());
+
+            return nullptr;
+        }
+
+        for(u32 i = 0; i < ret->num(); ++i) {
+            check_types(ret->get(i), body->get(i), returnExpr->pos());
+
+            if(interp->has_error()) {
+                return nullptr;
+            }
+        }
     }
-    else {
-        bool old = tuples_as_lists;
-        tuples_as_lists = true;
-        check_types(returnType, body_result.type, returnExpr->pos());
-        tuples_as_lists = old;
-    }
+    else
+        check_types(body_result.type, returnType, returnExpr->pos());
 
     auto found_type = interp->find_type(functionType);
     if(found_type && functionType != found_type) {
@@ -788,6 +1274,7 @@ mist::Type *mist::Typer::resolve_function_decl(ast::FunctionDecl *decl, mist::De
     }
 
 
+    std::cout << "FunctionType: " << functionType->to_string() << std::endl;
 
     info->type = functionType;
     info->resolve(functionType, Address, Func);
@@ -831,17 +1318,31 @@ void mist::Typer::resolve_decl(ast::Decl *decl) {
 mist::DeclInfo * mist::Typer::resolve_local_decl(ast::LocalDecl *decl) {
     // resolves type annotations and initialization expressions
     std::vector<Type*> initTypes;
+    add_state(ResolvingAssignment);
     for(auto expr : decl->init) {
         auto type = resolve_expr(expr);
-        if(type.type)
+        if(type.type) {
+            if(type.type == type_unit) {
+                interp->report_error(expr->pos(), "attempting to assign a value of type 'Unit'");
+                remove_state(ResolvingAssignment);
+                return nullptr;
+            }
             initTypes.push_back(type.type);
-        else
+        }
+        else {
+            remove_state(ResolvingAssignment);
             return nullptr;
+        }
     }
+    remove_state(ResolvingAssignment);
 
     std::vector<Type*> annoTypes;
     for(auto spec : decl->sp) {
         auto type = resolve_typespec(spec);
+        if(type == type_unit) {
+            interp->report_error(spec->pos(), "annotating with type 'Unit'");
+            return nullptr;
+        }
         std::cout << "Resolved type: " << type->to_string(false) << std::endl;
         if(type)
             annoTypes.push_back(type);
@@ -904,7 +1405,6 @@ mist::DeclInfo * mist::Typer::resolve_local_decl(ast::LocalDecl *decl) {
 }
 
 // type1 is the computed types and type2 is the expected type
-/// @TODO: Expand to handle sub-typing and derived types.
 bool mist::Typer::equivalent_type(mist::Type *type1, mist::Type *type2, bool ignore_mut) {
     if(ignore_mut) {
         /// for most this returns the original type
@@ -953,7 +1453,7 @@ bool mist::Typer::equivalent_type(mist::Type *type1, mist::Type *type2, bool ign
                auto p2 = CAST_PTR(FunctionType, type2);
 
                if(equivalent_type(p1->params(), p2->params()) &&
-                  equivalent_type(p1->returnss(), p2->returnss()))
+                  equivalent_type(p1->returns(), p2->returns()))
                    return true;
                return false;
            }
@@ -1019,6 +1519,11 @@ bool mist::Typer::equivalent_type(mist::Type *type1, mist::Type *type2, bool ign
            }
        }
     }
+}
+
+/// @TODO: Expand to handle sub-typing and derived types.
+bool mist::Typer::compatible_type(mist::Type *type1, mist::Type *type2, bool ignore_mut) {
+    return equivalent_type(type1, type2, ignore_mut);
 }
 
 mist::Type * mist::Typer::add_prelude(struct mist::String *name, mist::Type *type, Addressing addr, DeclInfoKind k) {
@@ -1103,7 +1608,7 @@ mist::Type *mist::Typer::get_type_from_suffix_type(ast::ConstantType cty) {
 
 mist::Val mist::Typer::resolve_unary_expr(ast::UnaryExpr *expr) {
     auto val = resolve_expr(expr->expr);
-    auto type = val.type;
+    auto type = val.type->base_type();
 
     if(!type)
         return Val();
@@ -1184,8 +1689,10 @@ mist::Val mist::Typer::resolve_unary_expr(ast::UnaryExpr *expr) {
 mist::Val mist::Typer::resolve_binary_expr(ast::BinaryExpr *expr) {
     auto lhs = resolve_expr(expr->lhs);
     auto rhs = resolve_expr(expr->rhs);
-    auto lhsType = lhs.type;
-    auto rhsType = rhs.type;
+
+    // we do not care if they are immutable or not
+    auto lhsType = lhs.type->base_type();
+    auto rhsType = rhs.type->base_type();
 
     if(lhsType->is_named_type()) {
         interp->report_error(expr->lhs->pos(), "operator overloading is not implemented");
@@ -1361,8 +1868,12 @@ mist::Val mist::Typer::resolve_value(ast::ValueExpr *expr) {
 mist::Val mist::Typer::resolve_block(ast::BlockExpr *block) {
     Val val;
     push_scope(BlockScope);
+    add_state(BlockBody);
+
     for(auto expr : block->elements)
         val = resolve_expr(expr);
+
+    remove_state(BlockBody);
     pop_scope();
     val.expr = block;
     return val;

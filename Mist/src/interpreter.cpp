@@ -6,6 +6,8 @@
 #include "frontend/parser/parser.hpp"
 #include "frontend/parser/ast/ast_printer.hpp"
 
+#include "backend/bytecodegenerator.hpp"
+
 
 #ifdef _WIN32
     #include <windows.h>
@@ -32,6 +34,8 @@ namespace mist {
     // @TODO: parser the command line arguments
     Context::Context(const std::vector<std::string>& args) : args(args), directory(fs::current_path(), true) {
         directory.load();
+        for(auto x : args)
+            std::cout << x << std::endl;
     }
     
     
@@ -73,6 +77,10 @@ namespace mist {
 		return s;
 	}
 
+    bool Context::has_root() {
+        return !args.empty();
+    }
+
     Interpreter::Interpreter(const std::vector<std::string>& args) : context(args), typer(new Typer(this)) {
         init_strings();
         init_type_table();
@@ -100,6 +108,8 @@ namespace mist {
 
         auto m = p->parse_root(root);
 
+        close_parser(p);
+
         if(has_error()) {
             std::cout << "There was an error: Exiting" << std::endl;
             close_parser(p);
@@ -110,15 +120,18 @@ namespace mist {
 
         typer->resolve_module(m);
 
-//        typer->resolve(m);
-//        if(type)
-//            std::cout << type->to_string() << std::endl;
-//        else
-//            std::cout << "Resolved to null type" << std::endl;
+        if(has_error()) {
+            return;
+        }
+//
+//        BytecodeGenerator codegen(this);
+//
+//        codegen.run(m);
+    }
 
-//        ast::print(std::cout, m);
-
-        close_parser(p);
+    io::File *Interpreter::find_file(const std::string &name) {
+        // maybe this should search for a file by not assuming name is the entire path.
+        return context.load_file(name);
     }
 
     Parser* Interpreter::get_parser() {
@@ -227,4 +240,56 @@ namespace mist {
         std::string l(pos.column - 1, '-');
         std::cout << ">\t" << l << "^" << std::endl;
     }
+
+    void strip(std::string& temp) {
+        int index = 0;
+        for(auto c : temp)
+            if(std::isspace(c))
+                index++;
+
+        for(auto end = temp.rbegin(); end != temp.rend(); ++end)
+            if(std::isspace(*end))
+                temp.pop_back();
+
+        temp = temp.substr(index);
+    }
+
+    void Interpreter::start_repl() {
+        std::string input;
+
+        while(true) {
+            std::cout << "> ";
+            std::cin >> input;
+            strip(input);
+
+            std::cout << "Input: '" << input << "'" << std::endl;
+
+            if(input.empty())
+                continue;
+
+            if(input.front() == ':') {
+                switch(input[1]) {
+                    case 'q':
+                    case 'Q':
+                        return;
+                    default:
+                        report_error("Invalid command: '%c'", input[1]);
+                        break;
+                }
+            }
+
+            // treat as code.
+            auto parser = get_parser();
+
+
+        }
+    }
+
+    void Interpreter::run_context() {
+        if(context.has_root())
+            compile_root();
+        else
+            start_repl();
+    }
 }
+

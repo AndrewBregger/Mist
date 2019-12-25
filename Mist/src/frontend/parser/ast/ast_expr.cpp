@@ -38,7 +38,8 @@ namespace ast {
 		ToString(SelfLit),
 		ToString(Lambda),
 		ToString(CompoundLiteral),
-		ToString(List)
+		ToString(List),
+		ToString(Defer)
 
 	};
 
@@ -215,8 +216,8 @@ namespace ast {
 	SelfExpr::SelfExpr(mist::Pos pos) : Expr(SelfLit, pos) {
 	}
 
-	StructLiteralExpr::StructLiteralExpr(Expr *name,
-			const std::vector<Expr *> &members, mist::Pos pos) : Expr(StructLiteral, pos), name(name), members(members) {
+	StructLiteralExpr::StructLiteralExpr(TypeSpec *name,
+                                         const std::vector<Expr *> &members, mist::Pos pos) : Expr(StructLiteral, pos), name(name), members(members) {
 	}
 
 	LambdaExpr::LambdaExpr(const std::vector<LocalDecl *> &fields, const std::vector<TypeSpec *> &returns, Expr *body,
@@ -227,6 +228,10 @@ namespace ast {
 	}
 
 	ListExpr::ListExpr(const std::vector<Expr *> subexpr, mist::Pos pos) : Expr(List, pos), subexpr(subexpr) {
+
+	}
+
+	DeferExpr::DeferExpr(Expr *expr, mist::Pos pos) : Expr(Defer, pos), expr(expr) {
 
 	}
 }

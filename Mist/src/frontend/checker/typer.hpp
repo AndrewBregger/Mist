@@ -61,18 +61,32 @@ namespace mist {
     };
 
     struct DeclInfo {
+
+        struct FieldInfo {
+            Type* type;
+            struct String* name;
+            ast::Expr* def;
+        };
+
         DeclInfoState state;
-        struct mist::String* name;      /// the name of this entity
-        ast::Decl* decl;                /// the declaration this name is derived from
-        i32 decl_index;                 /// the index of this name with in the declaration
+        struct mist::String* name;      /// The name of this entity
+        ast::Decl* decl;                /// The declaration this name is derived from
+        i32 decl_index;                 /// The index of this name with in the declaration
                                         /// This index is -1 for declaration which only have a single name
-                                        /// this is used to index into the pattern structure of local declarations.
-         Type* type{nullptr};
-         Scope* scope{nullptr};
+                                        /// This is used to index into the pattern structure of local declarations.
+         Type* type{nullptr};           /// The computed type of this declaration
+         Scope* scope{nullptr};         /// The scope this declaration resides
+         DeclInfo* shadow{nullptr};     /// The information of the Declaration this one shadows, if any.
 
          DeclInfoKind k;
          Addressing addressing{Value}; /// This is only used for locals
-         std::vector<mist::FunctionType*> overloads; /// Maybe this is how function can be overloaded
+
+         /// function information
+         std::vector<mist::FunctionType*> overloads; /// Maybe this is how functions can be overloaded
+
+         /// Field info (type members and parameters) and scope
+         Scope* localScope{nullptr};
+        std::vector<FieldInfo> fieldParams;
 
          DeclInfo(struct String *name, i32 index, mist::Scope *scope, ast::Decl *decl);
 
@@ -119,8 +133,18 @@ namespace mist {
 //        Type* resolve_decl(DeclInfo* info);
 
         /// Resolves an expression to its type
+        /// @param expr the expression being resovled
         /// @return the type of the declaration
         Val resolve_expr(ast::Expr* expr);
+
+        /// Resolves an expression to be conformed to a specific type
+        /// @param expr the expression being resolved
+        /// @param expected the expected type of this expression
+        /// @note the function will check the compatability of the
+        ///     resolved type and the expected type. If expr is a constant
+        ///     it will be casted to the expected type. Otherwise,
+        ///     traditional combatiblities will be check.
+        Val resolve_expected_expr(ast::Expr* expr, Type* expected);
 
         /// Resolves an expression to its type
         /// @return the type of the declaration
@@ -139,7 +163,16 @@ namespace mist {
         /// @param type1 the first type
         /// @param type2 the second type
         /// @ param ignore_mut if true then if one of the types is wrapped in mut then it is ignored
+        /// @return if the types are equivalent
         bool equivalent_type(mist::Type *type1, mist::Type *type2, bool ignore_mut = false);
+
+
+        /// Checks if two types are compatible, i.e castable.
+        /// @param type1 the first type
+        /// @param type2 the second type
+        /// @ param ignore_mut if true then if one of the types is wrapped in mut then it is ignored
+        /// @return if the types are convertable.
+        bool compatible_type(mist::Type* type1, mist::Type* type2, bool ignore_mut);
 
         /// Resolves unary expression
         /// @param expr expression
@@ -173,10 +206,45 @@ namespace mist {
         ///              to resolve
         Val resolve_block(ast::BlockExpr* block);
 
-        /// Resolves an assignment expression
+        /// resolves an assignment expression
         /// @param assign the assignment expression with variables and expressions
         /// @return unit
         Val resolve_assignment_expr(ast::AssignmentExpr* assign);
+
+
+        /// resolves a call/parenthesis expression or array index
+        /// @param expr the parenthesis expression to be resolved
+        /// @return the return of this function
+        Val resolve_call_or_index(ast::ParenthesisExpr* expr);
+
+        /// resolves a call/parenthesis expression
+        /// @param callee a value representing the function itself.
+        /// @param actuals the actual parameters to a function
+        /// @return the return of this function
+        Val resolve_call(Val callee, const std::vector<ast::Expr*>& actuals);
+
+        /// resolves a struct literal expression
+        /// @param expr the struct literal
+        /// @return the type of the struct or nullptr
+        Val resolve_struct_literal(ast::StructLiteralExpr* expr);
+
+        /// resolves an if expression
+        /// @param expr the if expression
+        /// @return the value of the if
+        Val resolve_if(ast::IfExpr* expr);
+
+        /// resolves an while expression
+        /// @param expr the while expression
+        /// @return the value of the while
+        Val resolve_while(ast::WhileExpr* expr);
+
+        /// Resolves a binding expression using the scope of the binding objects
+        ///     i.g. if parameters it takes the parameter scope
+        ///          if structure it takes the member scope
+        /// @param binding the binding expression
+        /// @param local the scope the binding objects reside.
+        /// @return the value (type) of the binding.
+        std::tuple<Val, ast::Ident*> resolve_binding(ast::BindingExpr* binding, Scope* local);
 
         /// Resolves an expression to a Declaration Info
         ///     returns null if it isn't a valid expression
@@ -194,11 +262,6 @@ namespace mist {
         /// @param scope the scope to be search
         /// @return the declaration infornation of the name.
         DeclInfo* resolve_name(Scope* scope, ast::Ident* name, bool only_scope = true);
-
-
-        /// Resolves local declarations
-        /// @param local the local declaration to be resolved
-        std::vector<DeclInfo*> resolve_local(ast::LocalDecl* local);
 
         /// resolves all of the declarations contained in the module
         /// @param module the module which contains all of the declarations
@@ -260,15 +323,32 @@ namespace mist {
         /// @return the casted value
         Val cast_value(Val val, Type* type);
 
-    private: // internal state
+        typedef u64 LexicalState;
 
+        inline void add_state(LexicalState s)    { state |= s; }
+        inline void remove_state(LexicalState s) { state ^= s; }
+
+    private: // internal state
         Interpreter* interp{nullptr};
 
-        Scope* root; // scope of the root of the currentmodule
+        Scope* root; // scope of the root of the current module
         Scope* prelude; // the prelude scope, the scope of the built in functions and types.
         Scope* current;
 
 
+        const LexicalState FileBody = 1 << 0;        //< Resolving File Body always true
+        const LexicalState FunctionBody = 1 << 1;    //< Resolving a function body
+        const LexicalState BlockBody = 1 << 2;       //< Resolving a block body
+        const LexicalState LoopBody = 1 << 3;        //< Resolving a loop body (for, while, and loop)
+        const LexicalState IfBody = 1 << 5;          //< Resolving If/elif/else construct
+        const LexicalState ResolvingAssignment = 1 << 6; //< Resovling anything that has to do with assignment of variables.
+
+        LexicalState state{0};
+
+
+
+
+        // I do not think this is necessary now.
         // local state for to help printing error messages.
         bool tuples_as_lists{false};
     };
